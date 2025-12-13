@@ -14,21 +14,21 @@ export default function LoginWithGoogle() {
   const [loading, setLoading] = useState(false);
   const { login: loginContext } = useAuth();
 
-  const sendUserDataToBackend = async (user: any) => { 
+  const sendUserDataToBackend = async (user: any) => {
+    // ✅ الأفضل: ابعت idToken للباك (لو بيدعمه)
+    const idToken = await user.getIdToken();
+
     const payload = {
-      // provider: "google",
-      // provider_id: user.uid,        
-      // email: user.email,
-      // name: user.displayName,
-			"provider": "google" ,
-			"provider_id": "Zdn4xAX0ZNNFp2qfxMIwojXHjm13" ,
-			"email": "shtya54@gmail.com" ,
-			"name": "ahmed shtya" 
+      provider: "google",
+      id_token: idToken,             // ✅ مهم (لو الباك بيعمل verify)
+      provider_id: user.uid,         // ✅ احتياطي لو الباك محتاجه
+      email: user.email,
+      name: user.displayName,
+      image: user.photoURL,
     };
 
     const res = await fetch(`${API_URL}/auth/social-login`, {
       method: "POST",
-			// credentials: "include",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify(payload),
     });
@@ -93,8 +93,7 @@ export default function LoginWithGoogle() {
       type="button"
       className="w-full"
       aria-label="log in with google"
-      onClick={sendUserDataToBackend}
-      // onClick={handleGoogleSignIn}
+      onClick={handleGoogleSignIn}
       disabled={loading}
     >
       <div
