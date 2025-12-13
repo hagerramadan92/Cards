@@ -27,6 +27,8 @@ export default function LoginWithGoogle() {
       image: user.photoURL,
     };
 
+		
+
     const res = await fetch(`${API_URL}/auth/social-login`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
