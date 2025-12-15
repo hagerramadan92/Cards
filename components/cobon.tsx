@@ -9,7 +9,7 @@ export default function CoBon() {
 
   const handleApply = async () => {
     if (!code.trim()) {
-      toast.error("من فضلك أدخل كود الكوبون", { position: "top-left" });
+      toast.error("من فضلك أدخل كود الكوبون", { position: "top-center" });
       return;
     }
 
@@ -32,18 +32,18 @@ export default function CoBon() {
 
       if (res.ok) {
         toast.success(data.message || "تم تطبيق الكود بنجاح", {
-          position: "top-left",
+          position: "top-center",
         });
       } else {
         toast.error(data.message || "الكود غير صحيح", {
-          position: "top-left",
+          position: "top-center",
         });
       }
 
       setCode("");
     } catch (error) {
       toast.error("حدث خطأ أثناء الاتصال بالسيرفر", {
-        position: "top-left",
+        position: "top-center",
       });
       console.error(error);
     }

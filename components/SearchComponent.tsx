@@ -148,14 +148,13 @@ export default function SearchComponent({ className = "" }: Props) {
           onKeyDown={handleKeyDown}
           className={[
             "w-full",
-            "rounded-2xl",
-            "border border-gray-200",
+            "rounded-xl",
+            "border border-slate-200",
             "bg-white/90 backdrop-blur",
-            "px-4 py-3",
-            "pe-20",
+            "px-4 py-2",
+            "pe-4",
             "text-[0.98rem] text-gray-900",
-            "shadow-sm",
-            "outline-none",
+             "outline-none",
             "transition-all duration-200",
             "focus:border-blue-200 focus:ring-4 focus:ring-blue-100",
           ].join(" ")}

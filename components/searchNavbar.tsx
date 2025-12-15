@@ -12,6 +12,7 @@ import CartSidebar from "./CartSideBar";
 import DropdownUser from "./DropdownUser";
 import { useAuth } from "@/src/context/AuthContext";
 import { useAppContext } from "@/src/context/AppContext";
+import Logo from "./Logo";
 
 function cn(...c: (string | false | null | undefined)[]) {
 	return c.filter(Boolean).join(" ");
@@ -40,35 +41,36 @@ export default function SearchNavbar() {
 						{/* Menu button */}
 						<button
 							onClick={() => setMenuOpen(true)}
-							aria-label="Open menu"
+							aria-label="فتح القائمة"
 							className={cn(
-								"shrink-0 rounded-full p-2.5",
-								"bg-[#4a4a4a] text-white shadow-sm",
-								"hover:opacity-95 active:scale-[0.98] transition",
-								" md:hidden focus:outline-none focus:ring-4 focus:ring-gray-200"
+								"md:hidden shrink-0 relative",
+								"rounded-xl p-2",
+								"bg-white/90 backdrop-blur border border-slate-200",
+								"text-slate-800 ",
+								"hover:shadow-md hover:bg-white",
+								"active:scale-95 transition-all duration-200",
+								"focus:outline-none focus-visible:ring-4 focus-visible:ring-slate-200"
 							)}
 						>
-							<FaBars size={16} />
+							{/* soft glow */}
+							<span className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-slate-100 to-white opacity-0 hover:opacity-100 transition" />
+
+							<motion.span
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.92 }}
+								className="relative z-10 flex items-center justify-center"
+							>
+								<FaBars size={18} />
+							</motion.span>
 						</button>
 
-						{/* Logo */}
-						<Link href="/" aria-label="home page" className="max-md:hidden relative w-20 md:w-[120px] h-11 shrink-0">
-							<Image
-								src="/images/logo11.png"
-								alt="logo"
-								fill
-								priority
-								className="object-contain"
-							/>
-						</Link>
+						<Logo className=" " />
 
 						{/* Search (expands on focus) */}
 						<div
 							className={cn(
 								"min-w-0 flex-1",
-								// ✅ width grow on focus (works if SearchComponent contains an input)
-								// we style by wrapper; you should add `className` support in SearchComponent OR wrap input inside.
-								"transition-all duration-300"
+								"transition-all max-md:hidden duration-300"
 							)}
 						>
 							<SearchGrowWrap>
@@ -81,18 +83,18 @@ export default function SearchNavbar() {
 					<div className="flex items-center gap-2 md:gap-4 shrink-0">
 						{/* Phone */}
 						<div className="hidden lg:flex flex-col text-sm leading-tight">
-							<p className="text-gray-500">أي استفسار؟</p>
+
 							<a
 								href={`tel:${String(phone).replace(/\s+/g, "")}`}
-								className="flex items-center gap-2 text-pro-hover font-bold hover:opacity-90 transition"
+								className="flex items-center gap-1 text-pro-hover font-bold hover:opacity-90 transition"
 							>
-								<LuPhone size={18} strokeWidth={1.3} />
+								<LuPhone size={22} strokeWidth={1.3} />
 								<span className="tabular-nums">{phone}</span>
 							</a>
 						</div>
 
 						{/* Cart */}
-						<div className="cursor-pointer">
+						<div className={`cursor-pointer ${!fullName && "hidden"}`}>
 							<CartSidebar />
 						</div>
 
@@ -100,9 +102,9 @@ export default function SearchNavbar() {
 						{!fullName ? (
 							<Link
 								href="/login"
-								className="hidden md:inline-flex items-center gap-2 rounded-xl bg-pro text-white px-4 py-2.5 text-sm font-extrabold shadow-sm hover:opacity-95 active:scale-[0.99] transition"
+								className=" inline-flex items-center gap-2 rounded-xl bg-pro text-white px-4 py-2.5 max-md:text-xs text-sm font-extrabold shadow-sm hover:opacity-95 active:scale-[0.99] transition"
 							>
-								<FaRegUser size={15} />
+								<FaRegUser className="max-md:hidden" size={15} />
 								تسجيل دخول
 							</Link>
 						) : (

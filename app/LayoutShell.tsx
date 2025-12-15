@@ -11,7 +11,7 @@ export default function LayoutShell({
 }) {
 	const pathname = usePathname();
 
-	const hideLayout = ["/login", "/signup", "/login/forgetPassword"].includes(
+	const hideLayout = ["/login", "/signup", "/login/forgetPassword" , "/login/resetpassword"].includes(
 		pathname
 	);
 

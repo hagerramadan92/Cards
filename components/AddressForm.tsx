@@ -4,10 +4,9 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { createPortal } from "react-dom";
-import { useEffect, useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import { IoCloseSharp } from "react-icons/io5";
-import Button from "@mui/material/Button";
 import { motion, AnimatePresence } from "framer-motion";
 import { AddressI } from "@/Types/AddressI";
 
@@ -49,6 +48,41 @@ const schema = yup.object().shape({
   addressType: yup.string().required("نوع العنوان مطلوب"),
 });
 
+function Field({
+  label,
+  error,
+  children,
+  hint,
+}: {
+  label: string;
+  error?: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <label className="text-sm font-extrabold text-slate-800">{label}</label>
+        {hint ? <span className="text-xs text-slate-500">{hint}</span> : null}
+      </div>
+      {children}
+      {error ? <p className="text-xs font-bold text-rose-600">{error}</p> : null}
+    </div>
+  );
+}
+
+function Sk({ className = "" }: { className?: string }) {
+  return (
+    <div
+      className={[
+        "relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-black/5",
+        "sk-shimmer",
+        className,
+      ].join(" ")}
+    />
+  );
+}
+
 export default function AddressForm({
   open,
   onClose,
@@ -67,37 +101,48 @@ export default function AddressForm({
     setValue,
     reset,
     watch,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<AddressFormInputs>({
     resolver: yupResolver(schema),
+    mode: "onTouched",
+    defaultValues: {
+      addressType: "home",
+    },
   });
 
   const selectedType = watch("addressType");
+  const isEdit = Boolean(initialData?.id);
+
+  const title = useMemo(
+    () => (isEdit ? "تعديل العنوان" : "إضافة عنوان جديد"),
+    [isEdit]
+  );
 
   useEffect(() => {
     if (initialData) {
-      setValue("firstName", initialData.full_name.split(" ")[0] || "");
-      setValue("lastName", initialData.full_name.split(" ")[1] || "");
+      const parts = (initialData.full_name || "").split(" ");
+      setValue("firstName", parts[0] || "");
+      setValue("lastName", parts.slice(1).join(" ") || "");
       setValue("building", initialData.building || "");
       setValue("floor", initialData.floor || "");
       setValue("apartment", initialData.apartment_number || "");
       setValue("details", initialData.details || "");
       setValue("nickname", initialData.label || "");
       setValue("phone", initialData.phone || "");
-      setValue("city", initialData.city);
-      setValue("area", initialData.area);
-      setValue("addressType", initialData.type);
+      setValue("city", initialData.city || "");
+      setValue("area", initialData.area || "");
+      setValue("addressType", initialData.type || "home");
     } else {
-      reset(); // إضافة جديد
+      reset({ addressType: "home" });
     }
-  }, [initialData, setValue, reset]);
+  }, [initialData, reset, setValue]);
 
   const handleAddAddress = async (data: AddressFormInputs) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("auth_token");
 
-      const formData = {
+      const payload = {
         first_name: data.firstName,
         last_name: data.lastName,
         phone: data.phone,
@@ -106,10 +151,13 @@ export default function AddressForm({
         address_details: data.details,
         label: data.nickname || `${data.firstName} ${data.lastName}`,
         type: data.addressType,
+        building: data.building || null,
+        floor: data.floor,
+        apartment_number: data.apartment,
       };
 
       let url = `${base_url}/addresses`;
-      let method = "POST";
+      let method: "POST" | "PUT" = "POST";
 
       if (initialData?.id) {
         url = `${base_url}/addresses/${initialData.id}`;
@@ -123,26 +171,26 @@ export default function AddressForm({
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
-      const result = await res.json();
+      const result = await res.json().catch(() => null);
 
-      if (!res.ok || !result.status) {
-        throw new Error(result.message || "حدث خطأ");
+      if (!res.ok || !result?.status) {
+        throw new Error(result?.message || "حدث خطأ");
       }
 
-      toast.success(
-        initialData?.id ? "تم تعديل العنوان بنجاح" : "تم إضافة العنوان بنجاح",
-        { duration: 1000 }
-      );
+      toast.success(isEdit ? "تم تعديل العنوان بنجاح" : "تم إضافة العنوان بنجاح", {
+        duration: 1200,
+      });
 
-      if (onSuccess) onSuccess(result.data);
+      onSuccess?.(result.data);
+      reset({ addressType: "home" });
 
-      reset();
-      setTimeout(() => onClose(), 100);
+      // close nicely
+      setTimeout(() => onClose(), 150);
     } catch (err: any) {
-      toast.error(err.message || "حدث خطأ أثناء حفظ العنوان");
+      toast.error(err?.message || "حدث خطأ أثناء حفظ العنوان");
     } finally {
       setLoading(false);
     }
@@ -151,261 +199,290 @@ export default function AddressForm({
   if (!open || !mounted) return null;
 
   return createPortal(
-    <>
-   
-      <AnimatePresence>
-        {open && (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          dir="rtl"
+          className="fixed inset-0 z-50 grid place-items-center p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+        >
+          {/* overlay */}
           <motion.div
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50"
+            className="absolute inset-0 bg-black/35 backdrop-blur-[2px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+          />
+
+          {/* dialog */}
+          <motion.div
+            onClick={(e) => e.stopPropagation()}
+            initial={{ y: 18, scale: 0.98, opacity: 0 }}
+            animate={{ y: 0, scale: 1, opacity: 1 }}
+            exit={{ y: 18, scale: 0.98, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 420, damping: 30 }}
+            className="relative w-full max-w-4xl rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 overflow-hidden"
           >
-            <motion.div
-              className="bg-white rounded-2xl shadow-xl w-[90%] md:w-[900px] max-h-[90vh] overflow-y-auto p-8 relative"
-              initial={{ opacity: 0, scale: 0.9, y: -20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between border-b border-gray-200 pb-4 mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">
-                  تفاصيل العنوان
-                </h2>
+            {/* Sticky header */}
+            <div className="sticky top-0 z-10 border-b border-slate-200 bg-gradient-to-b from-slate-50 to-white p-4 md:p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-xl md:text-2xl font-extrabold text-slate-900">
+                    {title}
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    املأ البيانات بدقة لتسهيل التوصيل.
+                  </p>
+                </div>
+
                 <button
                   onClick={onClose}
-                  aria-label="close tap"
-                  className="cursor-pointer text-gray-500 hover:text-gray-800 transition"
+                  aria-label="close"
+                  className="grid h-10 w-10 place-items-center rounded-xl bg-slate-50 text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100 transition"
                 >
-                  <IoCloseSharp size={26} />
+                  <IoCloseSharp size={22} />
                 </button>
               </div>
+            </div>
 
-              {/* Form */}
-              <form
-                onSubmit={handleSubmit(handleAddAddress)}
-                className="space-y-6"
-              >
-                <div className="h-[60vh] overflow-y-scroll flex flex-col gap-4 mt-7 px-4">
-                  {/* First + Last Name */}
-                  <div className="grid md:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-gray-700 mb-1 font-semibold">
-                        الإسم الأول
-                      </label>
+            {/* Body */}
+            <form onSubmit={handleSubmit(handleAddAddress)}>
+              <div className="max-h-[70vh] overflow-y-auto p-4 md:p-6 space-y-6">
+                {/* Section: Personal */}
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-5 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-base md:text-lg font-extrabold text-slate-900">
+                      بيانات المستلم
+                    </h3>
+                    <span className="text-xs font-bold text-slate-500">
+                      (مطلوب)
+                    </span>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4 md:gap-5">
+                    <Field label="الإسم الأول" error={errors.firstName?.message}>
                       <input
                         {...register("firstName")}
-                        className={`border rounded-lg w-full p-3 ${
-                          errors.firstName
-                            ? "border-red-400"
-                            : "border-gray-300"
-                        }`}
+                        className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none transition
+                          ${
+                            errors.firstName
+                              ? "border-rose-300 focus:ring-4 focus:ring-rose-100"
+                              : "border-slate-200 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
+                          }`}
+                        placeholder="مثال: أحمد"
                       />
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.firstName?.message}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-gray-700 mb-1 font-semibold">
-                        الإسم الأخير
-                      </label>
+                    </Field>
+
+                    <Field label="الإسم الأخير" error={errors.lastName?.message}>
                       <input
                         {...register("lastName")}
-                        className={`border rounded-lg w-full p-3 ${
-                          errors.lastName ? "border-red-400" : "border-gray-300"
-                        }`}
+                        className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none transition
+                          ${
+                            errors.lastName
+                              ? "border-rose-300 focus:ring-4 focus:ring-rose-100"
+                              : "border-slate-200 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
+                          }`}
+                        placeholder="مثال: محمد"
                       />
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.lastName?.message}
-                      </p>
-                    </div>
+                    </Field>
                   </div>
 
-                  {/* Building, floor, apartment */}
-                  <div className="grid md:grid-cols-3 gap-5">
-                    <div>
-                      <label className="block text-gray-700 mb-1 font-semibold">
-                        المبنى (اختياري)
-                      </label>
-                      <input
-                        {...register("building")}
-                        className="border rounded-lg w-full p-3 border-gray-300"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-gray-700 mb-1 font-semibold">
-                        الدور
-                      </label>
-                      <input
-                        {...register("floor")}
-                        className={`border rounded-lg w-full p-3 ${
-                          errors.floor ? "border-red-400" : "border-gray-300"
-                        }`}
-                      />
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.floor?.message}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-gray-700 mb-1 font-semibold">
-                        رقم الشقة
-                      </label>
-                      <input
-                        {...register("apartment")}
-                        className={`border rounded-lg w-full p-3 ${
-                          errors.apartment
-                            ? "border-red-400"
-                            : "border-gray-300"
-                        }`}
-                      />
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.apartment?.message}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Details */}
-                  <div>
-                    <label className="block text-gray-700 mb-1 font-semibold">
-                      تفاصيل العنوان
-                    </label>
-                    <textarea
-                      {...register("details")}
-                      className={`border rounded-lg w-full p-3 ${
-                        errors.details ? "border-red-400" : "border-gray-300"
-                      }`}
-                      rows={3}
-                    />
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.details?.message}
-                    </p>
-                  </div>
-
-                  {/* Nickname + phone */}
-                  <div className="grid md:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-gray-700 mb-1 font-semibold">
-                        اسم مختصر
-                      </label>
-                      <input
-                        {...register("nickname")}
-                        className="border rounded-lg w-full p-3 border-gray-300"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-gray-700 mb-1 font-semibold">
-                        رقم الهاتف
-                      </label>
+                  <div className="mt-4">
+                    <Field label="رقم الهاتف" error={errors.phone?.message} hint="مثال: 01xxxxxxxxx">
                       <input
                         {...register("phone")}
-                        className={`border rounded-lg w-full p-3 ${
-                          errors.phone ? "border-red-400" : "border-gray-300"
-                        }`}
+                        inputMode="numeric"
+                        className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none transition
+                          ${
+                            errors.phone
+                              ? "border-rose-300 focus:ring-4 focus:ring-rose-100"
+                              : "border-slate-200 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
+                          }`}
+                        placeholder="01xxxxxxxxx"
                       />
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.phone?.message}
-                      </p>
-                    </div>
+                    </Field>
+                  </div>
+                </div>
+
+                {/* Section: Address */}
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-5 shadow-sm">
+                  <h3 className="text-base md:text-lg font-extrabold text-slate-900 mb-4">
+                    تفاصيل العنوان
+                  </h3>
+
+                  <div className="grid md:grid-cols-3 gap-4 md:gap-5">
+                    <Field label="المبنى (اختياري)">
+                      <input
+                        {...register("building")}
+                        className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none transition
+                                   focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
+                        placeholder="مثال: 12"
+                      />
+                    </Field>
+
+                    <Field label="الدور" error={errors.floor?.message}>
+                      <input
+                        {...register("floor")}
+                        className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none transition
+                          ${
+                            errors.floor
+                              ? "border-rose-300 focus:ring-4 focus:ring-rose-100"
+                              : "border-slate-200 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
+                          }`}
+                        placeholder="مثال: 3"
+                      />
+                    </Field>
+
+                    <Field label="رقم الشقة" error={errors.apartment?.message}>
+                      <input
+                        {...register("apartment")}
+                        className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none transition
+                          ${
+                            errors.apartment
+                              ? "border-rose-300 focus:ring-4 focus:ring-rose-100"
+                              : "border-slate-200 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
+                          }`}
+                        placeholder="مثال: 12"
+                      />
+                    </Field>
                   </div>
 
-                  {/* City + Area */}
-                  <div className="grid md:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-gray-700 mb-1 font-semibold">
-                        المدينة
-                      </label>
+                  <div className="mt-4">
+                    <Field label="تفاصيل العنوان" error={errors.details?.message}>
+                      <textarea
+                        {...register("details")}
+                        rows={3}
+                        className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none transition resize-none
+                          ${
+                            errors.details
+                              ? "border-rose-300 focus:ring-4 focus:ring-rose-100"
+                              : "border-slate-200 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
+                          }`}
+                        placeholder="شارع… علامة مميزة…"
+                      />
+                    </Field>
+                  </div>
+
+                  <div className="mt-4">
+                    <Field label="اسم مختصر" error={errors.nickname?.message} hint="مثال: البيت / الشغل">
+                      <input
+                        {...register("nickname")}
+                        className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none transition
+                          ${
+                            errors.nickname
+                              ? "border-rose-300 focus:ring-4 focus:ring-rose-100"
+                              : "border-slate-200 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
+                          }`}
+                        placeholder="مثال: البيت"
+                      />
+                    </Field>
+                  </div>
+                </div>
+
+                {/* Section: Location */}
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-5 shadow-sm">
+                  <h3 className="text-base md:text-lg font-extrabold text-slate-900 mb-4">
+                    المدينة والمنطقة
+                  </h3>
+
+                  <div className="grid md:grid-cols-2 gap-4 md:gap-5">
+                    <Field label="المدينة" error={errors.city?.message}>
                       <select
                         {...register("city")}
-                        className={`border rounded-lg w-full p-3 ${
-                          errors.city ? "border-red-400" : "border-gray-300"
-                        }`}
+                        className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none transition bg-white
+                          ${
+                            errors.city
+                              ? "border-rose-300 focus:ring-4 focus:ring-rose-100"
+                              : "border-slate-200 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
+                          }`}
                       >
                         <option value="">اختر المدينة</option>
                         <option value="القاهرة">القاهرة</option>
                         <option value="الإسكندرية">الإسكندرية</option>
                         <option value="الجيزة">الجيزة</option>
                       </select>
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.city?.message}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-gray-700 mb-1 font-semibold">
-                        المنطقة
-                      </label>
+                    </Field>
+
+                    <Field label="المنطقة" error={errors.area?.message}>
                       <select
                         {...register("area")}
-                        className={`border rounded-lg w-full p-3 ${
-                          errors.area ? "border-red-400" : "border-gray-300"
-                        }`}
+                        className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none transition bg-white
+                          ${
+                            errors.area
+                              ? "border-rose-300 focus:ring-4 focus:ring-rose-100"
+                              : "border-slate-200 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
+                          }`}
                       >
                         <option value="">اختر المنطقة</option>
                         <option value="مدينة نصر">مدينة نصر</option>
                         <option value="الدقي">الدقي</option>
                         <option value="المهندسين">المهندسين</option>
                       </select>
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.area?.message}
-                      </p>
-                    </div>
+                    </Field>
                   </div>
 
-                  {/* Address Type */}
-                  <div>
-                    <label className="block text-gray-700 mb-2 font-semibold">
-                      نوع العنوان
-                    </label>
-                    <div className="flex gap-4">
-                      {[
-                        { value: "home", label: "منزل" },
-                        { value: "work", label: "عمل" },
-                      ].map((btn) => (
-                        <button
-                          key={btn.value}
-                          type="button"
-                          onClick={() => setValue("addressType", btn.value)}
-                          className={`px-6 py-2 rounded-lg font-semibold border ${
-                            selectedType === btn.value
-                              ? "bg-orange-500 text-white border-orange-500"
-                              : "bg-white text-gray-700 border-gray-300"
-                          }`}
-                        >
-                          {btn.label}
-                        </button>
-                      ))}
-                    </div>
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.addressType?.message}
-                    </p>
+                  <div className="mt-5">
+                    <Field label="نوع العنوان" error={errors.addressType?.message}>
+                      <div className="flex gap-3">
+                        {[
+                          { value: "home", label: "منزل" },
+                          { value: "work", label: "عمل" },
+                        ].map((btn) => (
+                          <button
+                            key={btn.value}
+                            type="button"
+                            onClick={() => setValue("addressType", btn.value, { shouldValidate: true })}
+                            className={`px-5 py-2.5 rounded-xl font-extrabold border transition
+                              ${
+                                selectedType === btn.value
+                                  ? "bg-pro text-white border-pro shadow-sm"
+                                  : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                              }`}
+                          >
+                            {btn.label}
+                          </button>
+                        ))}
+                      </div>
+                    </Field>
                   </div>
                 </div>
+              </div>
 
-                {/* Submit */}
-                <div className="flex justify-end pt-4 border-t border-gray-200">
-                  <Button
-                    variant="contained"
-                    type="submit"
-                    disabled={loading}
-                    sx={{
-                      fontSize: "1.1rem",
-                      backgroundColor: "#14213d",
-                      "&:hover": { backgroundColor: "#0f1a31" },
-                      paddingX: "60px",
-                      paddingY: "8px",
-                      borderRadius: "10px",
-                      textTransform: "none",
-                    }}
-                  >
-                    {loading ? "جارٍ الحفظ..." : "حفظ العنوان"}
-                  </Button>
-                </div>
-              </form>
-            </motion.div>
+              {/* Sticky footer */}
+              <div className="sticky bottom-0 z-10 border-t border-slate-200 bg-white/90 backdrop-blur p-4 md:p-5 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="rounded-xl px-5 py-3 text-sm font-extrabold text-slate-700 bg-slate-50 ring-1 ring-slate-200 hover:bg-slate-100 transition"
+                >
+                  إلغاء
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={loading || isSubmitting}
+                  className={`rounded-xl px-7 py-3 text-sm font-extrabold text-white transition
+                    ${loading || isSubmitting ? "bg-slate-400 cursor-not-allowed" : "bg-pro hover:opacity-95 active:scale-[0.99]"}
+                  `}
+                >
+                  {loading || isSubmitting ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="h-5 w-5 rounded-full border-2 border-white/80 border-t-transparent animate-spin" />
+                      جارٍ الحفظ...
+                    </span>
+                  ) : (
+                    "حفظ العنوان"
+                  )}
+                </button>
+              </div>
+            </form>
           </motion.div>
-        )}
-      </AnimatePresence>
-    </>,
+        </motion.div>
+      )}
+    </AnimatePresence>,
     document.body
   );
 }

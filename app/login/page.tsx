@@ -11,6 +11,7 @@ import LoginWithGoogle from "@/components/loginWithGoogle";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
 import { FiMail, FiLock } from "react-icons/fi";
+import Logo from "../../components/Logo";
 
 export default function Page() {
 	const [email, setEmail] = useState("");
@@ -66,7 +67,9 @@ export default function Page() {
 
 			const res = await fetch(`${API_URL}/auth/login`, {
 				method: "POST",
+				// credentials: "include", 
 				headers: { "Content-Type": "application/json", Accept: "application/json" },
+
 				body: JSON.stringify({ email, password }),
 			});
 
@@ -111,7 +114,7 @@ export default function Page() {
 
 	const fieldBase =
 		"w-full rounded-2xl border bg-white px-4 py-3 text-[15px] font-semibold outline-none transition " +
-		"placeholder:text-slate-400 focus:ring-4";
+		"placeholder:text-slate-400 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200";
 
 	const fieldOk = "border-slate-200 focus:border-pro focus:ring-pro/10";
 	const fieldBad = "border-rose-300 focus:border-rose-500 focus:ring-rose-100";
@@ -119,7 +122,7 @@ export default function Page() {
 	return (
 		<div className="min-h-screen bg-gradient-to-b from-slate-50 to-white px-4 py-10 flex items-center justify-center" dir="rtl">
 			<div className='absolute  inset-0 opacity-15' style={{ backgroundImage: 'linear-gradient(rgba(79,70,229,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(79,70,229,0.12) 1px, transparent 1px)', backgroundSize: '12px 12px', backgroundPosition: '-1px -1px' }} />
-
+			<Logo className=" absolute top-2 right-[30px] " />
 			<motion.div
 				initial={{ opacity: 0, y: 16, scale: 0.98 }}
 				animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -232,11 +235,12 @@ export default function Page() {
 							<div className="pt-2">
 								<div className={`${pending ? "opacity-80 pointer-events-none" : ""}`}>
 									<ButtonComponent
+										type="submit"
 										title={pending ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
 										onClick={handleSubmit as any}
 									/>
 								</div>
- 
+
 							</div>
 						</form>
 

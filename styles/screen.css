@@ -1,20 +1,24 @@
 .container {
-	max-width: 1400px !important;
-	width: 100%;
+  max-width: 1400px !important;
+  width: 100%;
   margin: auto !important;
   padding-left: 20px !important;
   padding-right: 20px !important;
 }
 
-.font-ar{
-	font-family: Cairo, Cairo Fallback;
+.MuiFormLabel-root *,
+.MuiBox-root *,
+.MuiFormLabel-root.MuiInputLabel-root.MuiInputLabel-formControl.MuiInputLabel-animated.MuiInputLabel-shrink.MuiInputLabel-sizeSmall.MuiInputLabel-outlined.MuiFormLabel-colorPrimary.MuiFormLabel-filled.MuiInputLabel-root.MuiInputLabel-formControl.MuiInputLabel-animated.MuiInputLabel-shrink.MuiInputLabel-sizeSmall.MuiInputLabel-outlined.css-hvjq6j-MuiFormLabel-root-MuiInputLabel-root,
+.MuiFormLabel-root.MuiInputLabel-root.MuiInputLabel-formControl.MuiInputLabel-animated.MuiInputLabel-shrink.MuiInputLabel-sizeSmall.MuiInputLabel-outlined.MuiFormLabel-colorPrimary.MuiFormLabel-filled.Mui-required.MuiInputLabel-root.MuiInputLabel-formControl.MuiInputLabel-animated.MuiInputLabel-shrink.MuiInputLabel-sizeSmall.MuiInputLabel-outlined.css-hvjq6j-MuiFormLabel-root-MuiInputLabel-root,
+body * {
+  font-family: Cairo, Cairo Fallback !important;
 }
 
-@media (max-width : 600px) {
-	.container {
-   padding-left: 10px !important;
-  padding-right: 10px !important;
-}
+@media (max-width: 600px) {
+  .container {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
 }
 .hidden1 {
   display: flex;
@@ -106,7 +110,7 @@
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(6px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-	border : 1px solid #cccccc60 ;
+  border: 1px solid #cccccc60;
   transition: all 0.25s ease;
 }
 @media (max-width: 700px) {
@@ -160,22 +164,67 @@
   background-color: rgba(0, 0, 0, 0.28) !important;
   opacity: 1;
   margin: 0 4px !important;
-	cursor: pointer;
+  cursor: pointer;
 
-  transition:
-    width 0.25s ease,
-    background-color 0.25s ease,
-    transform 0.25s ease;
+  transition: width 0.25s ease, background-color 0.25s ease, transform 0.25s ease;
 }
 
 /* Active bullet */
 .swiper-pagination-bullet-active {
   width: 26px !important; /* gives a nice “active” emphasis */
   background-color: #2563eb !important; /* 🔵 CHANGE to your brand color */
-	border-radius : 5px !important ;
- }
-
+  border-radius: 5px !important ;
+}
 
 .bottom-unset {
-	bottom: unset !important;
+  bottom: unset !important;
+}
+
+@keyframes ripple {
+  from {
+    transform: scale(0);
+    opacity: 0.55;
+  }
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #14213d;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #14213d;
+}
+
+.scroll *::-webkit-scrollbar {
+  width: 4px;
+  height: 2px !important;
+}
+
+.cateogries .swiper-wrapper {
+  align-items: center !important;
+}
+
+/* English system font */
+.font-en {
+  font-family: sans-serif !important;
+  letter-spacing: 0.04em;
 }

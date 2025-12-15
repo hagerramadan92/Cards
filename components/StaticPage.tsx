@@ -1,74 +1,68 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import parse from "html-react-parser";
-import Loading from "@/app/loading";
+import { useMemo } from "react";
 
 interface PageData {
-  id: number;
-  title: string;
-  slug: string;
-  content: string;
-  seo: {
-    meta_title: string;
-    meta_description: string;
-    meta_keywords: string;
-  };
+	id: number;
+	title: string;
+	slug: string;
+	content: string;
+	seo?: {
+		meta_title?: string;
+		meta_description?: string;
+		meta_keywords?: string;
+	};
 }
 
-export default function StaticPage({ slug }: { slug: string }) {
-  const [data, setData] = useState<PageData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// إزالة H1 المكرر
+function stripFirstH1(html: string) {
+	try {
+		const doc = new DOMParser().parseFromString(html, "text/html");
+		const h1 = doc.querySelector("h1");
+		if (h1) h1.remove();
+		return doc.body.innerHTML;
+	} catch {
+		return html;
+	}
+}
 
-  const base_url = process.env.NEXT_PUBLIC_API_URL;
+export default function StaticPageClient({ data }: { data: PageData }) {
+	const cleanHtml = useMemo(
+		() => stripFirstH1(data.content),
+		[data.content]
+	);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`${base_url}/${slug}`);
-        const result = await res.json();
+	return (
+		<div dir="rtl" className="container py-12">
+			<div className="bg-white border border-slate-200 rounded-3xl overflow-hidden">
+				{/* Header */}
+				<div className="p-6 md:p-8 bg-slate-50 border-b border-slate-200">
+					<h1 className="text-2xl md:text-3xl font-extrabold text-slate-900">
+						{data.title}
+					</h1>
 
-        if (!res.ok || !result.status) {
-          throw new Error(result.message || "حدث خطأ أثناء جلب الصفحة");
-        }
+					{data.seo?.meta_description && (
+						<p className="mt-2 text-slate-600 max-w-3xl">
+							{data.seo.meta_description}
+						</p>
+					)}
+				</div>
 
-        setData(result.data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [slug]);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center">
-        <Loading/>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-red-500 text-center mt-10">
-        <p>{error}</p>
-      </div>
-    );
-  }
-
-  if (!data) {
-    return null;
-  }
-
-  return (
-    <div className="px-5 md:px-[10%] lg:px-[15%] py-6">
-      <h1 className="text-2xl font-bold mb-4">{data.title}</h1>
-      <div>{parse(data.content)}</div>
-    </div>
-  );
+				{/* Content */}
+				<div className="p-6 md:p-8">
+					<div
+						className="
+              prose prose-slate max-w-none
+              prose-headings:font-extrabold
+              prose-a:text-pro
+              prose-img:rounded-2xl
+            "
+					>
+						{parse(cleanHtml)}
+					</div>
+				</div>
+			</div>
+		</div>
+	);
 }

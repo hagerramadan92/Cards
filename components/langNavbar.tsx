@@ -17,7 +17,7 @@ export default function LangNavbar() {
     const social_Media = socialMedia;
 
   return (
-    <div className="flex justify-between px-[5%]  xl:px-[10%] py-2 bg-[#f0f0f0] text-[0.9rem]">
+    <div className="flex justify-between container py-2 bg-[#f0f0f0] text-[0.9rem]">
       <div className="hidden1  gap-5">
         {links.map((link, index) => {
           const isActive = pathname === link.href;

@@ -21,6 +21,7 @@ type SliderItem = {
   is_link_active?: boolean;
 };
 
+
 type SliderResponse = any
 
 export default function SliderComponent({ src }: { src: SliderResponse | null }) {

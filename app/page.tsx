@@ -54,7 +54,7 @@ export default function Home() {
   return (
     <div className='container py-6 pt-12'>
       <div className=' flex flex-col gap-8'>
-        <div className='rounded-3xl overflow-hidden border border-gray-100 bg-white shadow-sm'>{isMainSliderLoading ? <HeroSliderSkeleton /> : sliderSrc.length > 0 ? <SliderComponent src={mainSlider?.[0]} /> : <div className='h-[200px] md:h-[420px] flex items-center justify-center text-gray-400'>لا توجد بنرات حالياً</div>}</div>
+        <div className='rounded-3xl overflow-hidden border border-gray-100 bg-white shadow-sm'>{isMainSliderLoading ? <HeroSliderSkeleton /> : sliderSrc.length > 0 ? <SliderComponent src={mainSlider?.[0]}   /> : <div className='h-[200px] md:h-[420px] flex items-center justify-center text-gray-400'>لا توجد بنرات حالياً</div>}</div>
 
         <div className=' max-md:overflow-hidden w-full pb-12 pt-8'>{isHomeDataLoading ? <CategoriesSliderSkeleton /> : <CategoriesSlider categories={categories1} />}</div>
 
@@ -81,7 +81,7 @@ export default function Home() {
                     <div className='absolute bottom-3 left-3 right-3 flex items-end justify-between'>
                       <h2 className='text-white text-lg md:text-2xl font-extrabold drop-shadow'>{category.name}</h2>
 
-                      <Link href={`/category/${category.slug}`} className='text-white/95 text-sm md:text-base font-semibold px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 transition'>
+                      <Link href={`/category/${category.id}`} className='text-white/95 text-sm md:text-base font-semibold px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 transition'>
                         الكل
                       </Link>
                     </div>
@@ -93,6 +93,7 @@ export default function Home() {
                       inStock={category.products}
                       isLoading={false}
                       title=''
+											hiddenArrow={false}
                       CardComponent={(product: any) => (
                         <ProductCard
                           {...product}

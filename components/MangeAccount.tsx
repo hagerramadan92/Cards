@@ -1,176 +1,281 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import ChangePassword from "./ChangePassword";
 import { motion, AnimatePresence } from "framer-motion";
-import { AiOutlineCloseCircle } from "react-icons/ai";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
+import {
+	HiOutlineShieldCheck,
+	HiOutlineUserCircle,
+	HiOutlineEnvelope,
+	HiOutlineKey,
+} from "react-icons/hi2";
 
 export default function MangeAccount() {
-  const [showModal, setShowModal] = useState(false);
+	const [showChangePassword, setShowChangePassword] = useState(false);
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
+	const [firstName, setFirstName] = useState("");
+	const [lastName, setLastName] = useState("");
+	const [email, setEmail] = useState("");
 
-  const router = useRouter();
+	const router = useRouter();
 
-  // -------------------------------
-  // تعريف الدالة fetchUserData
-  // -------------------------------
-  const fetchUserData = async (token: string) => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+	const fetchUserData = async (token: string) => {
+		try {
+			const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
+				headers: { Authorization: `Bearer ${token}` },
+				cache: "no-store",
+			});
 
-      const data = await res.json();
+			const data = await res.json();
 
-      if (!data.status) {
-        Swal.fire({
-          icon: "error",
-          title: "خطأ",
-          text: data.message || "حدث خطأ أثناء تحميل البيانات",
-        });
-        return;
-      }
+			if (!data.status) {
+				Swal.fire({
+					icon: "error",
+					title: "خطأ",
+					text: data.message || "حدث خطأ أثناء تحميل البيانات",
+				});
+				return;
+			}
 
-      const fullName = data?.data?.name || "";
-      const nameParts = fullName.split(" ");
+			const fullName = data?.data?.name || "";
+			const nameParts = fullName.split(" ");
 
-      setFirstName(nameParts[0] || "");
-      setLastName(nameParts[1] || "");
-      setEmail(data?.data?.email || "");
+			setFirstName(nameParts[0] || "");
+			setLastName(nameParts.slice(1).join(" ") || "");
+			setEmail(data?.data?.email || "");
+		} catch {
+			Swal.fire({
+				icon: "error",
+				title: "خطأ في الاتصال",
+				text: "تعذر الاتصال بالسيرفر",
+			});
+		}
+	};
 
-    } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "خطأ في الاتصال",
-        text: "تعذر الاتصال بالسيرفر",
-      });
-    }
-  };
+	useEffect(() => {
+		const token = localStorage.getItem("auth_token");
 
-  // -------------------------------
-  // useEffect مع async داخلي لتجنب تحذير React
-  // -------------------------------
-  useEffect(() => {
-    const token = localStorage.getItem("auth_token");
+		if (!token) {
+			Swal.fire({
+				icon: "warning",
+				title: "يجب تسجيل الدخول",
+				text: "فضلاً قم بتسجيل الدخول أولاً",
+			});
+			router.push("/login");
+			return;
+		}
 
-    if (!token) {
-      Swal.fire({
-        icon: "warning",
-        title: "يجب تسجيل الدخول",
-        text: "فضلاً قم بتسجيل الدخول أولاً",
-      });
-      router.push("/login");
-      return;
-    }
+		fetchUserData(token);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
-    const fetchData = async () => {
-      await fetchUserData(token);
-    };
+	return (
+		<div dir="rtl" className="space-y-6">
+			{/* Account Card */}
+			<section className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+				<div className="flex items-start gap-3 p-5 md:p-6 bg-gradient-to-b from-slate-50 to-white">
+					<div className="mt-0.5 grid h-10 w-10 place-items-center rounded-xl bg-pro/10 text-pro ring-1 ring-pro/15">
+						<HiOutlineUserCircle size={22} />
+					</div>
 
-    fetchData();
-  }, []);
+					<div className="flex-1">
+						<h2 className="text-xl md:text-2xl font-extrabold text-slate-900">
+							حسابي
+						</h2>
+						<p className="mt-1 text-sm text-slate-500">
+							حدّث بياناتك الأساسية لتكون تجربة الشراء أسرع وأسهل.
+						</p>
+					</div>
 
-  return (
-    <div className="mt-0">
-      {/* myAccount */}
-      <div className="border border-gray-200 rounded-xl p-4 mb-5">
-        <h2 className="text-2xl font-semibold text-pro mb-6">حسابي</h2>
-        <hr className="bg-gray-50 text-gray-300 mb-5" />
+					{/* Optional save (placeholder) */}
+					<button
+						type="button"
+						className="hidden md:inline-flex items-center justify-center rounded-xl bg-pro px-4 py-2 text-sm font-bold text-white shadow-sm hover:opacity-95 active:opacity-90 transition"
+						onClick={() => {
+							Swal.fire({
+								icon: "info",
+								title: "قريبًا",
+								text: "زر الحفظ جاهز—اربطه بـ API تحديث البيانات عندك.",
+							});
+						}}
+					>
+						حفظ التغييرات
+					</button>
+				</div>
 
-        <form className="grid md:grid-cols-2 gap-6 my-5">
-          <div className="flex flex-col">
-            <label className="mb-1 font-medium">الإسم الأول</label>
-            <input
-              type="text"
-              placeholder="أدخل الاسم الأول"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-2 focus:outline-pro focus:ring-1 focus:ring-pro"
-            />
-          </div>
+				<div className="p-5 md:p-6">
+					<form className="grid md:grid-cols-2 gap-4 md:gap-6">
+						<Field
+							label="الإسم الأول"
+							placeholder="أدخل الاسم الأول"
+							value={firstName}
+							onChange={setFirstName}
+						/>
+						<Field
+							label="الإسم الأخير"
+							placeholder="أدخل الاسم الأخير"
+							value={lastName}
+							onChange={setLastName}
+						/>
+					</form>
 
-          <div className="flex flex-col">
-            <label className="mb-1 font-medium">الإسم الأخير</label>
-            <input
-              type="text"
-              placeholder="أدخل الاسم الأخير"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-2 focus:outline-pro focus:ring-1 focus:ring-pro"
-            />
-          </div>
-        </form>
-      </div>
+					<div className="mt-4 md:hidden">
+						<button
+							type="button"
+							className="w-full rounded-xl bg-pro px-4 py-3 text-sm font-extrabold text-white shadow-sm hover:opacity-95 active:opacity-90 transition"
+							onClick={() => {
+								Swal.fire({
+									icon: "info",
+									title: "قريبًا",
+									text: "زر الحفظ جاهز—اربطه بـ API تحديث البيانات عندك.",
+								});
+							}}
+						>
+							حفظ التغييرات
+						</button>
+					</div>
+				</div>
+			</section>
 
-      {/* privacy */}
-      <div className="border border-gray-200 rounded-xl p-4 my-5">
-        <h2 className="text-2xl font-semibold text-pro mb-6">الحماية</h2>
-        <hr className="bg-gray-50 text-gray-300 mb-5" />
+			{/* Security Card */}
+			<section className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+				<div className="flex items-start gap-3 p-5 md:p-6 bg-gradient-to-b from-slate-50 to-white">
+					<div className="mt-0.5 grid h-10 w-10 place-items-center rounded-xl bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/15">
+						<HiOutlineShieldCheck size={22} />
+					</div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <h3 className="text-lg font-medium text-gray-800">كلمة المرور</h3>
-            <div className="flex items-center justify-between py-2 my-1 bg-gray-100 rounded px-2">
-              <p className="text-gray-500 text-lg p-0.5 rounded ">********</p>
+					<div className="flex-1">
+						<h2 className="text-xl md:text-2xl font-extrabold text-slate-900">
+							الحماية
+						</h2>
+						<p className="mt-1 text-sm text-slate-500">
+							تحكم في بيانات الدخول ووسائل الأمان لحسابك.
+						</p>
+					</div>
+				</div>
 
-              <button
-                aria-label="change password"
-                onClick={() => setShowModal(true)}
-                className="text-pro font-medium hover:underline cursor-pointer"
-              >
-                تغيير
-              </button>
+				<div className="p-5 md:p-6 space-y-3">
+					{/* Password expandable row */}
+					<div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+						<div className="flex items-center justify-between gap-4 p-4">
+							<div className="flex items-start gap-3 min-w-0">
+								<div className="mt-0.5 grid h-10 w-10 place-items-center rounded-xl bg-slate-50 text-slate-700 ring-1 ring-slate-200">
+									<HiOutlineKey size={20} />
+								</div>
 
-              <AnimatePresence>
-                {showModal && (
-                  <motion.div
-                    className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={() => setShowModal(false)}
-                  >
-                    <motion.div
-                      className="p-6 bg-black/25 max-w-md w-full relative"
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0.8, opacity: 0 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 25,
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <button
-                        className="absolute cursor-pointer top-3 right-3 text-gray-800 hover:text-gray-700 text-xl font-bold"
-                        onClick={() => setShowModal(false)}
-                      >
-                        <AiOutlineCloseCircle size={29} />
-                      </button>
+								<div className="min-w-0">
+									<div className="text-sm md:text-base font-extrabold text-slate-900">
+										كلمة المرور
+									</div>
+									<div className="mt-1 text-xs md:text-sm text-slate-500">
+										ننصح بتغيير كلمة المرور بشكل دوري.
+									</div>
+								</div>
+							</div>
 
-                      <ChangePassword />
-                    </motion.div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
+							<button
+								type="button"
+								onClick={() => setShowChangePassword((v) => !v)}
+								className="rounded-xl bg-pro/10 px-3 py-2 text-sm font-extrabold text-pro ring-1 ring-pro/15 hover:bg-pro/15 transition"
+							>
+								{showChangePassword ? "إلغاء" : "تغيير"}
+							</button>
+						</div>
 
-          <div>
-            <h3 className="text-lg font-medium text-gray-800">البريد الألكتروني</h3>
-            <div className="bg-gray-100 py-2 my-1 rounded">
-              <p className="text-gray-500 text-lg p-0.5 rounded ">{email}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+						<AnimatePresence initial={false}>
+							{showChangePassword && (
+								<motion.div
+									initial={{ height: 0, opacity: 0 }}
+									animate={{ height: "auto", opacity: 1 }}
+									exit={{ height: 0, opacity: 0 }}
+									transition={{ duration: 0.35, ease: "easeInOut" }}
+									className="overflow-hidden border-t border-slate-200 bg-slate-50"
+								>
+									<div className="p-4 md:p-6">
+										<ChangePassword />
+									</div>
+								</motion.div>
+							)}
+						</AnimatePresence>
+					</div>
+
+					{/* Email row */}
+					<SettingRow
+						icon={<HiOutlineEnvelope size={20} />}
+						title="البريد الإلكتروني"
+						description="مُستخدم لتأكيد الطلبات والإشعارات."
+						
+						right={
+							<div className="max-w-[240px] md:max-w-[360px] truncate rounded-lg bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700 ring-1 ring-slate-200">
+								{email || "—"}
+							</div>
+						}
+					/>
+				</div>
+			</section>
+		</div>
+	);
+}
+
+/* ---------------- Small UI helpers ---------------- */
+
+function Field({
+	label,
+	placeholder,
+	value,
+	onChange,
+}: {
+	label: string;
+	placeholder: string;
+	value: string;
+	onChange: (v: string) => void;
+}) {
+	return (
+		<div className="space-y-2">
+			<label className="text-sm font-extrabold text-slate-800">{label}</label>
+			<input
+				type="text"
+				placeholder={placeholder}
+				value={value}
+				onChange={(e) => onChange(e.target.value)}
+				className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900
+                   placeholder:text-slate-400 outline-none transition
+                   focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
+			/>
+		</div>
+	);
+}
+
+function SettingRow({
+	icon,
+	title,
+	description,
+	right,
+}: {
+	icon: React.ReactNode;
+	title: string;
+	description: string;
+	right: React.ReactNode;
+}) {
+	return (
+		<div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+			<div className="flex items-start gap-3 min-w-0">
+				<div className="mt-0.5 grid h-10 w-10 place-items-center rounded-xl bg-slate-50 text-slate-700 ring-1 ring-slate-200">
+					{icon}
+				</div>
+				<div className="min-w-0">
+					<div className="text-sm md:text-base font-extrabold text-slate-900">
+						{title}
+					</div>
+					<div className="mt-1 text-xs md:text-sm text-slate-500">
+						{description}
+					</div>
+				</div>
+			</div>
+
+			<div className="shrink-0">{right}</div>
+		</div>
+	);
 }

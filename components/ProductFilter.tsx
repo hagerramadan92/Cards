@@ -22,10 +22,7 @@ type ProductFilterProps = {
 	categories?: Category[];
 	onFilterChange?: (filters: Filters) => void;
 };
-
-function cn(...c: (string | false | undefined)[]) {
-	return c.filter(Boolean).join(" ");
-}
+ 
 
 export default function ProductFilter({
 	brands = [],

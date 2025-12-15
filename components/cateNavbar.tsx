@@ -4,7 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CategoryI } from "@/Types/CategoriesI";
 import { fetchApi } from "@/lib/api";
-import { FiChevronDown } from "react-icons/fi";
+import { FiChevronDown, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+
+// ✅ Swiper
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, FreeMode } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/free-mode";
 
 type Status = "idle" | "loading" | "success" | "error";
 
@@ -53,20 +60,9 @@ export default function CateNavbar() {
 	if (status === "loading") return <CateNavbarSkeleton />;
 
 	return (
-		<div className="bg-white/80  hidden1 ">
-			<div className="container  border-b border-slate-200 ">
+		<div className="w-full hidden1">
+			<div className="container !px-0 overflow-hidden border-b border-slate-200">
 				<div className="flex items-center justify-between gap-3 py-2.5">
-					{/* All products */}
-					<Link
-						href="/product"
-						className={cn(
-							"shrink-0 rounded-xl px-3 py-2 text-sm font-extrabold",
-							"bg-slate-100 text-slate-800 hover:bg-slate-200 transition"
-						)}
-					>
-						كل المنتجات
-					</Link>
-
 					{/* Error */}
 					{status === "error" && (
 						<div className="flex-1 text-center text-sm text-rose-600 font-bold">
@@ -81,86 +77,106 @@ export default function CateNavbar() {
 						</div>
 					)}
 
-					{/* Categories */}
-					{status === "success" && (
-						<div className="flex-1 flex items-center justify-end gap-1 overflow-x-auto">
-							{items.map((cat) => {
-								const hasChildren = Array.isArray(cat.children) && cat.children.length > 0;
-								const parentHref = `/category/${(cat as any)?.slug ?? cat.id}`;
-
-								return (
-									<div key={cat.id} className="relative group">
-										<Link
-											href={parentHref}
-											className={cn(
-												"inline-flex items-center gap-1 rounded-xl px-3 py-2",
-												"text-[0.98rem] font-extrabold text-slate-700",
-												"hover:bg-slate-50 hover:text-pro transition"
-											)}
-										>
-											<span className="whitespace-nowrap">{cat.name}</span>
-											{hasChildren && (
-												<FiChevronDown className="text-slate-500 group-hover:text-pro transition" />
-											)}
-										</Link>
-
-										{/* Dropdown */}
-										{hasChildren && (
-											<div
-												className={cn(
-													"absolute start-0 top-full z-50 mt-2 hidden group-hover:block",
-													"min-w-[240px] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-xl"
-												)}
-											>
-												{/* header */}
-												<div className="px-4 py-3 bg-slate-50 border-b">
-													<p className="text-sm font-extrabold text-slate-900">
-														أقسام {cat.name}
-													</p>
-													<p className="text-xs text-slate-500 mt-0.5">
-														اختر القسم المناسب
-													</p>
-												</div>
-
-												<div className="max-h-[320px] overflow-y-auto py-2">
-													{cat.children!.map((child: CategoryI) => {
-														const childHref = `/category/${(child as any)?.slug ?? child.id}`;
-
-														return (
-															<Link
-																key={child.id}
-																href={childHref}
-																className={cn(
-																	"block px-4 py-2.5 text-sm font-bold",
-																	"text-slate-700 hover:bg-slate-50 hover:text-pro transition"
-																)}
-															>
-																<div className="flex items-center justify-between gap-3">
-																	<span className="truncate">{child.name}</span>
-																	<span className="text-xs text-slate-400">عرض</span>
-																</div>
-															</Link>
-														);
-													})}
-												</div>
-
-												{/* footer */}
-												<div className="px-4 py-3 bg-white border-t">
-													<Link
-														href={parentHref}
-														className="inline-flex w-full items-center justify-center rounded-xl bg-pro text-white py-2 text-sm font-extrabold hover:opacity-95 transition"
-													>
-														عرض كل {cat.name}
-													</Link>
-												</div>
-											</div>
-										)}
-									</div>
-								);
-							})}
-						</div>
-					)}
+					{/* Slider */}
+					{status === "success" && <CategorySlider items={items} />}
 				</div>
+			</div>
+		</div>
+	);
+}
+
+function CategorySlider({ items }: { items: CategoryI[] }) {
+	return (
+		<div className="relative w-full">
+			{/* Edge fade */}
+			<div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white to-transparent z-10" />
+			<div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent z-10" />
+
+			{/* Pretty arrows */}
+			<button
+				type="button"
+				className={cn(
+					"cate-prev-1 absolute z-20 left-1 top-1/2 -translate-y-1/2",
+					"h-9 w-9 rounded-xl border border-slate-200 bg-white shadow-sm",
+					"grid place-items-center transition hover:bg-slate-50"
+				)}
+				aria-label="Scroll left"
+			>
+				<FiChevronLeft />
+			</button>
+
+			<button
+				type="button"
+				className={cn(
+					"cate-next-1 absolute z-20 right-1 top-1/2 -translate-y-1/2",
+					"h-9 w-9 rounded-xl border border-slate-200 bg-white shadow-sm",
+					"grid place-items-center transition hover:bg-slate-50"
+				)}
+				aria-label="Scroll right"
+			>
+				<FiChevronRight />
+			</button>
+
+			<div className="px-12 cateogries">
+				<Swiper
+					modules={[Navigation, FreeMode]}
+					navigation={{
+						nextEl: ".cate-next-1",
+						prevEl: ".cate-prev-1",
+					}}
+					dir="rtl"
+					slidesPerView="auto"
+					spaceBetween={6}
+					freeMode={{ enabled: true, sticky: false, momentumBounce: true }}
+					grabCursor
+					className="!overflow-visible items-center"
+				>
+					{/* All products */}
+					<SwiperSlide className="!w-auto">
+						<Link
+							href="/category"
+							className={cn(
+								"shrink-0 rounded-xl px-3 py-2 text-sm font-extrabold",
+								"bg-slate-100 text-slate-800 hover:bg-slate-200 transition"
+							)}
+						>
+							كل التصنيفات
+						</Link>
+					</SwiperSlide>
+					<SwiperSlide className="!w-auto">
+						<Link
+							href="/product"
+							className={cn(
+								"shrink-0 rounded-xl px-3 py-2 text-sm font-extrabold",
+								"bg-slate-100 text-slate-800 hover:bg-slate-200 transition"
+							)}
+						>
+							كل المنتجات
+						</Link>
+					</SwiperSlide>
+
+					{items.map((cat) => {
+						const parentHref = `/category/${cat.id}`;
+
+						return (
+							<SwiperSlide key={cat.id} className="!w-auto">
+								<div className="relative group">
+									<Link
+										href={parentHref}
+										className={cn(
+											"inline-flex items-center gap-1 rounded-xl px-3 py-2",
+											"text-[0.98rem] font-extrabold text-slate-700",
+											"hover:bg-slate-50 hover:text-pro transition"
+										)}
+									>
+										<span className="whitespace-nowrap">{cat.name}</span>
+									</Link>
+
+								</div>
+							</SwiperSlide>
+						);
+					})}
+				</Swiper>
 			</div>
 		</div>
 	);
@@ -170,11 +186,10 @@ export default function CateNavbar() {
 function CateNavbarSkeleton() {
 	return (
 		<div className="hidden1 border-b border-slate-200 bg-white">
-			<div className="container mx-auto px-4">
+			<div className="container overflow-hidden mx-auto px-4">
 				<div className="flex items-center justify-between gap-3 py-2.5">
-					<div className="h-10 w-28 rounded-xl bg-slate-100 animate-pulse" />
 					<div className="flex-1 flex items-center justify-end gap-2 overflow-hidden">
-						{Array.from({ length: 7 }).map((_, i) => (
+						{Array.from({ length: 17 }).map((_, i) => (
 							<div
 								key={i}
 								className="h-10 w-24 rounded-xl bg-slate-100 animate-pulse"

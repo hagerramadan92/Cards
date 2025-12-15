@@ -247,13 +247,13 @@ export default function CategoryPage() {
 
 	return (
 		<section className=" " dir="rtl">
-			<div className=" container py-12">
+			<div className=" container pt-2 pb-6 md:py-12">
 				{/* Header */}
 				<motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
 					<div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
 						<div>
 							<h1 className="text-2xl md:text-3xl font-black text-slate-900">{category.name}</h1>
-							<p className="text-sm text-slate-500 mt-1">
+							<p className=" max-md:hidden text-sm text-slate-500 mt-1">
 								عرض <span className="font-extrabold text-slate-900">{filteredProducts.length}</span>{" "}
 								منتج
 							</p>
@@ -381,7 +381,7 @@ export default function CategoryPage() {
 				{/* Banner */}
 				{category.category_banners?.[0]?.image && (
 					<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
-						<div className="rounded-2xl overflow-hidden shadow-sm border border-slate-100">
+						<div className="rounded-2xl overflow-hidden shadow-sm border border-slate-200">
 							<Discount src={category.category_banners[0].image} href="#" />
 						</div>
 					</motion.div>

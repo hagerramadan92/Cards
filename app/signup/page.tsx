@@ -146,7 +146,7 @@ export default function SignupPage() {
 	// ✅ same input style like login page
 	const fieldBase =
 		"w-full rounded-2xl border bg-white px-4 py-3 text-[15px] font-semibold outline-none transition " +
-		"placeholder:text-slate-400 focus:ring-4";
+		"placeholder:text-slate-400 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200";
 
 	const fieldOk = "border-slate-200 focus:border-pro focus:ring-pro/10";
 	const fieldBad = "border-rose-300 focus:border-rose-500 focus:ring-rose-100";
@@ -345,16 +345,8 @@ export default function SignupPage() {
 								</Link>
 							</div>
 						</form>
-
-						{/* Divider */}
-						<div className="my-6 flex items-center gap-3">
-							<div className="h-px flex-1 bg-slate-200" />
-							<span className="text-xs font-extrabold text-slate-500">أو</span>
-							<div className="h-px flex-1 bg-slate-200" />
-						</div>
-
-						{/* Google */}
-						<LoginWithGoogle />
+ 
+ 
 					</div>
 				</div>
 

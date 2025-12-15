@@ -41,7 +41,7 @@ export function CategoriesSliderSkeleton() {
 				{/* Slider skeleton */}
 				<div className="flex items-center gap-12 overflow-hidden" >
 					{Array.from({ length: 15 }).map((_, i) => (
-						<div className="group flex flex-col items-center gap-2 py-2">
+						<div key={i} className="group flex flex-col items-center gap-2 py-2">
 							{/* circle image skeleton */}
 							<div className="relative w-14 h-14 md:w-[92px] md:h-[92px] rounded-full overflow-hidden bg-gray-100 ring-1 ring-gray-200">
 								<Sk className="absolute inset-0 !rounded-full" />
@@ -82,7 +82,7 @@ export function CategorySectionSkeleton() {
 	return (
 		<section className="rounded-3xl border border-gray-100 bg-white shadow-sm overflow-hidden">
 			<div className="relative w-full h-[120px] md:h-[160px]">
-				<Sk className="absolute inset-0 rounded-none" />
+				<Sk className=" h-full w-full rounded-none" />
 			</div>
 
 			<div className="p-4 md:p-6">
@@ -91,138 +91,138 @@ export function CategorySectionSkeleton() {
 					<Sk className="h-9 w-24 rounded-full" />
 				</div>
 
-				<Swiper spaceBetween={16} slidesPerView={2} className="w-full">
-					{Array.from({ length: 6 }).map((_, i) => (
+				<div className=" grid grid-cols-4 max-lg:h-[340px] overflow-hidden max-lg:grid-cols-2  gap-6 overflow-hidden w-full">
+					{Array.from({ length: 4 }).map((_, i) => (
 						<SwiperSlide key={i}>
 							<ProductCardSkeleton />
 						</SwiperSlide>
 					))}
-				</Swiper>
+				</div>
 			</div>
 		</section>
 	);
 }
 
 
-export   function ProductPageSkeleton() {
-  return (
-    <section className="mx-4 md:mx-10 xl:mx-[14%] pt-4 pb-24" dir="rtl">
-      {/* Breadcrumb */}
-      <Sk className="h-4 w-64 mb-6" />
+export function ProductPageSkeleton() {
+	return (
+		<section className="container pt-4 pb-24" dir="rtl">
+			{/* Breadcrumb */}
+			<Sk className="h-4 w-64 mb-6" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Info */}
-        <div className="lg:col-span-5 space-y-5">
-          <Sk className="h-8 w-3/4" />
-          <Sk className="h-5 w-1/2" />
+			<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+				{/* Info */}
+				<div className="lg:col-span-5 space-y-5">
+					<Sk className="h-8 w-3/4" />
+					<Sk className="h-5 w-1/2" />
 
-          <div className="flex gap-3">
-            <Sk className="h-10 w-10 rounded-full" />
-            <Sk className="h-10 w-10 rounded-full" />
-          </div>
+					<div className="flex gap-3">
+						<Sk className="h-10 w-10 rounded-full" />
+						<Sk className="h-10 w-10 rounded-full" />
+					</div>
 
-          {/* Specs Card */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 space-y-3">
-            <Sk className="h-6 w-40" />
-            <Sk className="h-4 w-full" />
-            <Sk className="h-4 w-11/12" />
-            <Sk className="h-4 w-10/12" />
-            <Sk className="h-12 w-full mt-3" />
-          </div>
+					{/* Specs Card */}
+					<div className="rounded-3xl border border-slate-200 bg-white p-5 space-y-3">
+						<Sk className="h-6 w-40" />
+						<Sk className="h-4 w-full" />
+						<Sk className="h-4 w-11/12" />
+						<Sk className="h-4 w-10/12" />
+						<Sk className="h-12 w-full mt-3" />
+					</div>
 
-          {/* Tabs */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-4">
-            <div className="flex gap-2">
-              <Sk className="h-10 flex-1" />
-              <Sk className="h-10 flex-1" />
-            </div>
+					{/* Tabs */}
+					<div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-4">
+						<div className="flex gap-2">
+							<Sk className="h-10 flex-1" />
+							<Sk className="h-10 flex-1" />
+						</div>
 
-            {/* Options */}
-            <div className="space-y-3">
-              <Sk className="h-12 w-full" />
-              <Sk className="h-12 w-full" />
-              <Sk className="h-12 w-full" />
-            </div>
-          </div>
-        </div>
+						{/* Options */}
+						<div className="space-y-3">
+							<Sk className="h-12 w-full" />
+							<Sk className="h-12 w-full" />
+							<Sk className="h-12 w-full" />
+						</div>
+					</div>
+				</div>
 
-        {/* Gallery */}
-        <div className="lg:col-span-7">
-          <GallerySkeleton />
-        </div>
-      </div>
+				{/* Gallery */}
+				<div className="lg:col-span-7">
+					<GallerySkeleton />
+				</div>
+			</div>
 
-      <BottomBarSkeleton />
-    </section>
-  );
+			<BottomBarSkeleton />
+		</section>
+	);
 }
 
 function GallerySkeleton() {
-  return (
-    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-      <div className="animate-pulse bg-slate-200 h-[320px] sm:h-[420px] lg:h-[560px]" />
+	return (
+		<div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+			<div className="animate-pulse bg-slate-200 h-[320px] sm:h-[420px] lg:h-[560px]" />
 
-      <div className="p-3 flex gap-3">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div
-            key={i}
-            className="animate-pulse bg-slate-200 h-16 w-16 rounded-2xl"
-          />
-        ))}
-      </div>
-    </div>
-  );
+			<div className="p-3 flex gap-3">
+				{Array.from({ length: 5 }).map((_, i) => (
+					<div
+						key={i}
+						className="animate-pulse bg-slate-200 h-16 w-16 rounded-2xl"
+					/>
+				))}
+			</div>
+		</div>
+	);
 }
 function BottomBarSkeleton() {
-  return (
-    <div className="fixed bottom-0 start-0 end-0 z-50 border-t border-slate-200 bg-white/90 backdrop-blur">
-      <div className="mx-4 md:mx-10 xl:mx-[14%] py-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="animate-pulse bg-slate-200 w-14 h-14 rounded-2xl" />
-          <div className="space-y-2">
-            <div className="animate-pulse bg-slate-200 h-3 w-32" />
-            <div className="animate-pulse bg-slate-200 h-4 w-48" />
-          </div>
-        </div>
+	return (
+		<div className="fixed bottom-0 start-0 end-0 z-50 border-t border-slate-200 bg-white/90 backdrop-blur">
+			<div className="container py-3 flex items-center justify-between gap-3">
+				<div className="flex items-center gap-3">
+					<div className="animate-pulse bg-slate-200 w-14 h-14 rounded-2xl" />
+					<div className="space-y-2">
+						<div className="animate-pulse bg-slate-200 h-3 w-32" />
+						<div className="animate-pulse bg-slate-200 h-4 w-48" />
+					</div>
+				</div>
 
-        <div className="animate-pulse bg-slate-200 h-12 w-40 rounded-2xl" />
-      </div>
-    </div>
-  );
+				<div className="animate-pulse bg-slate-200 h-12 w-40 rounded-2xl" />
+			</div>
+		</div>
+	);
 }
 
 
 export function StickerFormSkeleton() {
-  return (
-    <div className="border-t border-gray-100 pt-4 mt-4 space-y-4">
-      {/* Field 1 */}
-      <div className="flex items-center gap-4">
-        <Sk className="h-5 w-20 rounded-md" />      {/* label */}
-        <Sk className="h-11 flex-1 rounded-xl" />  {/* select */}
-      </div>
+	return (
+		<div className="border-t border-gray-100 pt-4 mt-4 space-y-4">
+			{/* Field 1 */}
+			<div className="flex items-center gap-4">
+				<Sk className="h-5 w-20 rounded-md" />      {/* label */}
+				<Sk className="h-11 flex-1 rounded-xl" />  {/* select */}
+			</div>
 
-      {/* Field 2 */}
-      <div className="flex items-center gap-4">
-        <Sk className="h-5 w-20 rounded-md" />
-        <Sk className="h-11 flex-1 rounded-xl" />
-      </div>
+			{/* Field 2 */}
+			<div className="flex items-center gap-4">
+				<Sk className="h-5 w-20 rounded-md" />
+				<Sk className="h-11 flex-1 rounded-xl" />
+			</div>
 
-      {/* Field 3 */}
-      <div className="flex items-center gap-4">
-        <Sk className="h-5 w-20 rounded-md" />
-        <Sk className="h-11 flex-1 rounded-xl" />
-      </div>
+			{/* Field 3 */}
+			<div className="flex items-center gap-4">
+				<Sk className="h-5 w-20 rounded-md" />
+				<Sk className="h-11 flex-1 rounded-xl" />
+			</div>
 
-      {/* Optional feature field */}
-      <div className="flex items-center gap-4">
-        <Sk className="h-5 w-28 rounded-md" />
-        <Sk className="h-11 flex-1 rounded-xl" />
-      </div>
+			{/* Optional feature field */}
+			<div className="flex items-center gap-4">
+				<Sk className="h-5 w-28 rounded-md" />
+				<Sk className="h-11 flex-1 rounded-xl" />
+			</div>
 
-      {/* Info / note */}
-      <Sk className="h-12 w-full rounded-2xl" />
-    </div>
-  );
+			{/* Info / note */}
+			<Sk className="h-12 w-full rounded-2xl" />
+		</div>
+	);
 }
 
 
