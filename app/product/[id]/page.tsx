@@ -9,7 +9,6 @@ import toast from "react-hot-toast";
 import HearComponent from "@/components/HearComponent";
 import RatingStars from "@/components/RatingStars";
 import ShareButton from "@/components/ShareButton";
-import StickerForm from "@/components/StickerForm";
 import ProductGallery from "@/components/ProductGallery";
 import CustomSeparator from "@/components/Breadcrumbs";
 import ButtonComponent from "@/components/ButtonComponent";
@@ -20,11 +19,31 @@ import { useAuth } from "@/src/context/AuthContext";
 import { useAppContext } from "@/src/context/AppContext";
 import { useCart } from "@/src/context/CartContext";
 
-import { FaBarcode } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 import { Trash2, Star, ChevronLeft, ChevronRight, ShieldCheck, Truck, Tags, Package } from "lucide-react";
 
-import { ProductPageSkeleton } from "../../../components/skeletons/HomeSkeletons";
+import { ProductPageSkeleton, StickerFormSkeleton } from "../../../components/skeletons/HomeSkeletons";
+import { useImperativeHandle, forwardRef } from "react";
+import {
+	Box,
+	FormControl,
+	InputLabel,
+	Select,
+	MenuItem,
+	FormHelperText,
+	CircularProgress,
+	Alert,
+	Button,
+} from "@mui/material";
+import { Save, CheckCircle, Warning, Info, Refresh } from "@mui/icons-material";
+
+interface StickerFormProps {
+	cartItemId?: number;
+	productId: number;
+	productData?: any; // ✅ pass from parent to avoid refetch
+	onOptionsChange?: (options: any) => void;
+	showValidation?: boolean;
+}
 
 type TabKey = "options" | "reviews";
 
@@ -74,12 +93,12 @@ type ReviewsResponse = {
 	};
 };
 
-// ✅ Updated SelectedOptions
+// ✅ SelectedOptions
 interface SelectedOptions {
 	size: string;
 	color: string;
 	material: string;
-	optionGroups: { [groupName: string]: string }; // ✅ options grouped by option_name
+	optionGroups: { [groupName: string]: string };
 	printing_method: string;
 	print_location: string;
 	isValid: boolean;
@@ -159,16 +178,7 @@ function getPages(current: number, total: number): Array<number | "…"> {
 	return out;
 }
 
-// ✅ small UI helpers
-function SectionCard({
-	title,
-	icon,
-	children,
-}: {
-	title: string;
-	icon?: React.ReactNode;
-	children: React.ReactNode;
-}) {
+function SectionCard({ title, icon, children }: { title: string; icon?: React.ReactNode; children: React.ReactNode }) {
 	return (
 		<div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
 			<div className="flex items-center justify-between gap-3">
@@ -200,6 +210,74 @@ function Pill({ children, tone = "slate" }: { children: React.ReactNode; tone?: 
 	return <span className={`text-[11px] font-extrabold px-2 py-1 rounded-full border ${map[tone]}`}>{children}</span>;
 }
 
+// -------------------------
+// ✅ helpers for pricing + selected_options payload
+// -------------------------
+const num = (v: any) => {
+	const x = typeof v === "string" ? Number(v) : typeof v === "number" ? v : Number(v ?? 0);
+	return Number.isFinite(x) ? x : 0;
+};
+
+function buildSelectedOptionsWithPrice(apiData: any, opts: SelectedOptions) {
+	const selected_options: Array<{ option_name: string; option_value: string; additional_price: number }> = [];
+
+	// size
+	if (opts.size && opts.size !== "اختر") {
+		// sizes don't have additional_price in your response => 0
+		selected_options.push({ option_name: "المقاس", option_value: opts.size, additional_price: 0 });
+	}
+
+	// color
+	if (opts.color && opts.color !== "اختر") {
+		const c = apiData?.colors?.find((x: any) => x.name === opts.color);
+		selected_options.push({ option_name: "اللون", option_value: opts.color, additional_price: num(c?.additional_price) });
+	}
+
+	// material
+	if (opts.material && opts.material !== "اختر") {
+		const m = apiData?.materials?.find((x: any) => x.name === opts.material);
+		selected_options.push({ option_name: "الخامة", option_value: opts.material, additional_price: num(m?.additional_price) });
+	}
+
+	// option groups
+	Object.entries(opts.optionGroups || {}).forEach(([group, value]) => {
+		if (!value || value === "اختر") return;
+		const row = apiData?.options?.find(
+			(o: any) =>
+				String(o.option_name || "").trim() === String(group).trim() &&
+				String(o.option_value || "").trim() === String(value).trim()
+		);
+		selected_options.push({
+			option_name: group,
+			option_value: value,
+			additional_price: num(row?.additional_price),
+		});
+	});
+
+	// printing method
+	if (opts.printing_method && opts.printing_method !== "اختر") {
+		const pm = apiData?.printing_methods?.find((x: any) => x.name === opts.printing_method);
+		// base_price is the extra
+		selected_options.push({
+			option_name: "طريقة الطباعة",
+			option_value: opts.printing_method,
+			additional_price: num(pm?.base_price ?? pm?.pivot_price),
+		});
+	}
+
+	// print location
+	if (opts.print_location && opts.print_location !== "اختر") {
+		const pl = apiData?.print_locations?.find((x: any) => x.name === opts.print_location);
+		selected_options.push({
+			option_name: "مكان الطباعة",
+			option_value: opts.print_location,
+			additional_price: num(pl?.additional_price ?? pl?.pivot_price),
+		});
+	}
+
+	return selected_options;
+}
+
 export default function ProductPageClient() {
 	const { id } = useParams();
 	const productId = id as string;
@@ -221,7 +299,6 @@ export default function ProductPageClient() {
 	const [isFavorite, setIsFavorite] = useState(false);
 	const [activeTab, setActiveTab] = useState<TabKey>("options");
 
-	// ✅ showValidation only after pressing add-to-cart
 	const [showValidation, setShowValidation] = useState(false);
 
 	const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({
@@ -239,7 +316,7 @@ export default function ProductPageClient() {
 	// -------------------------
 	// Reviews state
 	// -------------------------
-	const [reviewsLoading, setReviewsLoading] = useState(true);
+	const [reviewsLoading, setReviewsLoading] = useState(false);
 	const [reviewsError, setReviewsError] = useState<string | null>(null);
 	const [reviewsData, setReviewsData] = useState<any>(null);
 
@@ -277,6 +354,27 @@ export default function ProductPageClient() {
 				setProduct(prod);
 				setApiData(json?.data);
 
+				// ✅ seed reviews from product details (NO extra call)
+				if (Array.isArray(prod?.reviews)) {
+					setReviewsData({
+						reviews: prod.reviews,
+						stats: {
+							average_rating: num(prod?.average_rating),
+							total_reviews: num(prod?.total_reviews ?? prod?.reviews?.length),
+							rating_distribution: {}, // not available in this endpoint
+						},
+						pagination: {
+							total: num(prod?.total_reviews ?? prod?.reviews?.length),
+							per_page: prod.reviews.length || 10,
+							current_page: 1,
+							last_page: 1,
+						},
+						user_review: null,
+					});
+					setReviewsLoading(false);
+					setReviewsError(null);
+				}
+
 				const saved = JSON.parse(localStorage.getItem("favorites") || "[]") as number[];
 				setIsFavorite(!!prod && saved.includes(prod.id));
 			} catch (e: any) {
@@ -293,9 +391,20 @@ export default function ProductPageClient() {
 		};
 	}, [productId, token, API_URL]);
 
-	// ✅ fetch reviews
+	// ✅ fetch reviews ONLY when needed
 	const fetchReviews = useCallback(async () => {
 		if (!API_URL || !productId) return;
+
+		// ✅ if we're on page 1, no filters, and already have reviews from product => skip
+		const isDefaultQuery =
+			reviewsPage === 1 &&
+			reviewsRatingFilter === "" &&
+			reviewsSortBy === "created_at" &&
+			reviewsSortDir === "desc";
+
+		if (isDefaultQuery && Array.isArray(product?.reviews) && product.reviews.length > 0 && reviewsData?.pagination?.current_page === 1) {
+			return;
+		}
 
 		setReviewsLoading(true);
 		setReviewsError(null);
@@ -330,11 +439,13 @@ export default function ProductPageClient() {
 		} finally {
 			setReviewsLoading(false);
 		}
-	}, [API_URL, productId, token, reviewsPage, reviewsRatingFilter, reviewsSortBy, reviewsSortDir]);
+	}, [API_URL, productId, token, reviewsPage, reviewsRatingFilter, reviewsSortBy, reviewsSortDir, product?.reviews, reviewsData]);
 
+	// ✅ only auto-fetch reviews when user opens the tab (or after product has seeded empty)
 	useEffect(() => {
+		if (activeTab !== "reviews") return;
 		fetchReviews();
-	}, [fetchReviews]);
+	}, [activeTab, fetchReviews]);
 
 	// ✅ OPTIONS exist?
 	const hasOptions = useMemo(() => {
@@ -344,7 +455,6 @@ export default function ProductPageClient() {
 		const hasColors = Array.isArray(apiData?.colors) && apiData.colors.length > 0;
 		const hasMaterials = Array.isArray(apiData?.materials) && apiData.materials.length > 0;
 
-		// ✅ features are NOT options anymore (they're specs)
 		const hasExtraOptions = Array.isArray(apiData?.options) && apiData.options.length > 0;
 		const hasPrinting = Array.isArray(apiData?.printing_methods) && apiData.printing_methods.length > 0;
 
@@ -352,8 +462,8 @@ export default function ProductPageClient() {
 	}, [apiData]);
 
 	const hasReviews = useMemo(() => {
-		return (reviewsData?.pagination?.total ?? 0) > 0;
-	}, [reviewsData]);
+		return (product?.total_reviews ?? reviewsData?.pagination?.total ?? 0) > 0;
+	}, [product?.total_reviews, reviewsData]);
 
 	useEffect(() => {
 		if (!loading) {
@@ -395,78 +505,72 @@ export default function ProductPageClient() {
 		if (typeof months === "number" && months > 0) return `${months} أشهر ضمان`;
 
 		const raw = String(w?.display_text || "").trim();
-		// if it's just "أشهر ضمان" بدون رقم => hide
 		if (!raw) return null;
 		if (/^أشهر\s+ضمان$/.test(raw) || raw === "أشهر ضمان") return null;
 
 		return raw;
 	}, [apiData]);
 
-	const validateOptions = useCallback(
-		(options: SelectedOptions, data: any) => {
-			if (!data) return { isValid: false, missingOptions: [] as string[] };
+	const validateOptions = useCallback((options: SelectedOptions, data: any) => {
+		if (!data) return { isValid: false, missingOptions: [] as string[] };
 
-			let isValid = true;
-			const missingOptions: string[] = [];
+		let isValid = true;
+		const missingOptions: string[] = [];
 
-			if (data.sizes?.length > 0 && (!options.size || options.size === "اختر")) {
-				isValid = false;
-				missingOptions.push("المقاس");
-			}
+		if (data.sizes?.length > 0 && (!options.size || options.size === "اختر")) {
+			isValid = false;
+			missingOptions.push("المقاس");
+		}
 
-			if (data.colors?.length > 0 && (!options.color || options.color === "اختر")) {
-				isValid = false;
-				missingOptions.push("اللون");
-			}
+		if (data.colors?.length > 0 && (!options.color || options.color === "اختر")) {
+			isValid = false;
+			missingOptions.push("اللون");
+		}
 
-			if (data.materials?.length > 0 && (!options.material || options.material === "اختر")) {
-				isValid = false;
-				missingOptions.push("الخامة");
-			}
+		if (data.materials?.length > 0 && (!options.material || options.material === "اختر")) {
+			isValid = false;
+			missingOptions.push("الخامة");
+		}
 
-			// ✅ required option groups
-			if (Array.isArray(data?.options) && data.options.length > 0) {
-				const groups: Record<string, any[]> = {};
-				data.options.forEach((o: any) => {
-					const k = String(o.option_name || "").trim();
-					if (!k) return;
-					groups[k] = groups[k] || [];
-					groups[k].push(o);
-				});
+		// required option groups
+		if (Array.isArray(data?.options) && data.options.length > 0) {
+			const groups: Record<string, any[]> = {};
+			data.options.forEach((o: any) => {
+				const k = String(o.option_name || "").trim();
+				if (!k) return;
+				groups[k] = groups[k] || [];
+				groups[k].push(o);
+			});
 
-				Object.keys(groups).forEach((groupName) => {
-					const items = groups[groupName] || [];
-					const isRequired = items.some((x: any) => Boolean(x?.is_required));
-					if (!isRequired) return;
+			Object.keys(groups).forEach((groupName) => {
+				const items = groups[groupName] || [];
+				const isRequired = items.some((x: any) => Boolean(x?.is_required));
+				if (!isRequired) return;
 
-					const v = options.optionGroups?.[groupName];
-					if (!v || v === "اختر") {
-						isValid = false;
-						missingOptions.push(groupName);
-					}
-				});
-			}
-
-			// ✅ printing method required if exists
-			if (Array.isArray(data?.printing_methods) && data.printing_methods.length > 0) {
-				if (!options.printing_method || options.printing_method === "اختر") {
+				const v = options.optionGroups?.[groupName];
+				if (!v || v === "اختر") {
 					isValid = false;
-					missingOptions.push("طريقة الطباعة");
+					missingOptions.push(groupName);
 				}
-			}
+			});
+		}
 
-			// ✅ print location required if exists
-			if (Array.isArray(data?.print_locations) && data.print_locations.length > 0) {
-				if (!options.print_location || options.print_location === "اختر") {
-					isValid = false;
-					missingOptions.push("مكان الطباعة");
-				}
+		if (Array.isArray(data?.printing_methods) && data.printing_methods.length > 0) {
+			if (!options.printing_method || options.printing_method === "اختر") {
+				isValid = false;
+				missingOptions.push("طريقة الطباعة");
 			}
+		}
 
-			return { isValid, missingOptions };
-		},
-		[]
-	);
+		if (Array.isArray(data?.print_locations) && data.print_locations.length > 0) {
+			if (!options.print_location || options.print_location === "اختر") {
+				isValid = false;
+				missingOptions.push("مكان الطباعة");
+			}
+		}
+
+		return { isValid, missingOptions };
+	}, []);
 
 	const getSelectedOptions = async () => {
 		if (stickerFormRef.current?.getOptions) {
@@ -476,6 +580,25 @@ export default function ProductPageClient() {
 		}
 		return selectedOptions;
 	};
+
+	// ✅ compute base price (if final_price/price are 0, fallback to lowest_price)
+	const basePrice = useMemo(() => {
+		const p = num(product?.final_price ?? product?.price);
+		if (p > 0) return p;
+		return num(product?.lowest_price ?? 0);
+	}, [product]);
+
+	// ✅ compute extras from selected options
+	const extrasTotal = useMemo(() => {
+		if (!apiData) return 0;
+		const selected = buildSelectedOptionsWithPrice(apiData, selectedOptions);
+		return selected.reduce((sum, o) => sum + num(o.additional_price), 0);
+	}, [apiData, selectedOptions]);
+
+	const displayTotal = useMemo(() => {
+		const total = basePrice + extrasTotal;
+		return total > 0 ? total : 0;
+	}, [basePrice, extrasTotal]);
 
 	const handleAddToCart = async () => {
 		if (!product || !apiData) return;
@@ -492,31 +615,16 @@ export default function ProductPageClient() {
 
 		if (!token) return toast.error("يجب تسجيل الدخول أولاً");
 
+		const selected_options = buildSelectedOptionsWithPrice(apiData, opts);
+
 		const cartData = {
 			product_id: product.id,
 			quantity: 1,
-			selected_options: [] as Array<any>,
+			selected_options, // ✅ now includes additional_price
 		};
-
-		if (opts.size && opts.size !== "اختر") cartData.selected_options.push({ option_name: "المقاس", option_value: opts.size });
-		if (opts.color && opts.color !== "اختر") cartData.selected_options.push({ option_name: "اللون", option_value: opts.color });
-		if (opts.material && opts.material !== "اختر") cartData.selected_options.push({ option_name: "الخامة", option_value: opts.material });
-
-		// ✅ options groups
-		Object.entries(opts.optionGroups || {}).forEach(([group, value]) => {
-			if (value && value !== "اختر") cartData.selected_options.push({ option_name: group, option_value: value });
-		});
-
-		// ✅ printing
-		if (opts.printing_method && opts.printing_method !== "اختر")
-			cartData.selected_options.push({ option_name: "طريقة الطباعة", option_value: opts.printing_method });
-
-		if (opts.print_location && opts.print_location !== "اختر")
-			cartData.selected_options.push({ option_name: "مكان الطباعة", option_value: opts.print_location });
 
 		try {
 			await addToCart(product.id, cartData);
-			// toast.success("تمت الإضافة للسلة ✅");
 		} catch {
 			toast.error("حدث خطأ أثناء إضافة المنتج للسلة");
 		}
@@ -559,7 +667,7 @@ export default function ProductPageClient() {
 
 	const categories2 = homeData?.sub_categories || [];
 
-	// -------- Reviews actions (POST / DELETE) --------
+	// Reviews actions
 	const canDeleteReview = useCallback(
 		(r: Review) => {
 			if (reviewsData?.user_review && r.id === reviewsData.user_review.id) return true;
@@ -626,9 +734,7 @@ export default function ProductPageClient() {
 		}
 	};
 
-	// ------------------------------------
 	// Render states
-	// ------------------------------------
 	if (loading) return <ProductPageSkeleton />;
 
 	if (errorMsg || !product) {
@@ -655,7 +761,6 @@ export default function ProductPageClient() {
 		);
 	}
 
-	// ✅ Only show "missing options" badge AFTER submit attempt
 	const currentValidation = validateOptions(selectedOptions, apiData);
 	const showMissingBadge = showValidation && hasOptions && !currentValidation.isValid;
 
@@ -677,9 +782,7 @@ export default function ProductPageClient() {
 				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 					{/* Left: Info */}
 					<motion.div variants={fadeUp} initial="hidden" animate="show" className=" space-y-5 lg:col-span-5">
-						<h1 className="text-slate-900 text-2xl md:text-3xl font-extrabold leading-snug">
-							{product.name}
-						</h1>
+						<h1 className="text-slate-900 text-2xl md:text-3xl font-extrabold leading-snug">{product.name}</h1>
 
 						<div className="mt-3 flex items-center justify-between gap-4">
 							<div className="flex items-center gap-3">
@@ -697,238 +800,56 @@ export default function ProductPageClient() {
 							</div>
 						</div>
 
-						{/* Specs (description + model) */}
 						<SectionCard title="وصف المنتج" icon={<Package className="w-5 h-5 text-slate-700" />}>
-							<div
-								className="prose prose-sm max-w-none text-slate-700"
-								dangerouslySetInnerHTML={{ __html: product.description || "" }}
-							/>
+							<div className="prose prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: product.description || "" }} />
 						</SectionCard>
 
-						{/* ✅ Shipping + Warranty + Offers */}
-						{apiData?.delivery_time && <SectionCard title="معلومات الشحن والضمان والعروض" icon={<Truck className="w-5 h-5 text-slate-700" />}>
-							<div className="space-y-3">
-								{apiData?.delivery_time?.estimated && (
-									<InfoRow
-										label="التوصيل المتوقع"
-										value={<Pill tone="emerald">{apiData.delivery_time.estimated}</Pill>}
-									/>
-								)}
+						{apiData?.delivery_time && (
+							<SectionCard title="معلومات الشحن والضمان والعروض" icon={<Truck className="w-5 h-5 text-slate-700" />}>
+								<div className="space-y-3">
+									{apiData?.delivery_time?.estimated && (
+										<InfoRow label="التوصيل المتوقع" value={<Pill tone="emerald">{apiData.delivery_time.estimated}</Pill>} />
+									)}
 
-								{warrantyText && (
-									<InfoRow
-										label="الضمان"
-										value={
-											<span className="inline-flex items-center gap-2">
-												<ShieldCheck className="w-4 h-4 text-emerald-600" />
-												<span className="font-black">{warrantyText}</span>
-											</span>
-										}
-									/>
-								)}
+									{warrantyText && (
+										<InfoRow
+											label="الضمان"
+											value={
+												<span className="inline-flex items-center gap-2">
+													<ShieldCheck className="w-4 h-4 text-emerald-600" />
+													<span className="font-black">{warrantyText}</span>
+												</span>
+											}
+										/>
+									)}
 
-								{Array.isArray(apiData?.offers) && apiData.offers.length > 0 && (
-									<div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-										<p className="text-sm font-extrabold text-slate-700 flex items-center gap-2">
-											<Tags className="w-4 h-4" /> العروض المتاحة
-										</p>
-										<div className="mt-2 flex flex-wrap gap-2">
-											{apiData.offers.map((o: any) => (
-												<Pill key={o.id} tone="amber">
-													{o.name}
-												</Pill>
-											))}
+									{Array.isArray(apiData?.offers) && apiData.offers.length > 0 && (
+										<div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+											<p className="text-sm font-extrabold text-slate-700 flex items-center gap-2">
+												<Tags className="w-4 h-4" /> العروض المتاحة
+											</p>
+											<div className="mt-2 flex flex-wrap gap-2">
+												{apiData.offers.map((o: any) => (
+													<Pill key={o.id} tone="amber">
+														{o.name}
+													</Pill>
+												))}
+											</div>
 										</div>
-									</div>
-								)}
-							</div>
-						</SectionCard>}
+									)}
+								</div>
+							</SectionCard>
+						)}
 
-						{/* ✅ Features as SPECs (NOT selectable) */}
 						{Array.isArray(apiData?.features) && apiData.features.length > 0 && (
 							<SectionCard title="المواصفات" icon={<Star className="w-5 h-5 text-slate-700" />}>
 								<div className="space-y-2">
 									{apiData.features.map((f: any, idx: number) => (
-										<InfoRow
-											key={`${f?.name}-${idx}`}
-											label={String(f?.name || "—")}
-											value={<span className="font-black">{String(f?.value || "—")}</span>}
-										/>
+										<InfoRow key={`${f?.name}-${idx}`} label={String(f?.name || "—")} value={<span className="font-black">{String(f?.value || "—")}</span>} />
 									))}
 								</div>
 							</SectionCard>
 						)}
-
-						{/* ✅ Sizes + tiers */}
-						{Array.isArray(apiData?.sizes) && apiData.sizes.length > 0 && (
-							<SectionCard title="المقاسات وأسعار الكميات" icon={<Package className="w-5 h-5 text-slate-700" />}>
-								<div className="space-y-3">
-									{apiData.sizes.map((s: any) => (
-										<div key={s.id} className="rounded-2xl border border-slate-200 overflow-hidden">
-											<div className="bg-slate-50 px-4 py-3 flex items-center justify-between">
-												<p className="font-extrabold text-slate-900">{s.name}</p>
-												<Pill>{(s?.tiers?.length ?? 0)} شريحة</Pill>
-											</div>
-
-											<div className="p-4">
-												{s?.tiers?.length ? (
-													<div className="overflow-x-auto">
-														<table className="w-full text-sm">
-															<thead>
-																<tr className="text-slate-500">
-																	<th className="text-right py-2">الكمية</th>
-																	<th className="text-right py-2">سعر الوحدة</th>
-																	<th className="text-right py-2">الإجمالي</th>
-																</tr>
-															</thead>
-															<tbody>
-																{s.tiers.map((t: any, i: number) => (
-																	<tr key={i} className="border-t border-slate-200">
-																		<td className="py-2 font-extrabold text-slate-900">{t.quantity}</td>
-																		<td className="py-2 font-bold text-slate-700">{t.price_per_unit}</td>
-																		<td className="py-2 font-black text-slate-900">{t.total_price}</td>
-																	</tr>
-																))}
-															</tbody>
-														</table>
-													</div>
-												) : (
-													<p className="text-sm font-bold text-slate-600">لا توجد شرائح تسعير لهذا المقاس.</p>
-												)}
-											</div>
-										</div>
-									))}
-								</div>
-							</SectionCard>
-						)}
-
-						{/* ✅ Pricing tiers */}
-						{Array.isArray(apiData?.pricing_tiers) && apiData.pricing_tiers.length > 0 && (
-							<SectionCard title="شرائح التسعير العامة" icon={<Tags className="w-5 h-5 text-slate-700" />}>
-								<div className="overflow-x-auto rounded-2xl border border-slate-200">
-									<table className="w-full text-sm">
-										<thead className="bg-slate-50">
-											<tr className="text-slate-600">
-												<th className="text-right py-3 px-4">الكمية</th>
-												<th className="text-right py-3 px-4">السعر</th>
-												<th className="text-right py-3 px-4">الخصم %</th>
-											</tr>
-										</thead>
-										<tbody>
-											{apiData.pricing_tiers.map((t: any, i: number) => (
-												<tr key={i} className="border-t border-slate-200">
-													<td className="py-3 px-4 font-extrabold text-slate-900">{t.quantity}</td>
-													<td className="py-3 px-4 font-bold text-slate-700">{t.price ?? "—"}</td>
-													<td className="py-3 px-4 font-bold text-slate-700">{t.discount_percentage ?? "—"}</td>
-												</tr>
-											))}
-										</tbody>
-									</table>
-								</div>
-							</SectionCard>
-						)}
-
-						{/* ✅ Materials */}
-						{Array.isArray(apiData?.materials) && apiData.materials.length > 0 && (
-							<SectionCard title="المواد" icon={<Package className="w-5 h-5 text-slate-700" />}>
-								<div className="space-y-3">
-									{apiData.materials.map((m: any) => (
-										<div key={m.id} className="rounded-2xl border border-slate-200 p-4">
-											<div className="flex items-start justify-between gap-3">
-												<div>
-													<p className="font-extrabold text-slate-900">{m.name}</p>
-													{m.description && <p className="text-sm text-slate-600 font-bold mt-1">{m.description}</p>}
-												</div>
-												{Number(m.additional_price || 0) > 0 ? (
-													<Pill tone="amber">+ {m.additional_price}</Pill>
-												) : (
-													<Pill tone="slate">بدون زيادة</Pill>
-												)}
-											</div>
-
-											<div className="mt-3 grid grid-cols-2 gap-2">
-												<InfoRow label="الكمية" value={m.quantity ?? "—"} />
-												<InfoRow label="الوحدة" value={m.unit ?? "—"} />
-											</div>
-										</div>
-									))}
-								</div>
-							</SectionCard>
-						)}
-
-						{/* ✅ Options (read-only list) */}
-						{Array.isArray(apiData?.options) && apiData.options.length > 0 && (
-							<SectionCard title="الخيارات الإضافية" icon={<Tags className="w-5 h-5 text-slate-700" />}>
-								<div className="space-y-3">
-									{Object.keys(groupedApiOptions).map((group) => {
-										const items = groupedApiOptions[group] || [];
-										const required = items.some((x: any) => Boolean(x?.is_required));
-										return (
-											<div key={group} className="rounded-2xl border border-slate-200 overflow-hidden">
-												<div className="bg-slate-50 px-4 py-3 flex items-center justify-between">
-													<p className="font-extrabold text-slate-900">{group}</p>
-													{required ? <Pill tone="amber">إجباري</Pill> : <Pill>اختياري</Pill>}
-												</div>
-												<div className="p-4 space-y-2">
-													{items.map((o: any) => (
-														<div key={o.id} className="flex items-center justify-between gap-3">
-															<p className="text-sm font-bold text-slate-700">{o.option_value}</p>
-															{Number(o.additional_price || 0) > 0 ? (
-																<Pill tone="amber">+ {o.additional_price}</Pill>
-															) : (
-																<Pill>0</Pill>
-															)}
-														</div>
-													))}
-												</div>
-											</div>
-										);
-									})}
-								</div>
-							</SectionCard>
-						)}
-
-						{/* ✅ Printing (read-only list) */}
-						{(Array.isArray(apiData?.printing_methods) && apiData.printing_methods.length > 0) ||
-							(Array.isArray(apiData?.print_locations) && apiData.print_locations.length > 0) ? (
-							<SectionCard title="الطباعة ومواقعها" icon={<Star className="w-5 h-5 text-slate-700" />}>
-								<div className="space-y-4">
-									{Array.isArray(apiData?.printing_methods) && apiData.printing_methods.length > 0 && (
-										<div className="rounded-2xl border border-slate-200 p-4">
-											<p className="font-extrabold text-slate-900">طرق الطباعة</p>
-											<div className="mt-3 space-y-2">
-												{apiData.printing_methods.map((pm: any) => (
-													<div key={pm.id} className="flex items-start justify-between gap-3">
-														<div>
-															<p className="text-sm font-extrabold text-slate-800">{pm.name}</p>
-															{pm.description && <p className="text-sm text-slate-600 font-bold mt-1">{pm.description}</p>}
-														</div>
-														<Pill tone="amber">{pm.base_price}</Pill>
-													</div>
-												))}
-											</div>
-										</div>
-									)}
-
-									{Array.isArray(apiData?.print_locations) && apiData.print_locations.length > 0 && (
-										<div className="rounded-2xl border border-slate-200 p-4">
-											<p className="font-extrabold text-slate-900">أماكن الطباعة</p>
-											<div className="mt-3 space-y-2">
-												{apiData.print_locations.map((pl: any) => (
-													<div key={pl.id} className="flex items-center justify-between gap-3">
-														<p className="text-sm font-extrabold text-slate-800">
-															{pl.name}{" "}
-															<span className="text-xs font-black text-slate-500">({pl.type})</span>
-														</p>
-														<Pill>{pl.additional_price ?? "0.00"}</Pill>
-													</div>
-												))}
-											</div>
-										</div>
-									)}
-								</div>
-							</SectionCard>
-						) : null}
 
 						{/* Tabs */}
 						<div className="mt-6 rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
@@ -958,20 +879,18 @@ export default function ProductPageClient() {
 							</div>
 
 							<div className="m-4">
-								{activeTab === "options" && (
-									hasOptions ? (
+								{activeTab === "options" &&
+									(hasOptions ? (
 										<StickerForm
 											productId={product.id}
+											productData={apiData} // ✅ pass data
 											ref={stickerFormRef}
 											onOptionsChange={setSelectedOptions}
 											showValidation={showValidation}
 										/>
 									) : (
-										<div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-slate-600 font-bold">
-											لا توجد خيارات لهذا المنتج.
-										</div>
-									)
-								)}
+										<div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-slate-600 font-bold">لا توجد خيارات لهذا المنتج.</div>
+									))}
 
 								{activeTab === "reviews" && (
 									<div className="space-y-5">
@@ -981,54 +900,25 @@ export default function ProductPageClient() {
 											<div className="rounded-2xl border border-slate-200 bg-white p-5">
 												<p className="font-extrabold text-slate-900">تعذر تحميل التقييمات</p>
 												<p className="text-sm text-slate-600 mt-1">{reviewsError}</p>
-												<button
-													onClick={fetchReviews}
-													className="mt-4 rounded-xl border border-slate-200 px-4 py-2 font-extrabold hover:bg-slate-50 transition"
-												>
+												<button onClick={fetchReviews} className="mt-4 rounded-xl border border-slate-200 px-4 py-2 font-extrabold hover:bg-slate-50 transition">
 													إعادة المحاولة
 												</button>
 											</div>
 										) : (
 											<>
-												{/* Stats Card */}
 												<div className="rounded-3xl border border-slate-200 bg-white p-5">
 													<div className="flex items-start justify-between gap-4">
 														<div>
 															<p className="text-sm font-bold text-slate-500">متوسط التقييم</p>
 															<div className="flex items-center gap-3 mt-1">
-																<p className="text-3xl font-black text-slate-900">
-																	{reviewsData?.stats?.average_rating ?? 0}
-																</p>
-																<StarsRow value={Math.round(reviewsData?.stats?.average_rating ?? 0)} />
+																<p className="text-3xl font-black text-slate-900">{reviewsData?.stats?.average_rating ?? product?.average_rating ?? 0}</p>
+																<StarsRow value={Math.round(reviewsData?.stats?.average_rating ?? product?.average_rating ?? 0)} />
 															</div>
-															<p className="text-sm text-slate-500 mt-1">
-																{reviewsData?.stats?.total_reviews ?? 0} تقييم
-															</p>
+															<p className="text-sm text-slate-500 mt-1">{reviewsData?.stats?.total_reviews ?? product?.total_reviews ?? 0} تقييم</p>
 														</div>
-
-													</div>
-
-													<div className="mt-5 space-y-2">
-														{[5, 4, 3, 2, 1].map((s) => {
-															const d = reviewsData?.stats?.rating_distribution?.[String(s)];
-															const pct = d?.percentage ?? 0;
-															const count = d?.count ?? 0;
-															return (
-																<div key={s} className="flex items-center gap-3">
-																	<div className="w-10 text-sm font-extrabold text-slate-700">{s}</div>
-																	<div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
-																		<div className="h-full bg-amber-400" style={{ width: `${pct}%` }} />
-																	</div>
-																	<div className="w-16 text-left text-sm text-slate-500 font-bold">
-																		{count}
-																	</div>
-																</div>
-															);
-														})}
 													</div>
 												</div>
 
-												{/* My review */}
 												<div className="rounded-3xl border border-slate-200 bg-white p-5">
 													<div className="flex items-center justify-between gap-3">
 														<p className="font-extrabold text-slate-900">اكتب تقييمك</p>
@@ -1040,20 +930,11 @@ export default function ProductPageClient() {
 													</div>
 
 													<div className="mt-5 flex flex-col  gap-5">
-														{/* ⭐ STARS */}
 														<div className="flex items-center gap-4 ">
-
-
-															<StarRatingInput
-																value={myRating}
-																onChange={setMyRating}
-																disabled={!token}
-															/>
+															<StarRatingInput value={myRating} onChange={setMyRating} disabled={!token} />
 														</div>
 
-														{/* COMMENT */}
 														<div className=" flex items-start gap-4">
-
 															<textarea
 																disabled={!token}
 																value={myComment}
@@ -1074,8 +955,6 @@ export default function ProductPageClient() {
 													</button>
 												</div>
 
-
-												{/* Reviews list */}
 												<div className="rounded-3xl border border-slate-200 bg-white p-5">
 													<p className="font-extrabold text-slate-900 mb-4">آراء العملاء</p>
 
@@ -1089,22 +968,17 @@ export default function ProductPageClient() {
 																				{r.user?.avatar ? (
 																					<Image src={r.user.avatar} alt={r.user.name} fill className="object-cover" />
 																				) : (
-																					<div className="w-full h-full flex items-center justify-center text-slate-400 font-black">
-																						{r.user?.name?.[0] ?? "U"}
-																					</div>
+																					<div className="w-full h-full flex items-center justify-center text-slate-400 font-black">{r.user?.name?.[0] ?? "U"}</div>
 																				)}
 																			</div>
 																			<div>
 																				<p className="font-extrabold text-slate-900">{r.user?.name ?? "مستخدم"}</p>
-																				<p className="text-xs text-slate-500 font-bold">
-																					{r.human_created_at || r.created_at}
-																				</p>
+																				<p className="text-xs text-slate-500 font-bold">{r.human_created_at || r.created_at}</p>
 																			</div>
 																		</div>
 
 																		<div className="flex items-center gap-2">
 																			<StarsRow value={r.rating} />
-
 																			{canDeleteReview(r) && (
 																				<button
 																					onClick={() => deleteReview(r.id)}
@@ -1118,19 +992,15 @@ export default function ProductPageClient() {
 																		</div>
 																	</div>
 
-																	<p className="mt-3 text-slate-700 font-semibold leading-relaxed">
-																		{r.comment}
-																	</p>
+																	{r.comment && <p className="mt-3 text-slate-700 font-semibold leading-relaxed">{r.comment}</p>}
 																</div>
 															))}
 														</div>
 													) : (
-														<div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-center text-slate-600 font-bold">
-															لا توجد تقييمات حتى الآن.
-														</div>
+														<div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-center text-slate-600 font-bold">لا توجد تقييمات حتى الآن.</div>
 													)}
 
-													{/* pagination */}
+													{/* pagination only if endpoint returns it */}
 													{reviewsData?.pagination?.last_page > 1 && (
 														<div className="mt-6 flex items-center justify-center">
 															<div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
@@ -1191,7 +1061,7 @@ export default function ProductPageClient() {
 							</div>
 						</div>
 
-						{/* ✅ Selected Options Summary (NO features here) */}
+						{/* Selected Options Summary */}
 						<AnimatePresence>
 							{anySelected && (
 								<motion.div
@@ -1215,16 +1085,27 @@ export default function ProductPageClient() {
 										{selectedOptions.color !== "اختر" && <OptChip label="اللون" value={selectedOptions.color} />}
 										{selectedOptions.material !== "اختر" && <OptChip label="الخامة" value={selectedOptions.material} />}
 
-										{selectedOptions.printing_method !== "اختر" && (
-											<OptChip label="طريقة الطباعة" value={selectedOptions.printing_method} />
-										)}
-										{selectedOptions.print_location !== "اختر" && (
-											<OptChip label="مكان الطباعة" value={selectedOptions.print_location} />
-										)}
+										{selectedOptions.printing_method !== "اختر" && <OptChip label="طريقة الطباعة" value={selectedOptions.printing_method} />}
+										{selectedOptions.print_location !== "اختر" && <OptChip label="مكان الطباعة" value={selectedOptions.print_location} />}
 
-										{Object.entries(selectedOptions.optionGroups || {}).map(([k, v]) =>
-											v !== "اختر" ? <OptChip key={k} label={k} value={v} /> : null
-										)}
+										{Object.entries(selectedOptions.optionGroups || {}).map(([k, v]) => (v !== "اختر" ? <OptChip key={k} label={k} value={v} /> : null))}
+									</div>
+
+									{/* ✅ price breakdown */}
+									<div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+										<div className="flex items-center justify-between text-sm font-extrabold text-slate-700">
+											<span>السعر الأساسي</span>
+											<span>{basePrice.toFixed(2)} ر.س</span>
+										</div>
+										<div className="flex items-center justify-between text-sm font-extrabold text-slate-700 mt-2">
+											<span>إضافات الخيارات</span>
+											<span>+ {extrasTotal.toFixed(2)} ر.س</span>
+										</div>
+										<div className="h-px bg-slate-200 my-3" />
+										<div className="flex items-center justify-between text-base font-black text-slate-900">
+											<span>الإجمالي</span>
+											<span>{displayTotal.toFixed(2)} ر.س</span>
+										</div>
 									</div>
 								</motion.div>
 							)}
@@ -1234,10 +1115,7 @@ export default function ProductPageClient() {
 					{/* Right: Gallery */}
 					<motion.div variants={fadeUp} initial="hidden" animate="show" className="lg:col-span-7">
 						<div className="lg:sticky lg:top-[150px]">
-							<ProductGallery
-								mainImage={product.image  }
-								images={product.images }
-							/>
+							<ProductGallery mainImage={product.image} images={product.images} />
 						</div>
 					</motion.div>
 				</div>
@@ -1247,16 +1125,9 @@ export default function ProductPageClient() {
 					{product && categories2.length > 0 && (
 						<section>
 							{(() => {
-								const currentCategory = categories2.find((cat: any) =>
-									cat.products?.some((p: any) => p.id === product.id)
-								);
-
+								const currentCategory = categories2.find((cat: any) => cat.products?.some((p: any) => p.id === product.id));
 								const base = currentCategory?.products?.filter((p: any) => p.id !== product.id) || [];
-								const fallback = categories2
-									.flatMap((cat: any) => cat.products || [])
-									.filter((p: any) => p.id !== product.id)
-									.slice(0, 12);
-
+								const fallback = categories2.flatMap((cat: any) => cat.products || []).filter((p: any) => p.id !== product.id).slice(0, 12);
 								const list = base.length ? base : fallback;
 								if (!list.length) return null;
 
@@ -1289,16 +1160,12 @@ export default function ProductPageClient() {
 
 									<div className="min-w-0">
 										<div className="flex items-center gap-2 flex-wrap">
-											<p className="text-[12px] text-slate-500 font-extrabold">
-												{product?.includes_tax ? "السعر شامل الضريبة" : "السعر"}
-											</p>
+											<p className="text-[12px] text-slate-500 font-extrabold">{product?.includes_tax ? "السعر شامل الضريبة" : "السعر"}</p>
 
 											<span
 												className={[
 													"text-[11px] font-extrabold px-2 py-1 rounded-full border",
-													product?.meta?.in_stock
-														? "bg-emerald-50 text-emerald-700 border-emerald-200"
-														: "bg-rose-50 text-rose-700 border-rose-200",
+													product?.meta?.in_stock ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-rose-50 text-rose-700 border-rose-200",
 												].join(" ")}
 											>
 												{product?.meta?.stock_status || (product?.stock ? "متوفر" : "غير متوفر")}
@@ -1309,9 +1176,7 @@ export default function ProductPageClient() {
 											</span>
 										</div>
 
-										<p className="text-sm md:text-base font-black text-slate-900 line-clamp-2">
-											{product.name}
-										</p>
+										<p className="text-sm md:text-base font-black text-slate-900 line-clamp-2">{product.name}</p>
 
 										<p className="text-[12px] text-slate-500 font-bold mt-0.5 line-clamp-1">
 											{product?.delivery_time?.estimated ? `التوصيل المتوقع: ${product.delivery_time.estimated}` : ""}
@@ -1321,84 +1186,35 @@ export default function ProductPageClient() {
 
 								{/* Right */}
 								<div className="flex max-md:w-full max-md:justify-between items-center gap-3">
-									{(() => {
-										const currency = "ر.س";
-										const price = Number(product?.price ?? 0);
-										const final = Number(product?.final_price ?? price);
+									<div className="hidden sm:flex flex-col items-end">
+										<div className="flex items-center gap-2 justify-end">
+											<p className="text-[12px] text-slate-500 font-extrabold">الإجمالي</p>
+											{extrasTotal > 0 && (
+												<span className="text-[11px] font-extrabold px-2 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+													+ إضافات {extrasTotal.toFixed(2)}
+												</span>
+											)}
+										</div>
 
-										const hasDiscount =
-											Boolean(product?.has_discount) && Number.isFinite(final) && final > 0 && final < price;
+										<div className="mt-0.5 flex items-end gap-2 justify-end">
+											<p className="text-xl md:text-2xl font-black text-slate-900 leading-none">{displayTotal.toFixed(2)}</p>
+											<span className="text-sm font-extrabold text-slate-700">ر.س</span>
+										</div>
+									</div>
 
-										const saving = hasDiscount ? Math.max(0, price - final) : 0;
-
-										const d = product?.discount;
-										const discountLabel =
-											hasDiscount && d?.value
-												? d.type === "percentage"
-													? `خصم ${Number(d.value)}%`
-													: `خصم ${Number(d.value)} ${currency}`
-												: null;
-
-										return (
-											<div className="hidden sm:flex flex-col items-end">
-												<div className="flex items-center gap-2 justify-end">
-													<p className="text-[12px] text-slate-500 font-extrabold">الإجمالي</p>
-													{discountLabel && (
-														<span className="text-[11px] font-extrabold px-2 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-															{discountLabel}
-														</span>
-													)}
-												</div>
-
-												<div className="mt-0.5 flex items-end gap-2 justify-end">
-													<p className="text-xl md:text-2xl font-black text-slate-900 leading-none">
-														{final.toFixed(2)}
-													</p>
-													<span className="text-sm font-extrabold text-slate-700">{currency}</span>
-												</div>
-
-												{hasDiscount && (
-													<div className="mt-1 flex items-center gap-2 justify-end">
-														<p className="text-sm text-slate-400 line-through font-extrabold">
-															{price.toFixed(2)} {currency}
-														</p>
-														<span className="text-xs font-extrabold text-emerald-700">
-															وفّرت {saving.toFixed(2)} {currency}
-														</span>
-													</div>
-												)}
-											</div>
-										);
-									})()}
-
-									{(() => {
-										const currency = "ر.س";
-										const price = Number(product?.price ?? 0);
-										const final = Number(product?.final_price ?? price);
-										const hasDiscount = Boolean(product?.has_discount) && final > 0 && final < price;
-
-										return (
-											<div className="sm:hidden flex flex-col items-end">
-												<p className="text-[11px] text-slate-500 font-extrabold">الإجمالي</p>
-												<div className="flex items-end gap-1">
-													<p className="text-lg font-black text-slate-900 leading-none">{final.toFixed(2)}</p>
-													<span className="text-[12px] font-extrabold text-slate-700">{currency}</span>
-												</div>
-												{hasDiscount && (
-													<p className="text-[11px] text-slate-400 line-through font-extrabold">
-														{price.toFixed(2)} {currency}
-													</p>
-												)}
-											</div>
-										);
-									})()}
+									<div className="sm:hidden flex flex-col items-end">
+										<p className="text-[11px] text-slate-500 font-extrabold">الإجمالي</p>
+										<div className="flex items-end gap-1">
+											<p className="text-lg font-black text-slate-900 leading-none">{displayTotal.toFixed(2)}</p>
+											<span className="text-[12px] font-extrabold text-slate-700">ر.س</span>
+										</div>
+									</div>
 
 									<div className="min-w-[170px]">
-										<ButtonComponent className="scale-[.8]"  title={showMissingBadge ? "اختر الخيارات أولاً" : "اضافة للسلة"} onClick={handleAddToCart} />
+										<ButtonComponent className="scale-[.8]" title={showMissingBadge ? "اختر الخيارات أولاً" : "اضافة للسلة"} onClick={handleAddToCart} />
 									</div>
 								</div>
 							</div>
- 
 						</div>
 					</div>
 				</div>
@@ -1418,7 +1234,6 @@ function OptChip({ label, value }: { label: string; value: string }) {
 	);
 }
 
-
 const ratingLabels: Record<number, string> = {
 	1: "سيئ جدًا",
 	2: "سيئ",
@@ -1433,21 +1248,13 @@ interface StarRatingInputProps {
 	disabled?: boolean;
 }
 
-export function StarRatingInput({
-	value,
-	onChange,
-	disabled = false,
-}: StarRatingInputProps) {
+export function StarRatingInput({ value, onChange, disabled = false }: StarRatingInputProps) {
 	const [hovered, setHovered] = useState<number | null>(null);
-
 	const activeValue = hovered ?? value;
 
 	return (
 		<div className="flex  items-center gap-2">
-			<div
-				className={`flex items-center  gap-1 ${disabled ? "opacity-50 cursor-not-allowed" : ""
-					}`}
-			>
+			<div className={`flex items-center  gap-1 ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}>
 				{[1, 2, 3, 4, 5].map((star) => {
 					const filled = star <= activeValue;
 
@@ -1463,26 +1270,497 @@ export function StarRatingInput({
 							className="focus:outline-none"
 							aria-label={`تقييم ${star} نجوم`}
 						>
-							<Star
-								className={`w-10 h-10 transition-colors ${filled ? "text-amber-400" : "text-slate-300"
-									}`}
-								fill={filled ? "currentColor" : "none"}
-							/>
+							<Star className={`w-10 h-10 transition-colors ${filled ? "text-amber-400" : "text-slate-300"}`} fill={filled ? "currentColor" : "none"} />
 						</motion.button>
 					);
 				})}
 			</div>
 
-			{/* label */}
-			<motion.div
-				key={activeValue}
-				initial={{ opacity: 0, y: 6 }}
-				animate={{ opacity: 1, y: 0 }}
-				className="text-sm font-extrabold text-slate-700"
-			>
+			<motion.div key={activeValue} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="text-sm font-extrabold text-slate-700">
 				{ratingLabels[activeValue] ?? ""}
 			</motion.div>
 		</div>
 	);
 }
 
+const StickerForm = forwardRef(function StickerForm(
+	{ cartItemId, productId, productData, onOptionsChange, showValidation = false }: StickerFormProps,
+	ref
+) {
+	const { updateCartItem, fetchCartItemOptions } = useCart();
+
+	const [size, setSize] = useState("اختر");
+	const [color, setColor] = useState("اختر");
+	const [material, setMaterial] = useState("اختر");
+
+	const [optionGroups, setOptionGroups] = useState<Record<string, string>>({});
+	const [printingMethod, setPrintingMethod] = useState("اختر");
+	const [printLocation, setPrintLocation] = useState("اختر");
+
+	const [apiData, setApiData] = useState<any>(null);
+	const [formLoading, setFormLoading] = useState(true);
+
+	const [saving, setSaving] = useState(false);
+	const [showSaveButton, setShowSaveButton] = useState(false);
+	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+	const [savedSuccessfully, setSavedSuccessfully] = useState(false);
+
+	const [apiError, setApiError] = useState<string | null>(null);
+
+	const groupedOptions = useMemo(() => {
+		const list = Array.isArray(apiData?.options) ? apiData.options : [];
+		const out: Record<string, any[]> = {};
+		list.forEach((o: any) => {
+			const k = String(o.option_name || "").trim();
+			if (!k) return;
+			out[k] = out[k] || [];
+			out[k].push(o);
+		});
+		return out;
+	}, [apiData]);
+
+	const requiredOptionGroups = useMemo(() => {
+		const required: string[] = [];
+		Object.keys(groupedOptions).forEach((k) => {
+			const items = groupedOptions[k] || [];
+			if (items.some((x: any) => Boolean(x?.is_required))) required.push(k);
+		});
+		return required;
+	}, [groupedOptions]);
+
+	const validateCurrentOptions = useCallback(() => {
+		if (!apiData) return false;
+
+		let isValid = true;
+
+		if (apiData.sizes?.length > 0 && (!size || size === "اختر")) isValid = false;
+		if (apiData.colors?.length > 0 && (!color || color === "اختر")) isValid = false;
+		if (apiData.materials?.length > 0 && (!material || material === "اختر")) isValid = false;
+
+		if (Array.isArray(apiData?.options) && apiData.options.length > 0) {
+			requiredOptionGroups.forEach((g) => {
+				const v = optionGroups?.[g];
+				if (!v || v === "اختر") isValid = false;
+			});
+		}
+
+		if (Array.isArray(apiData?.printing_methods) && apiData.printing_methods.length > 0) {
+			if (!printingMethod || printingMethod === "اختر") isValid = false;
+		}
+		if (Array.isArray(apiData?.print_locations) && apiData.print_locations.length > 0) {
+			if (!printLocation || printLocation === "اختر") isValid = false;
+		}
+
+		return isValid;
+	}, [apiData, size, color, material, optionGroups, requiredOptionGroups, printingMethod, printLocation]);
+
+	useImperativeHandle(ref, () => ({
+		getOptions: () => ({
+			size,
+			color,
+			material,
+			optionGroups,
+			printing_method: printingMethod,
+			print_location: printLocation,
+			isValid: validateCurrentOptions(),
+		}),
+		validate: () => validateCurrentOptions(),
+	}));
+
+	useEffect(() => {
+		if (!onOptionsChange) return;
+		onOptionsChange({
+			size,
+			color,
+			material,
+			optionGroups,
+			printing_method: printingMethod,
+			print_location: printLocation,
+			isValid: validateCurrentOptions(),
+		});
+	}, [size, color, material, optionGroups, printingMethod, printLocation, validateCurrentOptions, onOptionsChange]);
+
+	// ✅ NO FETCH HERE: use productData from parent
+	useEffect(() => {
+		setApiError(null);
+		setFormLoading(true);
+
+		try {
+			if (!productData) throw new Error("لا توجد بيانات للمنتج");
+
+			setApiData(productData);
+
+			// init optionGroups with "اختر"
+			if (Array.isArray(productData?.options)) {
+				const list = productData.options;
+				const out: Record<string, string> = {};
+				list.forEach((o: any) => {
+					const k = String(o.option_name || "").trim();
+					if (!k) return;
+					if (!out[k]) out[k] = "اختر";
+				});
+				setOptionGroups(out);
+			} else {
+				setOptionGroups({});
+			}
+
+			setPrintingMethod("اختر");
+			setPrintLocation("اختر");
+		} catch (err: any) {
+			setApiError(err?.message || "حدث خطأ أثناء تحميل الخيارات");
+			setApiData(null);
+		} finally {
+			setFormLoading(false);
+		}
+	}, [productData]);
+
+	const extractValueFromOptions = useCallback((options: any[], optionName: string) => {
+		if (!options || !Array.isArray(options)) return null;
+		const option = options.find((opt: any) => opt.option_name === optionName);
+		return option ? option.option_value : null;
+	}, []);
+
+	const loadSavedOptions = useCallback(async () => {
+		if (!cartItemId) return;
+		setFormLoading(true);
+
+		try {
+			const savedOptions = await fetchCartItemOptions(cartItemId);
+
+			if (savedOptions) {
+				const sizeFromOptions = extractValueFromOptions(savedOptions.selected_options, "المقاس");
+				const colorFromOptions = extractValueFromOptions(savedOptions.selected_options, "اللون");
+				const materialFromOptions = extractValueFromOptions(savedOptions.selected_options, "الخامة");
+				const printingFromOptions = extractValueFromOptions(savedOptions.selected_options, "طريقة الطباعة");
+				const locationFromOptions = extractValueFromOptions(savedOptions.selected_options, "مكان الطباعة");
+
+				setSize(sizeFromOptions || savedOptions.size || "اختر");
+				setColor(colorFromOptions || (savedOptions.color?.name || savedOptions.color) || "اختر");
+				setMaterial(materialFromOptions || savedOptions.material || "اختر");
+
+				setPrintingMethod(printingFromOptions || "اختر");
+				setPrintLocation(locationFromOptions || "اختر");
+
+				const out: Record<string, string> = {};
+				Object.keys(groupedOptions).forEach((g) => (out[g] = "اختر"));
+				if (savedOptions.selected_options && Array.isArray(savedOptions.selected_options)) {
+					savedOptions.selected_options.forEach((opt: any) => {
+						const name = String(opt.option_name || "").trim();
+						const value = String(opt.option_value || "").trim();
+						if (!name || !value) return;
+
+						if (["المقاس", "اللون", "الخامة", "طريقة الطباعة", "مكان الطباعة"].includes(name)) return;
+						if (Object.prototype.hasOwnProperty.call(out, name)) out[name] = value;
+					});
+				}
+				setOptionGroups(out);
+
+				setHasUnsavedChanges(false);
+				setShowSaveButton(false);
+			}
+		} catch {
+			// ignore
+		} finally {
+			setFormLoading(false);
+		}
+	}, [cartItemId, fetchCartItemOptions, extractValueFromOptions, groupedOptions]);
+
+	useEffect(() => {
+		if (!cartItemId || !apiData) return;
+		loadSavedOptions();
+	}, [cartItemId, apiData, loadSavedOptions]);
+
+	// ✅ save options with additional_price
+	const saveAllOptions = async () => {
+		if (!cartItemId || !apiData) return;
+
+		setSaving(true);
+		setSavedSuccessfully(false);
+
+		const opts: SelectedOptions = {
+			size,
+			color,
+			material,
+			optionGroups,
+			printing_method: printingMethod,
+			print_location: printLocation,
+			isValid: validateCurrentOptions(),
+		};
+
+		const selected_options = buildSelectedOptionsWithPrice(apiData, opts);
+
+		try {
+			const success = await updateCartItem(cartItemId, { selected_options });
+			if (success) {
+				setSavedSuccessfully(true);
+				setHasUnsavedChanges(false);
+				setShowSaveButton(false);
+				setTimeout(() => setSavedSuccessfully(false), 2500);
+			}
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	const resetAllOptions = () => {
+		setSize("اختر");
+		setColor("اختر");
+		setMaterial("اختر");
+
+		const resetGroups: Record<string, string> = {};
+		Object.keys(groupedOptions).forEach((g) => (resetGroups[g] = "اختر"));
+		setOptionGroups(resetGroups);
+
+		setPrintingMethod("اختر");
+		setPrintLocation("اختر");
+
+		setHasUnsavedChanges(true);
+		setShowSaveButton(true);
+		setSavedSuccessfully(false);
+	};
+
+	const handleOptionChange = (setter: (v: string) => void, value: string) => {
+		setter(value);
+		setHasUnsavedChanges(true);
+		setShowSaveButton(true);
+		setSavedSuccessfully(false);
+	};
+
+	const handleGroupChange = (groupName: string, value: string) => {
+		setOptionGroups((prev) => {
+			const next = { ...prev, [groupName]: value };
+			setHasUnsavedChanges(true);
+			setShowSaveButton(true);
+			setSavedSuccessfully(false);
+			return next;
+		});
+	};
+
+	if (formLoading) return <StickerFormSkeleton />;
+
+	if (apiError || !apiData) {
+		return (
+			<div className="rounded-2xl border border-slate-200 bg-white p-4 text-center">
+				<p className="text-slate-700 font-extrabold">{apiError || "لا توجد بيانات للمنتج"}</p>
+			</div>
+		);
+	}
+
+	const needSize = apiData?.sizes?.length > 0;
+	const needColor = apiData?.colors?.length > 0;
+	const needMaterial = apiData?.materials?.length > 0;
+
+	const needPrintingMethod = Array.isArray(apiData?.printing_methods) && apiData.printing_methods.length > 0;
+	const needPrintLocation = Array.isArray(apiData?.print_locations) && apiData.print_locations.length > 0;
+
+	return (
+		<motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="pt-4 mt-4">
+			{cartItemId && showSaveButton && (
+				<motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-2xl">
+					<div className="flex items-center justify-between gap-2">
+						<div className="flex items-center gap-2">
+							<Warning className="text-yellow-600 text-sm" />
+							<p className="text-sm text-yellow-800 font-bold">لديك تغييرات غير محفوظة</p>
+						</div>
+						<div className="flex gap-2">
+							<Button
+								variant="outlined"
+								size="small"
+								onClick={resetAllOptions}
+								startIcon={<Refresh />}
+								className="flex items-center gap-2"
+								sx={{ borderRadius: "14px", borderColor: "#e2e8f0", color: "#0f172a", fontWeight: 900 }}
+							>
+								إعادة تعيين
+							</Button>
+
+							<Button
+								variant="contained"
+								size="small"
+								onClick={saveAllOptions}
+								disabled={saving}
+								startIcon={saving ? <CircularProgress size={16} /> : <Save />}
+								className="flex items-center gap-2"
+								sx={{ borderRadius: "14px", backgroundColor: "#f59e0b", fontWeight: 900 }}
+							>
+								{saving ? "جاري الحفظ..." : "حفظ"}
+							</Button>
+						</div>
+					</div>
+				</motion.div>
+			)}
+
+			{cartItemId && savedSuccessfully && (
+				<motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="mb-4">
+					<Alert severity="success" className="rounded-2xl" icon={<CheckCircle />}>
+						تم حفظ التغييرات بنجاح
+					</Alert>
+				</motion.div>
+			)}
+
+			<div className="space-y-4">
+				{needSize && (
+					<Box>
+						<FormControl fullWidth size="small" required error={showValidation && needSize && size === "اختر"}>
+							<InputLabel>المقاس</InputLabel>
+							<Select value={size} onChange={(e) => handleOptionChange(setSize, e.target.value as string)} label="المقاس" className="bg-white">
+								<MenuItem value="اختر" disabled>
+									<em className="text-gray-400">اختر</em>
+								</MenuItem>
+								{apiData.sizes.map((s: any) => (
+									<MenuItem key={s.id} value={s.name}>
+										{s.name}
+									</MenuItem>
+								))}
+							</Select>
+							{showValidation && needSize && size === "اختر" && <FormHelperText className="text-red-500 text-xs">يجب اختيار المقاس</FormHelperText>}
+						</FormControl>
+					</Box>
+				)}
+
+				{needColor && (
+					<Box>
+						<FormControl fullWidth size="small" required error={showValidation && needColor && color === "اختر"}>
+							<InputLabel>اللون</InputLabel>
+							<Select value={color} onChange={(e) => handleOptionChange(setColor, e.target.value as string)} label="اللون" className="bg-white">
+								<MenuItem value="اختر" disabled>
+									<em className="text-gray-400">اختر</em>
+								</MenuItem>
+								{apiData.colors.map((c: any) => (
+									<MenuItem key={c.id} value={c.name}>
+										<div className="flex items-center gap-2">
+											{c.hex_code && <div className="w-4 h-4 rounded-full border border-slate-200" style={{ backgroundColor: c.hex_code }} />}
+											<span>{c.name}</span>
+										</div>
+									</MenuItem>
+								))}
+							</Select>
+							{showValidation && needColor && color === "اختر" && <FormHelperText className="text-red-500 text-xs">يجب اختيار اللون</FormHelperText>}
+						</FormControl>
+					</Box>
+				)}
+
+				{needMaterial && (
+					<Box>
+						<FormControl fullWidth size="small" required error={showValidation && needMaterial && material === "اختر"}>
+							<InputLabel>الخامة</InputLabel>
+							<Select value={material} onChange={(e) => handleOptionChange(setMaterial, e.target.value as string)} label="الخامة" className="bg-white">
+								<MenuItem value="اختر" disabled>
+									<em className="text-gray-400">اختر</em>
+								</MenuItem>
+								{apiData.materials.map((m: any) => (
+									<MenuItem key={m.id} value={m.name}>
+										<div className="flex items-center justify-between gap-2 w-full">
+											<span>{m.name}</span>
+											{Number(m.additional_price || 0) > 0 ? (
+												<span className="text-xs font-black text-amber-700">+ {m.additional_price}</span>
+											) : (
+												<span className="text-xs font-black text-slate-500">0</span>
+											)}
+										</div>
+									</MenuItem>
+								))}
+							</Select>
+							{showValidation && needMaterial && material === "اختر" && <FormHelperText className="text-red-500 text-xs">يجب اختيار الخامة</FormHelperText>}
+						</FormControl>
+					</Box>
+				)}
+
+				{Object.keys(groupedOptions).map((groupName) => {
+					const items = groupedOptions[groupName] || [];
+					const required = items.some((x: any) => Boolean(x?.is_required));
+					const currentValue = optionGroups?.[groupName] || "اختر";
+					const fieldError = showValidation && required && currentValue === "اختر";
+
+					return (
+						<Box key={groupName}>
+							<FormControl fullWidth size="small" required={required} error={fieldError}>
+								<InputLabel>{groupName}</InputLabel>
+								<Select value={currentValue} onChange={(e) => handleGroupChange(groupName, e.target.value as string)} label={groupName} className="bg-white">
+									<MenuItem value="اختر" disabled>
+										<em className="text-gray-600">اختر</em>
+									</MenuItem>
+
+									{items.map((o: any) => (
+										<MenuItem key={o.id} value={o.option_value}>
+											<div className="flex items-center justify-between gap-3 w-full">
+												<span>{o.option_value}</span>
+												{Number(o.additional_price || 0) > 0 ? (
+													<span className="text-xs font-black text-amber-700">+ {o.additional_price}</span>
+												) : (
+													<span className="text-xs font-black text-slate-500">0</span>
+												)}
+											</div>
+										</MenuItem>
+									))}
+								</Select>
+
+								{fieldError && <FormHelperText className="text-red-500 text-xs">يجب اختيار {groupName}</FormHelperText>}
+							</FormControl>
+						</Box>
+					);
+				})}
+
+				{needPrintingMethod && (
+					<Box>
+						<FormControl fullWidth size="small" required error={showValidation && printingMethod === "اختر"}>
+							<InputLabel>طريقة الطباعة</InputLabel>
+							<Select
+								value={printingMethod}
+								onChange={(e) => handleOptionChange(setPrintingMethod, e.target.value as string)}
+								label="طريقة الطباعة"
+								className="bg-white"
+							>
+								<MenuItem value="اختر" disabled>
+									<em className="text-gray-400">اختر</em>
+								</MenuItem>
+								{apiData.printing_methods.map((p: any) => (
+									<MenuItem key={p.id} value={p.name}>
+										<div className="flex items-center justify-between gap-3 w-full">
+											<span>{p.name}</span>
+											<span className="text-xs font-black text-amber-700">{p.base_price}</span>
+										</div>
+									</MenuItem>
+								))}
+							</Select>
+
+							{showValidation && printingMethod === "اختر" && <FormHelperText className="text-red-500 text-xs">يجب اختيار طريقة الطباعة</FormHelperText>}
+						</FormControl>
+					</Box>
+				)}
+
+				{needPrintLocation && (
+					<Box>
+						<FormControl fullWidth size="small" required error={showValidation && printLocation === "اختر"}>
+							<InputLabel>مكان الطباعة</InputLabel>
+							<Select value={printLocation} onChange={(e) => handleOptionChange(setPrintLocation, e.target.value as string)} label="مكان الطباعة" className="bg-white">
+								<MenuItem value="اختر" disabled>
+									<em className="text-gray-400">اختر</em>
+								</MenuItem>
+								{apiData.print_locations.map((p: any) => (
+									<MenuItem key={p.id} value={p.name}>
+										<div className="flex items-center justify-between gap-3 w-full">
+											<span>{p.name}</span>
+											<span className="text-xs font-black text-slate-500">{p.type}</span>
+										</div>
+									</MenuItem>
+								))}
+							</Select>
+
+							{showValidation && printLocation === "اختر" && <FormHelperText className="text-red-500 text-xs">يجب اختيار مكان الطباعة</FormHelperText>}
+						</FormControl>
+					</Box>
+				)}
+			</div>
+
+			{apiData?.options_note && (
+				<div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-2xl">
+					<div className="flex items-start gap-2">
+						<Info className="text-blue-500 text-sm mt-0.5" />
+						<p className="text-sm text-blue-700 font-semibold">{apiData.options_note}</p>
+					</div>
+				</div>
+			)}
+		</motion.div>
+	);
+});

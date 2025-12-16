@@ -32,11 +32,12 @@ import { StickerFormSkeleton } from "../../components/skeletons/HomeSkeletons";
 interface StickerFormProps {
 	cartItemId?: number;
 	productId: number;
+	productData?: any; // ✅ NEW: pass product from cart to avoid refetch
 	onOptionsChange?: (options: any) => void;
 	showValidation?: boolean;
 }
 
-type SelectedOpt = { option_name: string; option_value: string };
+type SelectedOpt = { option_name: string; option_value: string; additional_price?: number };
 
 function n(v: any) {
 	const x = typeof v === "string" ? Number(v) : typeof v === "number" ? v : Number(v ?? 0);
@@ -49,11 +50,11 @@ function money(v: number) {
 
 function safeParseSelectedOptions(raw: any): SelectedOpt[] {
 	if (!raw) return [];
-	if (Array.isArray(raw)) return raw;
+	if (Array.isArray(raw)) return raw as SelectedOpt[];
 	if (typeof raw === "string") {
 		try {
 			const parsed = JSON.parse(raw);
-			return Array.isArray(parsed) ? parsed : [];
+			return Array.isArray(parsed) ? (parsed as SelectedOpt[]) : [];
 		} catch {
 			return [];
 		}
@@ -61,15 +62,90 @@ function safeParseSelectedOptions(raw: any): SelectedOpt[] {
 	return [];
 }
 
+function pickBasePrice(p: any) {
+	// ✅ robust base price selection (handles cases where price/final_price are 0)
+	const price = n(p?.price);
+	const finalPrice = n(p?.final_price);
+	const lowest = n(p?.lowest_price);
+
+	// prefer discounted if product has_discount
+	if (p?.has_discount) {
+		const b = finalPrice > 0 ? finalPrice : price > 0 ? price : lowest;
+		return b;
+	}
+
+	// not discounted
+	return price > 0 ? price : finalPrice > 0 ? finalPrice : lowest;
+}
+
+function computeExtrasFromSelectedOptions(item: any, p: any) {
+	const selectedOptions = safeParseSelectedOptions(item.selected_options);
+
+	// ✅ Primary source: additional_price already coming from backend / saved payload
+	let extras = 0;
+	let hasAnyAdditional = false;
+	for (const opt of selectedOptions) {
+		if (typeof opt?.additional_price !== "undefined") {
+			extras += n(opt.additional_price);
+			hasAnyAdditional = true;
+		}
+	}
+	if (hasAnyAdditional) return extras;
+
+	// ✅ Fallback: match against product arrays if additional_price wasn't stored
+	const productOptions = Array.isArray(p?.options) ? p.options : [];
+
+	for (const sel of selectedOptions) {
+		const match = productOptions.find(
+			(x: any) =>
+				String(x.option_name).trim() === String(sel.option_name).trim() &&
+				String(x.option_value).trim() === String(sel.option_value).trim()
+		);
+		if (match) extras += n(match.additional_price);
+	}
+
+	const colors = Array.isArray(p?.colors) ? p.colors : [];
+	const selectedColor = selectedOptions.find((o) => o.option_name?.includes("اللون"))?.option_value;
+	if (selectedColor) {
+		const c = colors.find((x: any) => String(x.name).trim() === String(selectedColor).trim());
+		if (c) extras += n(c.additional_price);
+	}
+
+	const materials = Array.isArray(p?.materials) ? p.materials : [];
+	const selectedMat = selectedOptions.find((o) => o.option_name?.includes("الخامة"))?.option_value;
+	if (selectedMat) {
+		const m = materials.find((x: any) => String(x.name).trim() === String(selectedMat).trim());
+		if (m) extras += n(m.additional_price);
+	}
+
+	const printingMethods = Array.isArray(p?.printing_methods) ? p.printing_methods : [];
+	const selectedPrintMethod = selectedOptions.find((o) => o.option_name?.includes("طريقة الطباعة"))?.option_value;
+	if (selectedPrintMethod) {
+		const pm = printingMethods.find((x: any) => String(x.name).trim() === String(selectedPrintMethod).trim());
+		if (pm) extras += n(pm.pivot_price ?? pm.base_price);
+	}
+
+	const printLocations = Array.isArray(p?.print_locations) ? p.print_locations : [];
+	const selectedLocation = selectedOptions.find((o) => o.option_name?.includes("مكان الطباعة"))?.option_value;
+	if (selectedLocation) {
+		const loc = printLocations.find((x: any) => String(x.name).trim() === String(selectedLocation).trim());
+		if (loc) extras += n(loc.pivot_price ?? loc.additional_price);
+	}
+
+	return extras;
+}
+
 function computePricing(item: any) {
 	const p = item.product || {};
 	const qty = n(item.quantity || 1);
 
+	// backend may send these (sometimes wrong when options change locally), we keep them as fallback only
 	const apiUnit = n(item.price_per_unit);
 	const apiLine = n(item.line_total);
 
-	const base = p?.has_discount ? n(p?.final_price) : n(p?.price);
+	const base = pickBasePrice(p);
 
+	// size tier override (if you use tiers pricing per quantity)
 	let sizeTierUnit: number | null = null;
 	const sizes = Array.isArray(p?.sizes) ? p.sizes : [];
 	if (sizes.length) {
@@ -87,59 +163,26 @@ function computePricing(item: any) {
 		}
 	}
 
-	const selectedOptions = safeParseSelectedOptions(item.selected_options);
+	const extras = computeExtrasFromSelectedOptions(item, p);
 
-	const productOptions = Array.isArray(p?.options) ? p.options : [];
-	let addFromOptions = 0;
-	for (const sel of selectedOptions) {
-		const match = productOptions.find(
-			(x: any) =>
-				String(x.option_name).trim() === String(sel.option_name).trim() &&
-				String(x.option_value).trim() === String(sel.option_value).trim()
-		);
-		if (match) addFromOptions += n(match.additional_price);
-	}
+	// discounted vs original for UI (both should include extras so comparison is logical)
+	const originalBase = sizeTierUnit ?? (n(p?.price) > 0 ? n(p?.price) : base);
+	const discountBase = sizeTierUnit ?? (n(p?.final_price) > 0 ? n(p?.final_price) : base);
+	const unitAfterOptions = (sizeTierUnit ?? base) + extras;
+	const lineAfterOptions = unitAfterOptions * qty;
 
-	const colors = Array.isArray(p?.colors) ? p.colors : [];
-	const selectedColor = selectedOptions.find((o) => o.option_name?.includes("اللون"))?.option_value;
-	if (selectedColor) {
-		const c = colors.find((x: any) => String(x.name).trim() === String(selectedColor).trim());
-		if (c) addFromOptions += n(c.additional_price);
-	}
-
-	const materials = Array.isArray(p?.materials) ? p.materials : [];
-	const selectedMat = selectedOptions.find((o) => o.option_name?.includes("الخامة"))?.option_value;
-	if (selectedMat) {
-		const m = materials.find((x: any) => String(x.name).trim() === String(selectedMat).trim());
-		if (m) addFromOptions += n(m.additional_price);
-	}
-
-	const printingMethods = Array.isArray(p?.printing_methods) ? p.printing_methods : [];
-	const selectedPrintMethod = selectedOptions.find((o) => o.option_name?.includes("طريقة الطباعة"))?.option_value;
-	if (selectedPrintMethod) {
-		const pm = printingMethods.find((x: any) => String(x.name).trim() === String(selectedPrintMethod).trim());
-		if (pm) addFromOptions += n(pm.pivot_price ?? pm.base_price);
-	}
-
-	const printLocations = Array.isArray(p?.print_locations) ? p.print_locations : [];
-	const selectedLocation = selectedOptions.find((o) => o.option_name?.includes("مكان الطباعة"))?.option_value;
-	if (selectedLocation) {
-		const loc = printLocations.find((x: any) => String(x.name).trim() === String(selectedLocation).trim());
-		if (loc) addFromOptions += n(loc.pivot_price ?? loc.additional_price);
-	}
-
-	const computedUnit = (sizeTierUnit ?? base) + addFromOptions;
-	const computedLine = computedUnit * qty;
-
-	const unit = apiUnit > 0 ? apiUnit : computedUnit;
-	const line = apiLine > 0 ? apiLine : computedLine;
+	// ✅ Always prefer computed values if API values are missing/zero
+	// (and also keeps UI consistent immediately after changing options)
+	const unit = unitAfterOptions > 0 ? unitAfterOptions : apiUnit;
+	const line = lineAfterOptions > 0 ? lineAfterOptions : apiLine;
 
 	const showRealProductPrice = {
-		base: sizeTierUnit ?? base,
-		final: computedUnit,
 		discount: !!p?.has_discount,
-		original: n(p?.price),
-		finalFromApi: n(p?.final_price),
+		unit_after_options: unitAfterOptions,
+		original_unit_after_options: originalBase + extras,
+		discount_unit_after_options: discountBase + extras,
+		extras,
+		base_used: sizeTierUnit ?? base,
 	};
 
 	return { unit, line, showRealProductPrice };
@@ -165,7 +208,7 @@ function missingRequiredFields(item: any) {
 	const hasMaterials = (p?.materials?.length ?? 0) > 0;
 
 	const requiredOpts = (Array.isArray(p?.options) ? p.options : []).filter((o: any) => o.is_required);
-	const miss: any = [];
+	const miss: any[] = [];
 
 	if (hasSize && !selected.some((o) => o.option_name?.includes("المقاس"))) miss.push("المقاس");
 	if (hasColors && !selected.some((o) => o.option_name?.includes("اللون"))) miss.push("اللون");
@@ -176,6 +219,10 @@ function missingRequiredFields(item: any) {
 		const ok = selected.some((s) => String(s.option_name).trim() === name && String(s.option_value).trim());
 		if (!ok) miss.push(name);
 	}
+
+	// printing method/location required if exist (based on your backend rules)
+	if ((p?.printing_methods?.length ?? 0) > 0 && !selected.some((o) => o.option_name?.includes("طريقة الطباعة"))) miss.push("طريقة الطباعة");
+	if ((p?.print_locations?.length ?? 0) > 0 && !selected.some((o) => o.option_name?.includes("مكان الطباعة"))) miss.push("مكان الطباعة");
 
 	return miss;
 }
@@ -281,22 +328,27 @@ ${errors.join("\n")}
 													<div>
 														<h3 className="font-extrabold text-[15px] text-slate-900">{item.product.name}</h3>
 
+														{/* ✅ unit price after options */}
 														<div className="mt-2 flex flex-wrap items-center gap-2">
-															{item._real?.discount ? (
+															<span className="text-sm font-extrabold text-slate-900">
+																{money(n(item._unit))} <span className="text-xs">ريال</span>
+															</span>
+
+															{/* ✅ if discounted, show original (also after options) */}
+															{item._real?.discount && n(item._real?.original_unit_after_options) > n(item._unit) && (
 																<>
-																	<span className="text-sm font-extrabold text-slate-900">
-																		{money(n(item._real?.final))} <span className="text-xs">ريال</span>
-																	</span>
 																	<span className="text-xs font-extrabold text-slate-500 line-through">
-																		{money(n(item._real?.original))} ريال
+																		{money(n(item._real?.original_unit_after_options))} ريال
 																	</span>
 																	<span className="text-[11px] font-extrabold px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
 																		خصم
 																	</span>
 																</>
-															) : (
-																<span className="text-sm font-extrabold text-slate-900">
-																	{money(n(item._unit))} <span className="text-xs">ريال</span>
+															)}
+
+															{n(item._real?.extras) > 0 && (
+																<span className="text-[11px] font-extrabold px-2 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+																	+ إضافات {money(n(item._real?.extras))}
 																</span>
 															)}
 
@@ -305,7 +357,9 @@ ${errors.join("\n")}
 															</span>
 														</div>
 
-														<p className="text-sm text-emerald-700 mt-2 font-extrabold">الإجمالي: {money(n(item._line))} ريال</p>
+														<p className="text-sm text-emerald-700 mt-2 font-extrabold">
+															الإجمالي: {money(n(item._line))} ريال
+														</p>
 													</div>
 												</div>
 											</div>
@@ -373,13 +427,16 @@ ${errors.join("\n")}
 											<p className="font-extrabold text-amber-800">
 												لازم تختار: <span className="text-amber-900">{miss.join("، ")}</span>
 											</p>
-											<p className="text-xs font-bold text-amber-700 mt-1">السعر بيتغير حسب الاختيارات — اختياراتك هنا هتنعكس فورًا على السعر.</p>
+											<p className="text-xs font-bold text-amber-700 mt-1">
+												السعر بيتغير حسب الاختيارات — اختياراتك هنا هتنعكس فورًا على السعر.
+											</p>
 										</div>
 									)}
 
 									{hasVariants && (
 										<div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-											<StickerForm cartItemId={item.cart_item_id} productId={item.product.id} />
+											{/* ✅ pass productData so form doesn't refetch */}
+											<StickerForm cartItemId={item.cart_item_id} productId={item.product.id} productData={item.product} />
 										</div>
 									)}
 								</div>
@@ -425,7 +482,9 @@ ${errors.join("\n")}
 							تابع عملية الشراء
 						</Button>
 
-						<p className="text-xs text-slate-500 text-center mt-3 font-bold">ملحوظة: السعر الإجمالي محسوب حسب اختياراتك الحالية.</p>
+						<p className="text-xs text-slate-500 text-center mt-3 font-bold">
+							ملحوظة: السعر الإجمالي محسوب حسب اختياراتك الحالية.
+						</p>
 					</div>
 				</div>
 			</div>
@@ -434,7 +493,7 @@ ${errors.join("\n")}
 }
 
 const StickerForm = forwardRef(function StickerForm(
-	{ cartItemId, productId, onOptionsChange, showValidation = false }: StickerFormProps,
+	{ cartItemId, productId, productData, onOptionsChange, showValidation = false }: StickerFormProps,
 	ref
 ) {
 	const { updateCartItem, fetchCartItemOptions } = useCart();
@@ -448,7 +507,6 @@ const StickerForm = forwardRef(function StickerForm(
 	const [printLocation, setPrintLocation] = useState("اختر");
 
 	const [apiData, setApiData] = useState<any>(null);
-	const [loading, setLoading] = useState(true);
 	const [formLoading, setFormLoading] = useState(true);
 
 	const [saving, setSaving] = useState(false);
@@ -457,8 +515,6 @@ const StickerForm = forwardRef(function StickerForm(
 	const [savedSuccessfully, setSavedSuccessfully] = useState(false);
 
 	const [apiError, setApiError] = useState<string | null>(null);
-
-	const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
 	const groupedOptions = useMemo(() => {
 		const list = Array.isArray(apiData?.options) ? apiData.options : [];
@@ -533,47 +589,37 @@ const StickerForm = forwardRef(function StickerForm(
 		});
 	}, [size, color, material, optionGroups, printingMethod, printLocation, validateCurrentOptions, onOptionsChange]);
 
+	// ✅ NO FETCH: load options from productData (cart item)
 	useEffect(() => {
-		const fetchData = async () => {
-			setApiError(null);
-			setLoading(true);
-			setFormLoading(true);
+		setApiError(null);
+		setFormLoading(true);
 
-			try {
-				const res = await fetch(`${baseUrl}/products/${productId}`, { cache: "no-store" });
-				if (!res.ok) throw new Error("فشل تحميل خيارات المنتج");
+		try {
+			if (!productData) throw new Error("لا توجد بيانات للمنتج");
 
-				const data = await res.json();
-				if (!data?.data) throw new Error("لا توجد بيانات للمنتج");
+			setApiData(productData);
 
-				setApiData(data.data);
-
-				if (Array.isArray(data.data?.options)) {
-					const list = data.data.options;
-					const out: Record<string, string> = {};
-					list.forEach((o: any) => {
-						const k = String(o.option_name || "").trim();
-						if (!k) return;
-						if (!out[k]) out[k] = "اختر";
-					});
-					setOptionGroups(out);
-				} else {
-					setOptionGroups({});
-				}
-
-				setPrintingMethod("اختر");
-				setPrintLocation("اختر");
-			} catch (err: any) {
-				setApiError(err?.message || "حدث خطأ أثناء تحميل الخيارات");
-				setApiData(null);
-			} finally {
-				setLoading(false);
-				setFormLoading(false);
+			if (Array.isArray(productData?.options)) {
+				const out: Record<string, string> = {};
+				productData.options.forEach((o: any) => {
+					const k = String(o.option_name || "").trim();
+					if (!k) return;
+					if (!out[k]) out[k] = "اختر";
+				});
+				setOptionGroups(out);
+			} else {
+				setOptionGroups({});
 			}
-		};
 
-		fetchData();
-	}, [productId, baseUrl]);
+			setPrintingMethod("اختر");
+			setPrintLocation("اختر");
+		} catch (err: any) {
+			setApiError(err?.message || "حدث خطأ أثناء تحميل الخيارات");
+			setApiData(null);
+		} finally {
+			setFormLoading(false);
+		}
+	}, [productData]);
 
 	const extractValueFromOptions = useCallback((options: any[], optionName: string) => {
 		if (!options || !Array.isArray(options)) return null;
@@ -637,12 +683,6 @@ const StickerForm = forwardRef(function StickerForm(
 		setSaving(true);
 		setSavedSuccessfully(false);
 
-		// helpers
-		const num = (v: any) => {
-			const x = typeof v === "string" ? Number(v) : typeof v === "number" ? v : Number(v ?? 0);
-			return Number.isFinite(x) ? x : 0;
-		};
-
 		const selected_options: any[] = [];
 
 		const sizeObj = apiData?.sizes?.find((s: any) => String(s.name).trim() === String(size).trim());
@@ -654,31 +694,27 @@ const StickerForm = forwardRef(function StickerForm(
 			});
 		}
 
-		// ✅ COLOR
 		const colorObj = apiData?.colors?.find((c: any) => String(c.name).trim() === String(color).trim());
 		if (apiData.colors?.length > 0 && color !== "اختر") {
 			selected_options.push({
 				option_name: "اللون",
 				option_value: color,
-				additional_price: num(colorObj?.additional_price),
+				additional_price: n(colorObj?.additional_price),
 			});
 		}
 
-		// ✅ MATERIAL
 		const materialObj = apiData?.materials?.find((m: any) => String(m.name).trim() === String(material).trim());
 		if (apiData.materials?.length > 0 && material !== "اختر") {
 			selected_options.push({
 				option_name: "الخامة",
 				option_value: material,
-				additional_price: num(materialObj?.additional_price),
+				additional_price: n(materialObj?.additional_price),
 			});
 		}
 
-		// ✅ OPTIONS GROUPS (like "عدد الوجوه")
 		Object.entries(optionGroups || {}).forEach(([group, value]) => {
 			if (!value || value === "اختر") return;
 
-			// find the matching option row to pull its additional_price
 			const row = (Array.isArray(apiData?.options) ? apiData.options : []).find(
 				(o: any) =>
 					String(o.option_name).trim() === String(group).trim() &&
@@ -688,31 +724,28 @@ const StickerForm = forwardRef(function StickerForm(
 			selected_options.push({
 				option_name: group,
 				option_value: value,
-				additional_price: num(row?.additional_price),
+				additional_price: n(row?.additional_price),
 			});
 		});
 
-		// ✅ PRINTING METHOD
 		const methodObj = apiData?.printing_methods?.find((p: any) => String(p.name).trim() === String(printingMethod).trim());
 		if (Array.isArray(apiData?.printing_methods) && apiData.printing_methods.length > 0 && printingMethod !== "اختر") {
 			selected_options.push({
 				option_name: "طريقة الطباعة",
 				option_value: printingMethod,
-				additional_price: num(methodObj?.pivot_price ?? methodObj?.base_price),
+				additional_price: n(methodObj?.pivot_price ?? methodObj?.base_price),
 			});
 		}
 
-		// ✅ PRINT LOCATION
 		const locObj = apiData?.print_locations?.find((l: any) => String(l.name).trim() === String(printLocation).trim());
 		if (Array.isArray(apiData?.print_locations) && apiData.print_locations.length > 0 && printLocation !== "اختر") {
 			selected_options.push({
 				option_name: "مكان الطباعة",
 				option_value: printLocation,
-				additional_price: num(locObj?.pivot_price ?? locObj?.additional_price),
+				additional_price: n(locObj?.pivot_price ?? locObj?.additional_price),
 			});
 		}
 
-		// ✅ payload with IDs + locations arrays
 		const payload: any = {
 			selected_options,
 			size_id: sizeObj?.id ?? null,
@@ -723,7 +756,6 @@ const StickerForm = forwardRef(function StickerForm(
 			embroider_locations: [] as number[],
 		};
 
-		// put chosen location id into correct array based on type
 		if (locObj?.id) {
 			if (String(locObj.type).toLowerCase() === "embroider") payload.embroider_locations = [locObj.id];
 			else payload.print_locations = [locObj.id];
@@ -741,7 +773,6 @@ const StickerForm = forwardRef(function StickerForm(
 			setSaving(false);
 		}
 	};
-
 
 	const resetAllOptions = () => {
 		setSize("اختر");
@@ -762,28 +793,22 @@ const StickerForm = forwardRef(function StickerForm(
 
 	const handleOptionChange = (setter: (v: string) => void, value: string) => {
 		setter(value);
-		if (!cartItemId) {
-			setHasUnsavedChanges(true);
-		} else {
-			setShowSaveButton(true);
-			setHasUnsavedChanges(true);
-			setSavedSuccessfully(false);
-		}
+		setShowSaveButton(true);
+		setHasUnsavedChanges(true);
+		setSavedSuccessfully(false);
 	};
 
 	const handleGroupChange = (groupName: string, value: string) => {
 		setOptionGroups((prev) => {
 			const next = { ...prev, [groupName]: value };
-			if (cartItemId) {
-				setHasUnsavedChanges(true);
-				setShowSaveButton(true);
-				setSavedSuccessfully(false);
-			}
+			setHasUnsavedChanges(true);
+			setShowSaveButton(true);
+			setSavedSuccessfully(false);
 			return next;
 		});
 	};
 
-	if ((loading && formLoading) || formLoading) return <StickerFormSkeleton />;
+	if (formLoading) return <StickerFormSkeleton />;
 
 	if (apiError || !apiData) {
 		return (
@@ -801,12 +826,7 @@ const StickerForm = forwardRef(function StickerForm(
 	const needPrintLocation = Array.isArray(apiData?.print_locations) && apiData.print_locations.length > 0;
 
 	return (
-		<motion.div
-			initial={{ opacity: 0, y: 14 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.25 }}
-			className="pt-4 mt-4"
-		>
+		<motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="pt-4 mt-4">
 			{cartItemId && showSaveButton && (
 				<motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-2xl">
 					<div className="flex items-center justify-between gap-2">
@@ -881,9 +901,7 @@ const StickerForm = forwardRef(function StickerForm(
 								{apiData.colors.map((c: any) => (
 									<MenuItem key={c.id} value={c.name}>
 										<div className="flex items-center gap-2">
-											{c.hex_code && (
-												<div className="w-4 h-4 rounded-full border border-slate-200" style={{ backgroundColor: c.hex_code }} />
-											)}
+											{c.hex_code && <div className="w-4 h-4 rounded-full border border-slate-200" style={{ backgroundColor: c.hex_code }} />}
 											<span>{c.name}</span>
 										</div>
 									</MenuItem>
@@ -930,12 +948,7 @@ const StickerForm = forwardRef(function StickerForm(
 						<Box key={groupName}>
 							<FormControl fullWidth size="small" required={required} error={fieldError}>
 								<InputLabel>{groupName}</InputLabel>
-								<Select
-									value={currentValue}
-									onChange={(e) => handleGroupChange(groupName, e.target.value as string)}
-									label={groupName}
-									className="bg-white"
-								>
+								<Select value={currentValue} onChange={(e) => handleGroupChange(groupName, e.target.value as string)} label={groupName} className="bg-white">
 									<MenuItem value="اختر" disabled>
 										<em className="text-gray-600">اختر</em>
 									</MenuItem>
@@ -964,12 +977,7 @@ const StickerForm = forwardRef(function StickerForm(
 					<Box>
 						<FormControl fullWidth size="small" required error={showValidation && printingMethod === "اختر"}>
 							<InputLabel>طريقة الطباعة</InputLabel>
-							<Select
-								value={printingMethod}
-								onChange={(e) => handleOptionChange(setPrintingMethod, e.target.value as string)}
-								label="طريقة الطباعة"
-								className="bg-white"
-							>
+							<Select value={printingMethod} onChange={(e) => handleOptionChange(setPrintingMethod, e.target.value as string)} label="طريقة الطباعة" className="bg-white">
 								<MenuItem value="اختر" disabled>
 									<em className="text-gray-400">اختر</em>
 								</MenuItem>
@@ -992,12 +1000,7 @@ const StickerForm = forwardRef(function StickerForm(
 					<Box>
 						<FormControl fullWidth size="small" required error={showValidation && printLocation === "اختر"}>
 							<InputLabel>مكان الطباعة</InputLabel>
-							<Select
-								value={printLocation}
-								onChange={(e) => handleOptionChange(setPrintLocation, e.target.value as string)}
-								label="مكان الطباعة"
-								className="bg-white"
-							>
+							<Select value={printLocation} onChange={(e) => handleOptionChange(setPrintLocation, e.target.value as string)} label="مكان الطباعة" className="bg-white">
 								<MenuItem value="اختر" disabled>
 									<em className="text-gray-400">اختر</em>
 								</MenuItem>

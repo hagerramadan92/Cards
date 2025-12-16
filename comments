@@ -1,10 +1,7 @@
-  
-- test order flow 
+- test order flow
 
- - issue of the creadites card 
- - test the coupon
- - show the money of teh payment when pay on paymob
+- test the coupon
 
- - see the price that he will pay it and compare it with the final 
- - call the payment-methods in the page payment.tsx 
- -
+- when select size show action to increase or decrese for hte count
+
+- when change an variant show this reflect on the price inthe product page
