@@ -12,6 +12,7 @@ import { Navigation, FreeMode } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/free-mode";
+import { usePathname } from "next/navigation";
 
 type Status = "idle" | "loading" | "success" | "error";
 
@@ -23,7 +24,7 @@ export default function CateNavbar() {
 	const [categories, setCategories] = useState<CategoryI[]>([]);
 	const [status, setStatus] = useState<Status>("loading");
 	const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
+	const pathname = usePathname();
 	useEffect(() => {
 		let alive = true;
 
@@ -56,6 +57,7 @@ export default function CateNavbar() {
 	}, []);
 
 	const items = useMemo(() => categories ?? [], [categories]);
+	if (pathname === "/") return null;
 
 	if (status === "loading") return <CateNavbarSkeleton />;
 

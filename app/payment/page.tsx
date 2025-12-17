@@ -15,6 +15,7 @@ import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 import Swal from "sweetalert2";
 import { MdKeyboardArrowLeft } from "react-icons/md";
 import { useAppContext } from "../../src/context/AppContext";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 
 function BlockSkeleton() {
@@ -31,6 +32,8 @@ export default function PaymentPage() {
 	const [openModal, setOpenModal] = useState(false);
 	const [showAddress, setShowAddress] = useState(false);
 	const { paymentMethods } = useAppContext() as any;
+	const [redirecting, setRedirecting] = useState(false);
+	const [redirectMessage, setRedirectMessage] = useState("");
 
 	const [addresses, setAddresses] = useState<AddressI[]>([]);
 	const [selectedAddress, setSelectedAddress] = useState<AddressI | null>(null);
@@ -148,13 +151,20 @@ export default function PaymentPage() {
 				throw new Error(result?.message || "حدث خطأ أثناء إنشاء الطلب");
 			}
 
-			if (paymentMethod === "cash_on_delivery") {
-				Swal.fire("نجاح", "تم إنشاء الطلب بنجاح", "success");
+			if (paymentMethod == "1") {
+				setRedirectMessage(result?.data?.message);
+				setRedirecting(true);
+				setTimeout(() => {
+					router.push(`/ordercomplete?orderId=${result.data.id}`);
+				}, 500);
+				// Swal.fire("نجاح", "تم إنشاء الطلب بنجاح", "success");
 				router.push(`/ordercomplete?orderId=${result.data.id}`);
 			} else {
-				Swal.fire("انتظار", result?.data?.message || "جاري توجيهك إلى بوابة الدفع...", "info");
-				console.log(result?.data);
-				if (result?.data?.payment_url) window.location.href = result.data.payment_url;
+				setRedirectMessage(result?.data?.message || "جاري توجيهك إلى بوابة الدفع...");
+				setRedirecting(true);
+				setTimeout(() => {
+					if (result?.data?.payment_url) window.location.href = result.data.payment_url;
+				}, 500);
 			}
 		} catch (error: any) {
 			console.error("Error creating order:", error);
@@ -349,6 +359,9 @@ export default function PaymentPage() {
 					</div>
 				</div>
 			</div>
+
+			<LoadingOverlay show={redirecting} message={redirectMessage} />
+
 		</div>
 	);
 }

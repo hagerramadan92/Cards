@@ -17,25 +17,6 @@ import { GoEye } from 'react-icons/go';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickViewModal from './QuickViewModal';
 
-interface ProductCardProps extends ProductI {
-	className?: string;
-	className2?: string;
-	className3?: string;
-	classNameHome?: string;
-	classNameCate?: string;
-	Bottom?: string;
-	onFavoriteChange?: (productId: number, newValue: boolean) => void;
-
-	selectedSizeId?: number | null;
-	selectedColorId?: number | null;
-	selectedPrintingMethodId?: number | null;
-	selectedPrintLocations?: number[];
-	selectedEmbroiderLocations?: number[];
-	selectedOptions?: { option_name: string; option_value: string }[];
-	selectedDesignServiceId?: number | null;
-	isSample?: boolean;
-}
-
 export default function ProductCard({
 	product,
 	id,
@@ -251,7 +232,7 @@ export default function ProductCard({
 						}}
 						whileHover={{ scale: 1.08 }}
 						whileTap={{ scale: 0.92 }}
-						className={`absolute top-[95px] start-[14px] border border-slate-100 bg-white/90 backdrop-blur w-8 h-8  rounded-full flex items-center justify-center shadow ring-1 ring-black/5 `}
+						className={`absolute top-[88px] md:top-[95px] right-[6px] md:start-[14px] border border-slate-100 bg-white/90 backdrop-blur w-9 h-9  rounded-full flex items-center justify-center shadow ring-1 ring-black/5 `}
 					>
 						<GoEye className="text-gray-800" />
 					</motion.button>
@@ -292,7 +273,7 @@ export default function ProductCard({
 						disabled={isAdding || !inStock}
 						whileHover={inStock && !isAdding ? { scale: 1.06 } : undefined}
 						whileTap={inStock && !isAdding ? { scale: 0.92 } : undefined}
-						className={`absolute right-1 md:right-3  top-[72px] -translate-y-1/2 z-20 ${classNameCate}`}
+						className={`absolute right-[6px] md:right-3 top-[64px]  md:top-[72px] -translate-y-1/2 z-20 ${classNameCate}`}
 					>
 						<div
 							className={`w-9 h-9 rounded-full flex items-center justify-center shadow-lg ring-1 ring-black/5 ${inStock ? 'bg-pro text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
@@ -319,9 +300,9 @@ export default function ProductCard({
 					<div className={`flex items-center gap-2 max-md:!mb-1 ${classNameHome}`}>
 						{displayFinalPrice > 0 ? (
 							<>
-								<PriceComponent final_price={displayFinalPrice} />
+								<PriceComponent start final_price={displayFinalPrice} />
 								{priceHasDiscount && (
-									<span className="text-sm text-gray-400 line-through">{displayPrice} ج.م</span>
+									<span className="text-sm text-gray-400 line-through">{displayPrice} ر.س</span>
 								)}
 							</>
 						) : null}

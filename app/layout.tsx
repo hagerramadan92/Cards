@@ -87,7 +87,7 @@ export default function RootLayout({
 
 	return (
 		<html lang="ar" dir="rtl" className={cairo.className}>
- 
+
 			<body className="bg-white">
 				<AppProvider>
 					<ToastProvider>

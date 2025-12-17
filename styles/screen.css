@@ -229,7 +229,7 @@ body * {
   letter-spacing: 0.04em;
 }
 
-.swiper-pagination-clickable.swiper-pagination-bullets.swiper-pagination-horizontal {
+.swiper-pagination-bullets {
   left: unset;
   position: absolute;
   right: 0;
@@ -240,4 +240,13 @@ body * {
 .swiper-pagination-bullet {
   background: #2563eb !important;
   opacity: 0.6;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 1.5s linear infinite;
 }

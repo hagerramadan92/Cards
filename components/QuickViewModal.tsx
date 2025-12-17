@@ -207,18 +207,18 @@ export default function QuickViewModal({
 											{hasRealPrice ? (
 												<>
 													<span className="text-xl font-extrabold text-pro">
-														{finalPrice > 0 ? finalPrice : price} ج.م
+														{finalPrice > 0 ? finalPrice : price} ر.س
 													</span>
 													{hasDiscount && (
 														<span className="text-sm text-gray-400 line-through">
-															{price} ج.م
+															{price} ر.س
 														</span>
 													)}
 												</>
 											) : showLowest ? (
 												<>
 													<span className="text-xl font-extrabold text-pro">
-														يبدأ من {product.lowest_price} ج.م
+														يبدأ من {product.lowest_price} ر.س
 													</span>
 													<span className="text-xs text-gray-500">
 														(السعر يحدد حسب الخيارات)

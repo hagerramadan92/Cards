@@ -178,7 +178,7 @@ export default function CheckoutSummary() {
                     <p className="text-slate-500 font-semibold">الكمية: {item._qty}</p>
 
                     <p className="font-extrabold text-slate-900 mt-1">
-                      {money(n(item._line))} <span className="text-xs text-slate-600">ج.م</span>
+                      {money(n(item._line))} <span className="text-xs text-slate-600">ر.س</span>
                     </p>
 
                     {Array.isArray(item._opts) && item._opts.length > 0 && (
@@ -200,7 +200,7 @@ export default function CheckoutSummary() {
                     )}
 
                     <p className="text-xs text-slate-500 font-semibold mt-2">
-                      سعر القطعة: {money(n(item._unit))} ج.م
+                      سعر القطعة: {money(n(item._unit))} ر.س
                     </p>
                   </div>
                 </div>

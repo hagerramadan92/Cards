@@ -412,7 +412,7 @@ export default function AllProductsPage() {
 					<div className="lg:col-span-9">
 						<div className="relative">
 							{initialLoading || isFetching ? (
-								<div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+								<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
 									{gridSkeletonCount.map((_, i) => (
 										<ProductCardSkeleton key={`init-sk-${i}`} />
 									))}
@@ -427,7 +427,7 @@ export default function AllProductsPage() {
 									<p className="text-slate-500 text-sm mt-2">جرّب إزالة بعض الفلاتر أو تغيير البحث</p>
 								</motion.div>
 							) : (
-								<div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+								<div className="grid  grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
 									{products.map((product) => (
 										<ProductCard
 										product={product}

@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import FloatingWhatsAppButton from "../components/WhatsappButton";
 
 export default function LayoutShell({
 	children,
@@ -24,6 +25,7 @@ export default function LayoutShell({
 			</div>
 
 			{!hideLayout && <Footer />}
+			<FloatingWhatsAppButton />
 		</>
 	);
 }

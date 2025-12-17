@@ -52,7 +52,7 @@ export default function Home() {
   const sliderSrc = useMemo(() => (mainSlider?.[0]?.items || []).map(i => i.image), [mainSlider]);
   
   return (
-    <div className='container py-6 pt-12'>
+    <div className='container    '>
       <div className=' flex flex-col gap-8'>
         <div className='rounded-3xl overflow-hidden border border-gray-100 bg-white shadow-sm'>{isMainSliderLoading ? <HeroSliderSkeleton /> : sliderSrc.length > 0 ? <SliderComponent src={mainSlider?.[0]}   /> : <div className='h-[200px] md:h-[420px] flex items-center justify-center text-gray-400'>لا توجد بنرات حالياً</div>}</div>
 

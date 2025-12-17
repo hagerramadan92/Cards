@@ -30,7 +30,7 @@ export default function SearchNavbar() {
 		[socialMedia]
 	);
 
-	const phone = socials.find((s: any) => s.key === "phone")?.value || socials?.[0]?.value || "98098";
+	const phone = socials.find((s: any) => s.key === "phone")?.value || socials?.[0]?.value;
 
 	return (
 		<div className="bg-white/80 " >
@@ -82,7 +82,7 @@ export default function SearchNavbar() {
 					{/* Right Section */}
 					<div className="flex items-center gap-2 md:gap-4 shrink-0">
 						{/* Phone */}
-						<div className="hidden lg:flex flex-col text-sm leading-tight">
+						{phone && <div className="hidden lg:flex flex-col text-sm leading-tight">
 
 							<a
 								href={`tel:${String(phone).replace(/\s+/g, "")}`}
@@ -91,7 +91,7 @@ export default function SearchNavbar() {
 								<LuPhone size={22} strokeWidth={1.3} />
 								<span className="tabular-nums">{phone}</span>
 							</a>
-						</div>
+						</div>}
 
 						{/* Cart */}
 						<div className={`cursor-pointer ${!fullName && "hidden"}`}>

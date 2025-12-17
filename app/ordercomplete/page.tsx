@@ -482,7 +482,7 @@ export default function OrderCompletePage() {
                           <p className="text-sm text-slate-600 font-semibold mt-1">الكمية: {qty}</p>
 
                           <p className="mt-2 font-extrabold text-slate-900">
-                            {money(n(it._line))} <span className="text-xs text-slate-600">ج.م</span>
+                            {money(n(it._line))} <span className="text-xs text-slate-600">ر.س</span>
                           </p>
 
                           {opts.length > 0 && (

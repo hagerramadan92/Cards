@@ -63,7 +63,7 @@ interface OrderData {
   status: OrderStatus;
   status_label: string; // e.g. "order.status.pending"
   total_amount: string; // "0.00"
-  formatted_total: string; // "0.00 ج.م"
+  formatted_total: string; // "0.00 ر.س"
   customer_name: string;
   customer_phone: string | null;
   shipping_address: string | null;
