@@ -644,20 +644,12 @@ export default function ProductPageClient() {
 		return selectedOptions;
 	};
 
-	// ✅ BASE price:
-	// - if user chose size tier, base price = tier.total_price
-	// - otherwise fallback to product final_price/price/lowest_price
+	// ✅ BASE price: 
 	const basePrice = useMemo(() => {
-		const tierTotal = num(selectedOptions?.size_total_price);
-		if (tierTotal > 0) return tierTotal;
+  const tierTotal = num(selectedOptions?.size_total_price);
+  return tierTotal > 0 ? tierTotal : 0;
+}, [selectedOptions?.size_total_price]); 
 
-		const p = num(product?.final_price ?? product?.price);
-		if (p > 0) return p;
-
-		return num(product?.lowest_price ?? 0);
-	}, [product, selectedOptions?.size_total_price]);
-
-	// ✅ compute extras from selected options (excluding size tier because it's now basePrice)
 	const extrasTotal = useMemo(() => {
 		if (!apiData) return 0;
 		const selected = buildSelectedOptionsWithPrice(apiData, selectedOptions);
@@ -669,7 +661,7 @@ export default function ProductPageClient() {
 	}, [apiData, selectedOptions]);
 
 	const displayTotal = useMemo(() => {
-		const total = basePrice + extrasTotal;
+ 		const total = basePrice + extrasTotal;
 		return total > 0 ? total : 0;
 	}, [basePrice, extrasTotal]);
 
