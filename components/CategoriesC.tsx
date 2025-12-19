@@ -18,6 +18,7 @@ interface CategoriesSliderProps {
 	categories: CategoryI[];
 	title?: string;
 	subtitle?: string;
+	inSlide ?: any
 }
 
 function cn(...c: (string | false | undefined | null)[]) {
@@ -26,6 +27,7 @@ function cn(...c: (string | false | undefined | null)[]) {
 
 export default function CategoriesSlider({
 	categories,
+	inSlide,
 	title = "الأقسام",
 	subtitle = "اختر القسم اللي يناسبك",
 }: CategoriesSliderProps) {
@@ -81,7 +83,7 @@ export default function CategoriesSlider({
 			</div>
 
 			<div className="relative">
- 
+
 				{/* Soft fades */}
 				<div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white to-transparent z-10" />
 				<div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent z-10" />
@@ -89,7 +91,7 @@ export default function CategoriesSlider({
 				<Swiper
 					modules={[Navigation, Pagination, FreeMode, A11y]}
 					dir="rtl"
-					spaceBetween={10}
+					spaceBetween={5}
 					slidesPerGroup={1}
 					watchOverflow
 					grabCursor
@@ -126,18 +128,18 @@ export default function CategoriesSlider({
 						setIsEnd(swiper.isEnd);
 					}}
 					breakpoints={{
-						0: { slidesPerView: 4.2 },
-						480: { slidesPerView: 5.2 },
-						640: { slidesPerView: 6.2 },
-						992: { slidesPerView: 8.2 },
-						1424: { slidesPerView: 10.2 },
+						0: { slidesPerView: 3  },
+						480: { slidesPerView: 3  },
+						640: { slidesPerView: 6  },
+						992: { slidesPerView: 8  },
+						1424: { slidesPerView: 10  },
 					}}
 					className="!px-2 md:!px-0"
 				>
 					{items.map((cat) => (
-						<SwiperSlide key={cat.id} className="!h-auto">
+						<SwiperSlide key={cat.id} className=" !h-auto">
 							<Link
-								href={`/category/${ cat.id}`}
+								href={`/category/${cat.id}`}
 								aria-label={`Go to ${cat.name}`}
 								className="block"
 							>
@@ -175,7 +177,7 @@ export default function CategoriesSlider({
 					))}
 				</Swiper>
 
- 
+
 			</div>
 		</section>
 	);

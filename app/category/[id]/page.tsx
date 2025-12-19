@@ -223,30 +223,39 @@ export default function CategoryPage() {
 	];
 
 
-	function getPages(current: number, total: number) {
-		// returns: (number | "…")[]
-		if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+	function getPages(
+		current: number,
+		total: number,
+		range: number = 1 // 👈 reduce this on mobile
+	) {
+		if (total <= 2 * range + 5) {
+			return Array.from({ length: total }, (_, i) => i + 1);
+		}
 
 		const pages: (number | "…")[] = [];
-		const left = Math.max(2, current - 1);
-		const right = Math.min(total - 1, current + 1);
+		const left = Math.max(2, current - range);
+		const right = Math.min(total - 1, current + range);
 
 		pages.push(1);
 
 		if (left > 2) pages.push("…");
 
-		for (let p = left; p <= right; p++) pages.push(p);
+		for (let p = left; p <= right; p++) {
+			pages.push(p);
+		}
 
 		if (right < total - 1) pages.push("…");
 
 		pages.push(total);
+
 		return pages;
 	}
+
 
 	const totalPages = Math.ceil(sortedProducts.length / rowsPerPage);
 
 	return (
-		<section className=" " dir="rtl">
+		<section className="  " >
 			<div className=" container pt-2 pb-6 md:py-12">
 				{/* Header */}
 				<motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
@@ -302,7 +311,7 @@ export default function CategoryPage() {
 							</div>
 
 							{/* Sort (enhanced select) */}
-							<FormControl size="small" sx={{ minWidth: 220 }}>
+							<FormControl size="small" sx={{ minWidth: 180 }}>
 								<Select
 									value={priceOrder}
 									onChange={(e) => setPriceOrder(e.target.value as any)}
@@ -313,13 +322,13 @@ export default function CategoryPage() {
 										"الترتيب الافتراضي"
 									}
 									sx={{
-										direction: "rtl", // ✅ RTL
+										direction: "rtl",
 										borderRadius: "14px",
 										backgroundColor: "#fff",
 										fontWeight: 800,
 										fontSize: "0.9rem",
 										boxShadow: "0 1px 2px rgba(0,0,0,.06)",
-										fontFamily : "Cairo, Cairo Fallback",
+										fontFamily: "Cairo, Cairo Fallback",
 										// input padding (leave space for icon on LEFT)
 										"& .MuiSelect-select": {
 											padding: "10px 14px 10px 38px", // left space for arrow
@@ -351,7 +360,7 @@ export default function CategoryPage() {
 												borderRadius: "14px",
 												boxShadow: "0 12px 30px rgba(0,0,0,.12)",
 												direction: "rtl",
-												fontFamily : "Cairo, Cairo Fallback",
+												fontFamily: "Cairo, Cairo Fallback",
 												"& .MuiMenuItem-root": {
 													fontWeight: 700,
 													fontSize: "0.9rem",
@@ -387,7 +396,7 @@ export default function CategoryPage() {
 					</motion.div>
 				)}
 
-				<div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+				<div className="  grid grid-cols-1 lg:grid-cols-12 gap-5">
 					{/* Desktop Filters */}
 					<div className="hidden lg:block lg:col-span-3">
 						<ProductFilter
@@ -492,26 +501,34 @@ export default function CategoryPage() {
 
 						{sortedProducts.length > rowsPerPage && (
 							<div className="mt-10 flex items-center justify-center">
-								<div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
-									{/* Prev (RTL: visually on the right) */}
+								<div
+									className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white 
+                 px-2 py-1.5 shadow-sm
+                 sm:gap-2 sm:rounded-2xl sm:px-3 sm:py-2"
+								>
+									{/* Prev */}
 									<button
 										onClick={() => setPage((p) => Math.max(1, p - 1))}
 										disabled={page === 1}
-										className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-extrabold text-slate-700
-                   hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent transition"
+										className="inline-flex items-center gap-1 rounded-lg 
+                   px-2 py-1.5 text-xs font-extrabold text-slate-700
+                   hover:bg-slate-50 disabled:opacity-40 transition
+                   sm:gap-2 sm:rounded-xl sm:px-3 sm:py-2 sm:text-sm"
 										aria-label="السابق"
 									>
-										<ChevronRight className="w-4 h-4" />
+										<ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
 									</button>
 
-
-									<div className="h-6 w-px bg-slate-200 mx-1" />
+									<div className="h-5 w-px bg-slate-200 mx-0.5 sm:h-6 sm:mx-1" />
 
 									{/* Page numbers */}
-									<div className="flex items-center gap-1">
-										{getPages(page, totalPages).map((p, idx) =>
+									<div className="flex items-center gap-0.5 sm:gap-1">
+										{getPages(page, totalPages, 0).map((p, idx) =>
 											p === "…" ? (
-												<span key={`dots-${idx}`} className="px-2 text-slate-400 font-extrabold">
+												<span
+													key={`dots-${idx}`}
+													className="px-1 text-xs font-extrabold text-slate-400 sm:px-2 sm:text-sm"
+												>
 													…
 												</span>
 											) : (
@@ -521,7 +538,8 @@ export default function CategoryPage() {
 													whileTap={{ scale: 0.98 }}
 													onClick={() => setPage(p)}
 													className={[
-														"min-w-[38px] h-[38px] rounded-xl px-2 text-sm font-black transition",
+														"min-w-[30px] h-[30px] rounded-lg px-1 text-xs font-black transition",
+														"sm:min-w-[38px] sm:h-[38px] sm:rounded-xl sm:px-2 sm:text-sm",
 														p === page
 															? "bg-[#14213d] text-white shadow"
 															: "text-slate-700 hover:bg-slate-50",
@@ -535,20 +553,21 @@ export default function CategoryPage() {
 										)}
 									</div>
 
-									<div className="h-6 w-px bg-slate-200 mx-1" />
+									<div className="h-5 w-px bg-slate-200 mx-0.5 sm:h-6 sm:mx-1" />
 
-									{/* Next (RTL: visually on the left) */}
+									{/* Next */}
 									<button
 										onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
 										disabled={page >= totalPages}
-										className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-extrabold text-slate-700
-                   hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent transition"
+										className="inline-flex items-center gap-1 rounded-lg 
+                   px-2 py-1.5 text-xs font-extrabold text-slate-700
+                   hover:bg-slate-50 disabled:opacity-40 transition
+                   sm:gap-2 sm:rounded-xl sm:px-3 sm:py-2 sm:text-sm"
 										aria-label="التالي"
 									>
-										<ChevronLeft className="w-4 h-4" />
+										<ChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
 									</button>
 								</div>
-
 							</div>
 						)}
 

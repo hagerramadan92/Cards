@@ -13,6 +13,8 @@ import DropdownUser from "./DropdownUser";
 import { useAuth } from "@/src/context/AuthContext";
 import { useAppContext } from "@/src/context/AppContext";
 import Logo from "./Logo";
+import { CategoriesSliderSkeleton } from "./skeletons/HomeSkeletons";
+import CategoriesSlider from "./CategoriesC";
 
 function cn(...c: (string | false | null | undefined)[]) {
 	return c.filter(Boolean).join(" ");
@@ -22,7 +24,7 @@ export default function SearchNavbar() {
 	const [menuOpen, setMenuOpen] = useState(false);
 
 	const { fullName } = useAuth();
-	const { socialMedia } = useAppContext();
+	const { socialMedia, parentCategories, loadingCategories } = useAppContext();
 
 	// ✅ guard against undefined / wrong type
 	const socials = useMemo(
@@ -32,8 +34,9 @@ export default function SearchNavbar() {
 
 	const phone = socials.find((s: any) => s.key === "phone")?.value || socials?.[0]?.value;
 
+
 	return (
-		<div className="bg-white/80 " >
+		<div className="bg-white/80  " >
 			{/* Navbar */}
 			<div className="w-full  container relative  z-30  border-b border-gray-200">
 				<div className="flex items-center justify-between gap-3 py-3 md:py-4">
@@ -124,7 +127,7 @@ export default function SearchNavbar() {
 							animate={{ opacity: 0.55 }}
 							exit={{ opacity: 0 }}
 							transition={{ duration: 0.2 }}
-							className="fixed inset-0 bg-black z-40"
+							className="fixed inset-0 bg-black  "
 							onClick={() => setMenuOpen(false)}
 						/>
 
@@ -146,7 +149,7 @@ export default function SearchNavbar() {
 						>
 
 							{/* Drawer header */}
-							<div className="flex items-center justify-between px-4 md:px-5 py-4 border-b border-slate-200 bg-gradient-to-b from-gray-50 to-white">
+							<div className="   flex items-center justify-between px-4 md:px-5 py-4 border-b border-slate-200 bg-gradient-to-b from-gray-50 to-white">
 								<div className="flex items-center gap-3">
 									<div className="relative w-10 h-10 rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 overflow-hidden">
 										<Image src="/images/logo11.png" alt="logo" fill className="object-contain p-1.5" />
@@ -167,12 +170,12 @@ export default function SearchNavbar() {
 							</div>
 
 							{/* Drawer content */}
-							<div className=" pl-9 p-5 space-y-5">
+							<div className="  p-2 space-y-5">
 								{/* Search inside drawer for mobile */}
 								<div className="md:hidden">
 									<p className="text-sm font-extrabold text-gray-800 mb-2">ابحث عن منتج</p>
 									<SearchGrowWrap inDrawer>
-										<SearchComponent />
+										<SearchComponent setMenuOpen={setMenuOpen} />
 									</SearchGrowWrap>
 								</div>
 
@@ -203,32 +206,39 @@ export default function SearchNavbar() {
 									</div>
 								</div>
 
-								{/* Section title */}
-								<div className="flex items-center justify-between">
-									<h3 className="text-base md:text-lg font-extrabold text-gray-900">
-										تسوق حسب الأقسام
-									</h3>
-									<span className="text-xs text-gray-500">اختر القسم</span>
+
+								{/* Categories */}
+								<div className="mt-4 w-full gap-3">
+									{loadingCategories ? (
+										Array.from({ length: 6 }).map((_, i) => (
+											<div
+												key={i}
+												className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+											>
+												<div className="flex items-center gap-3">
+													<div className="h-12 w-12 rounded-2xl bg-slate-100 animate-pulse" />
+													<div className="flex-1">
+														<div className="h-4 w-24 rounded bg-slate-100 animate-pulse" />
+														<div className="mt-2 h-3 w-16 rounded bg-slate-100 animate-pulse" />
+													</div>
+												</div>
+											</div>
+										))
+									) : <CategoriesSlider inSlide={true} categories={parentCategories} />
+									}
 								</div>
 
-								{/* TODO: put categories list here */}
-								<div className="grid grid-cols-2 gap-3">
-									{["ملابس", "أحذية", "إكسسوارات", "عروض"].map((x) => (
-										<Link
-											key={x}
-											href={`/search?q=${x}`}
-											onClick={() => setMenuOpen(false)}
-											className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-gray-300  transition"
-										>
-											<p className="font-extrabold text-gray-900">{x}</p>
-											<p className="text-xs text-gray-500 mt-1">اكتشف الآن</p>
-										</Link>
-									))}
-								</div>
+								{/* Empty state */}
+								{!loadingCategories && (!parentCategories || parentCategories.length === 0) && (
+									<div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-gray-500">
+										لا توجد أقسام حالياً
+									</div>
+								)}
+
 							</div>
 
 							{/* Drawer footer */}
-							<div className="mt-auto border-slate-200 border-t pl-9 p-5 bg-white">
+							<div className="mt-auto border-slate-200 border-t p-5 bg-white">
 								{!fullName ? (
 									<Link
 										href="/login"
@@ -255,10 +265,7 @@ export default function SearchNavbar() {
 	);
 }
 
-/**
- * ✅ Makes search expand on focus (without changing SearchComponent internals)
- * If SearchComponent input gets focus, wrapper uses :focus-within to animate width.
- */
+
 function SearchGrowWrap({
 	children,
 	inDrawer = false,

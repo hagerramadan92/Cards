@@ -32,7 +32,7 @@ import { StickerFormSkeleton } from "../../components/skeletons/HomeSkeletons";
 interface StickerFormProps {
 	cartItemId?: number;
 	productId: number;
-	productData?: any; // ✅ NEW: pass product from cart to avoid refetch
+	productData?: any; // ✅ pass product from cart to avoid refetch
 	onOptionsChange?: (options: any) => void;
 	showValidation?: boolean;
 }
@@ -63,25 +63,21 @@ function safeParseSelectedOptions(raw: any): SelectedOpt[] {
 }
 
 function pickBasePrice(p: any) {
-	// ✅ robust base price selection (handles cases where price/final_price are 0)
 	const price = n(p?.price);
 	const finalPrice = n(p?.final_price);
 	const lowest = n(p?.lowest_price);
 
-	// prefer discounted if product has_discount
 	if (p?.has_discount) {
-		const b = finalPrice > 0 ? finalPrice : price > 0 ? price : lowest;
-		return b;
+		return finalPrice > 0 ? finalPrice : price > 0 ? price : lowest;
 	}
 
-	// not discounted
 	return price > 0 ? price : finalPrice > 0 ? finalPrice : lowest;
 }
 
 function computeExtrasFromSelectedOptions(item: any, p: any) {
 	const selectedOptions = safeParseSelectedOptions(item.selected_options);
 
-	// ✅ Primary source: additional_price already coming from backend / saved payload
+	// ✅ primary: additional_price already stored
 	let extras = 0;
 	let hasAnyAdditional = false;
 	for (const opt of selectedOptions) {
@@ -92,9 +88,8 @@ function computeExtrasFromSelectedOptions(item: any, p: any) {
 	}
 	if (hasAnyAdditional) return extras;
 
-	// ✅ Fallback: match against product arrays if additional_price wasn't stored
+	// fallback
 	const productOptions = Array.isArray(p?.options) ? p.options : [];
-
 	for (const sel of selectedOptions) {
 		const match = productOptions.find(
 			(x: any) =>
@@ -126,66 +121,75 @@ function computeExtrasFromSelectedOptions(item: any, p: any) {
 	}
 
 	const printLocations = Array.isArray(p?.print_locations) ? p.print_locations : [];
-	const selectedLocation = selectedOptions.find((o) => o.option_name?.includes("مكان الطباعة"))?.option_value;
-	if (selectedLocation) {
-		const loc = printLocations.find((x: any) => String(x.name).trim() === String(selectedLocation).trim());
-		if (loc) extras += n(loc.pivot_price ?? loc.additional_price);
+	const selectedLocations = selectedOptions
+		.filter((o) => o.option_name?.includes("مكان الطباعة"))
+		.map((o) => o.option_value)
+		.filter(Boolean);
+
+	if (selectedLocations.length) {
+		for (const locName of selectedLocations) {
+			const loc = printLocations.find((x: any) => String(x.name).trim() === String(locName).trim());
+			if (loc) extras += n(loc.pivot_price ?? loc.additional_price);
+		}
 	}
 
 	return extras;
 }
 
+/**
+ * ✅ FIX: tiers must affect BOTH quantity and line total
+ * - Read tierQty + tierTotal from selected_options
+ * - Use tierQty as "effective qty" (for display)
+ * - Use tierTotal as base line total (then add extras * qty)
+ */
 function computePricing(item: any) {
 	const p = item.product || {};
-	const qty = n(item.quantity || 1);
+	const selected = safeParseSelectedOptions(item.selected_options);
 
-	// backend may send these (sometimes wrong when options change locally), we keep them as fallback only
+	const tierQty = n(selected.find((o) => o.option_name?.includes("كمية المقاس"))?.option_value);
+	const tierTotal = n(selected.find((o) => o.option_name?.includes("سعر المقاس الإجمالي"))?.option_value);
+
+	// ✅ effective quantity for pricing/display
+	const qty = tierQty > 0 ? tierQty : n(item.quantity || 1);
+
 	const apiUnit = n(item.price_per_unit);
 	const apiLine = n(item.line_total);
 
+	// base product price
 	const base = pickBasePrice(p);
 
-	// size tier override (if you use tiers pricing per quantity)
-	let sizeTierUnit: number | null = null;
-	const sizes = Array.isArray(p?.sizes) ? p.sizes : [];
-	if (sizes.length) {
-		const selected = safeParseSelectedOptions(item.selected_options).find((o) => o.option_name?.includes("المقاس"))?.option_value;
-		const selectedSize = selected ? sizes.find((s: any) => String(s.name).trim() === String(selected).trim()) : null;
-
-		if (selectedSize?.tiers?.length) {
-			const tiers = [...selectedSize.tiers]
-				.map((t: any) => ({ q: n(t.quantity), unit: n(t.price_per_unit) }))
-				.filter((t: any) => t.q > 0 && t.unit > 0)
-				.sort((a: any, b: any) => a.q - b.q);
-
-			const best = tiers.filter((t: any) => t.q <= qty).at(-1);
-			if (best?.unit) sizeTierUnit = best.unit;
-		}
-	}
-
+	// extras from options
 	const extras = computeExtrasFromSelectedOptions(item, p);
 
-	// discounted vs original for UI (both should include extras so comparison is logical)
-	const originalBase = sizeTierUnit ?? (n(p?.price) > 0 ? n(p?.price) : base);
-	const discountBase = sizeTierUnit ?? (n(p?.final_price) > 0 ? n(p?.final_price) : base);
-	const unitAfterOptions = (sizeTierUnit ?? base) + extras;
-	const lineAfterOptions = unitAfterOptions * qty;
+	// ✅ if tierTotal exists => it replaces base line total (size price already computed by backend tier)
+	const baseLineFromTier = tierTotal > 0 ? tierTotal : (base * qty);
 
-	// ✅ Always prefer computed values if API values are missing/zero
-	// (and also keeps UI consistent immediately after changing options)
-	const unit = unitAfterOptions > 0 ? unitAfterOptions : apiUnit;
-	const line = lineAfterOptions > 0 ? lineAfterOptions : apiLine;
+	// final line = baseLine + extras*qty
+	const lineAfterOptions = baseLineFromTier + extras * qty;
+
+	// unit after options (for UI)
+	const unitAfterOptions = qty > 0 ? lineAfterOptions / qty : 0;
+
+	// discounted vs original (UI only)
+	const originalBaseUnit = n(p?.price) > 0 ? n(p?.price) : base;
+	const discountBaseUnit = n(p?.final_price) > 0 ? n(p?.final_price) : base;
 
 	const showRealProductPrice = {
 		discount: !!p?.has_discount,
 		unit_after_options: unitAfterOptions,
-		original_unit_after_options: originalBase + extras,
-		discount_unit_after_options: discountBase + extras,
+		original_unit_after_options: originalBaseUnit + extras,
+		discount_unit_after_options: discountBaseUnit + extras,
 		extras,
-		base_used: sizeTierUnit ?? base,
+		base_used: base,
+		tier_qty: tierQty,
+		tier_total: tierTotal,
 	};
 
-	return { unit, line, showRealProductPrice };
+	// ✅ Always prefer computed values (fallback to API if missing)
+	const unit = unitAfterOptions > 0 ? unitAfterOptions : apiUnit;
+	const line = lineAfterOptions > 0 ? lineAfterOptions : apiLine;
+
+	return { unit, line, showRealProductPrice, effectiveQty: qty };
 }
 
 function productNeedsSelection(p: any) {
@@ -220,9 +224,16 @@ function missingRequiredFields(item: any) {
 		if (!ok) miss.push(name);
 	}
 
-	// printing method/location required if exist (based on your backend rules)
 	if ((p?.printing_methods?.length ?? 0) > 0 && !selected.some((o) => o.option_name?.includes("طريقة الطباعة"))) miss.push("طريقة الطباعة");
+
 	if ((p?.print_locations?.length ?? 0) > 0 && !selected.some((o) => o.option_name?.includes("مكان الطباعة"))) miss.push("مكان الطباعة");
+
+	// ✅ if selected size has tiers => require tier selection too
+	const sizeName = selected.find((o) => o.option_name?.includes("المقاس"))?.option_value;
+	const sizeObj = sizeName ? (p?.sizes || []).find((s: any) => String(s.name).trim() === String(sizeName).trim()) : null;
+	if (sizeObj?.tiers?.length) {
+		if (!selected.some((o) => o.option_name?.includes("كمية المقاس"))) miss.push("كمية المقاس");
+	}
 
 	return miss;
 }
@@ -248,7 +259,13 @@ export default function CartPage() {
 	const computed = useMemo(() => {
 		const items = cart.map((it: any) => {
 			const pr = computePricing(it);
-			return { ...it, _unit: pr.unit, _line: pr.line, _real: pr.showRealProductPrice };
+			return {
+				...it,
+				_unit: pr.unit,
+				_line: pr.line,
+				_real: pr.showRealProductPrice,
+				_effectiveQty: pr.effectiveQty,
+			};
 		});
 
 		const subtotal = items.reduce((acc: number, it: any) => acc + n(it._line), 0);
@@ -306,6 +323,7 @@ ${errors.join("\n")}
 						{computed.items.map((item: any) => {
 							const miss = missingRequiredFields(item);
 							const hasVariants = productNeedsSelection(item.product);
+							const hasTierQty = n(item._real?.tier_qty) > 0;
 
 							return (
 								<div key={item.cart_item_id} className="p-5 relative border rounded-2xl border-slate-200 bg-white shadow-sm mb-4">
@@ -328,13 +346,18 @@ ${errors.join("\n")}
 													<div>
 														<h3 className="font-extrabold text-[15px] text-slate-900">{item.product.name}</h3>
 
-														{/* ✅ unit price after options */}
+														{/* ✅ show effective quantity when tier chosen */}
+														{hasTierQty && (
+															<p className="text-xs font-extrabold text-slate-600 mt-1">
+																كمية المقاس: {n(item._real?.tier_qty)} قطعة
+															</p>
+														)}
+
 														<div className="mt-2 flex flex-wrap items-center gap-2">
 															<span className="text-sm font-extrabold text-slate-900">
 																{money(n(item._unit))} <span className="text-xs">ريال</span>
 															</span>
 
-															{/* ✅ if discounted, show original (also after options) */}
 															{item._real?.discount && n(item._real?.original_unit_after_options) > n(item._unit) && (
 																<>
 																	<span className="text-xs font-extrabold text-slate-500 line-through">
@@ -364,8 +387,11 @@ ${errors.join("\n")}
 												</div>
 											</div>
 
+											{/* ✅ IMPORTANT:
+                        If tier quantity chosen, disable +/− because tier qty controls quantity
+                      */}
 											<div className="flex items-center gap-2">
-												<div className="flex items-center gap-3 border border-slate-200 rounded-2xl overflow-hidden">
+												<div className={`flex items-center gap-3 border border-slate-200 rounded-2xl overflow-hidden ${hasTierQty ? "opacity-50 pointer-events-none" : ""}`}>
 													<button
 														onClick={() => {
 															if (item.quantity >= 10) {
@@ -435,7 +461,6 @@ ${errors.join("\n")}
 
 									{hasVariants && (
 										<div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-											{/* ✅ pass productData so form doesn't refetch */}
 											<StickerForm cartItemId={item.cart_item_id} productId={item.product.id} productData={item.product} />
 										</div>
 									)}
@@ -504,7 +529,15 @@ const StickerForm = forwardRef(function StickerForm(
 
 	const [optionGroups, setOptionGroups] = useState<Record<string, string>>({});
 	const [printingMethod, setPrintingMethod] = useState("اختر");
-	const [printLocation, setPrintLocation] = useState("اختر");
+
+	// ✅ multi print locations
+	const [printLocations, setPrintLocations] = useState<string[]>([]);
+
+	// ✅ size tiers states
+	const [sizeTierId, setSizeTierId] = useState<number | null>(null);
+	const [sizeTierQty, setSizeTierQty] = useState<number | null>(null);
+	const [sizeTierUnit, setSizeTierUnit] = useState<number | null>(null);
+	const [sizeTierTotal, setSizeTierTotal] = useState<number | null>(null);
 
 	const [apiData, setApiData] = useState<any>(null);
 	const [formLoading, setFormLoading] = useState(true);
@@ -537,6 +570,19 @@ const StickerForm = forwardRef(function StickerForm(
 		return required;
 	}, [groupedOptions]);
 
+	const selectedSizeObj = useMemo(() => {
+		return (apiData?.sizes || []).find((s: any) => String(s?.name).trim() === String(size).trim()) || null;
+	}, [apiData, size]);
+
+	const sizeTiers = useMemo(() => {
+		const tiers = selectedSizeObj?.tiers;
+		return Array.isArray(tiers) ? tiers : [];
+	}, [selectedSizeObj]);
+
+	const needSizeTier = useMemo(() => {
+		return (apiData?.sizes?.length ?? 0) > 0 && size !== "اختر" && sizeTiers.length > 0;
+	}, [apiData, size, sizeTiers]);
+
 	const validateCurrentOptions = useCallback(() => {
 		if (!apiData) return false;
 
@@ -556,12 +602,15 @@ const StickerForm = forwardRef(function StickerForm(
 		if (Array.isArray(apiData?.printing_methods) && apiData.printing_methods.length > 0) {
 			if (!printingMethod || printingMethod === "اختر") isValid = false;
 		}
+
 		if (Array.isArray(apiData?.print_locations) && apiData.print_locations.length > 0) {
-			if (!printLocation || printLocation === "اختر") isValid = false;
+			if (!Array.isArray(printLocations) || printLocations.length === 0) isValid = false;
 		}
 
+		if (needSizeTier && !sizeTierId) isValid = false;
+
 		return isValid;
-	}, [apiData, size, color, material, optionGroups, requiredOptionGroups, printingMethod, printLocation]);
+	}, [apiData, size, color, material, optionGroups, requiredOptionGroups, printingMethod, printLocations, needSizeTier, sizeTierId]);
 
 	useImperativeHandle(ref, () => ({
 		getOptions: () => ({
@@ -570,7 +619,11 @@ const StickerForm = forwardRef(function StickerForm(
 			material,
 			optionGroups,
 			printing_method: printingMethod,
-			print_location: printLocation,
+			print_locations: printLocations,
+			size_tier_id: sizeTierId,
+			size_tier_qty: sizeTierQty,
+			size_tier_unit: sizeTierUnit,
+			size_tier_total: sizeTierTotal,
 			isValid: validateCurrentOptions(),
 		}),
 		validate: () => validateCurrentOptions(),
@@ -584,10 +637,14 @@ const StickerForm = forwardRef(function StickerForm(
 			material,
 			optionGroups,
 			printing_method: printingMethod,
-			print_location: printLocation,
+			print_locations: printLocations,
+			size_tier_id: sizeTierId,
+			size_tier_qty: sizeTierQty,
+			size_tier_unit: sizeTierUnit,
+			size_tier_total: sizeTierTotal,
 			isValid: validateCurrentOptions(),
 		});
-	}, [size, color, material, optionGroups, printingMethod, printLocation, validateCurrentOptions, onOptionsChange]);
+	}, [size, color, material, optionGroups, printingMethod, printLocations, sizeTierId, sizeTierQty, sizeTierUnit, sizeTierTotal, validateCurrentOptions, onOptionsChange]);
 
 	// ✅ NO FETCH: load options from productData (cart item)
 	useEffect(() => {
@@ -612,7 +669,11 @@ const StickerForm = forwardRef(function StickerForm(
 			}
 
 			setPrintingMethod("اختر");
-			setPrintLocation("اختر");
+			setPrintLocations([]);
+			setSizeTierId(null);
+			setSizeTierQty(null);
+			setSizeTierUnit(null);
+			setSizeTierTotal(null);
 		} catch (err: any) {
 			setApiError(err?.message || "حدث خطأ أثناء تحميل الخيارات");
 			setApiData(null);
@@ -636,17 +697,29 @@ const StickerForm = forwardRef(function StickerForm(
 
 			if (savedOptions) {
 				const sizeFromOptions = extractValueFromOptions(savedOptions.selected_options, "المقاس");
+				const tierQtyFromOptions = extractValueFromOptions(savedOptions.selected_options, "كمية المقاس");
+				const tierTotalFromOptions = extractValueFromOptions(savedOptions.selected_options, "سعر المقاس الإجمالي");
+
 				const colorFromOptions = extractValueFromOptions(savedOptions.selected_options, "اللون");
 				const materialFromOptions = extractValueFromOptions(savedOptions.selected_options, "الخامة");
 				const printingFromOptions = extractValueFromOptions(savedOptions.selected_options, "طريقة الطباعة");
-				const locationFromOptions = extractValueFromOptions(savedOptions.selected_options, "مكان الطباعة");
+
+				const locationsFromOptions: string[] =
+					Array.isArray(savedOptions.selected_options)
+						? savedOptions.selected_options
+								.filter((o: any) => String(o?.option_name || "").includes("مكان الطباعة"))
+								.map((o: any) => String(o?.option_value || "").trim())
+								.filter((v: any) => !!v && v !== "اختر")
+						: [];
 
 				setSize(sizeFromOptions || savedOptions.size || "اختر");
 				setColor(colorFromOptions || (savedOptions.color?.name || savedOptions.color) || "اختر");
 				setMaterial(materialFromOptions || savedOptions.material || "اختر");
-
 				setPrintingMethod(printingFromOptions || "اختر");
-				setPrintLocation(locationFromOptions || "اختر");
+				setPrintLocations(locationsFromOptions);
+
+				setSizeTierQty(tierQtyFromOptions ? n(tierQtyFromOptions) : null);
+				setSizeTierTotal(tierTotalFromOptions ? n(tierTotalFromOptions) : null);
 
 				const out: Record<string, string> = {};
 				Object.keys(groupedOptions).forEach((g) => (out[g] = "اختر"));
@@ -656,7 +729,7 @@ const StickerForm = forwardRef(function StickerForm(
 						const value = String(opt.option_value || "").trim();
 						if (!name || !value) return;
 
-						if (["المقاس", "اللون", "الخامة", "طريقة الطباعة", "مكان الطباعة"].includes(name)) return;
+						if (["المقاس", "كمية المقاس", "سعر المقاس الإجمالي", "اللون", "الخامة", "طريقة الطباعة", "مكان الطباعة"].includes(name)) return;
 						if (Object.prototype.hasOwnProperty.call(out, name)) out[name] = value;
 					});
 				}
@@ -677,102 +750,24 @@ const StickerForm = forwardRef(function StickerForm(
 		loadSavedOptions();
 	}, [cartItemId, apiData, loadSavedOptions]);
 
-	const saveAllOptions = async () => {
-		if (!cartItemId || !apiData) return;
-
-		setSaving(true);
-		setSavedSuccessfully(false);
-
-		const selected_options: any[] = [];
-
-		const sizeObj = apiData?.sizes?.find((s: any) => String(s.name).trim() === String(size).trim());
-		if (apiData.sizes?.length > 0 && size !== "اختر") {
-			selected_options.push({
-				option_name: "المقاس",
-				option_value: size,
-				additional_price: 0,
-			});
+	useEffect(() => {
+		if (!needSizeTier) {
+			setSizeTierId(null);
+			setSizeTierQty(null);
+			setSizeTierUnit(null);
+			setSizeTierTotal(null);
+			return;
 		}
 
-		const colorObj = apiData?.colors?.find((c: any) => String(c.name).trim() === String(color).trim());
-		if (apiData.colors?.length > 0 && color !== "اختر") {
-			selected_options.push({
-				option_name: "اللون",
-				option_value: color,
-				additional_price: n(colorObj?.additional_price),
-			});
-		}
-
-		const materialObj = apiData?.materials?.find((m: any) => String(m.name).trim() === String(material).trim());
-		if (apiData.materials?.length > 0 && material !== "اختر") {
-			selected_options.push({
-				option_name: "الخامة",
-				option_value: material,
-				additional_price: n(materialObj?.additional_price),
-			});
-		}
-
-		Object.entries(optionGroups || {}).forEach(([group, value]) => {
-			if (!value || value === "اختر") return;
-
-			const row = (Array.isArray(apiData?.options) ? apiData.options : []).find(
-				(o: any) =>
-					String(o.option_name).trim() === String(group).trim() &&
-					String(o.option_value).trim() === String(value).trim()
-			);
-
-			selected_options.push({
-				option_name: group,
-				option_value: value,
-				additional_price: n(row?.additional_price),
-			});
-		});
-
-		const methodObj = apiData?.printing_methods?.find((p: any) => String(p.name).trim() === String(printingMethod).trim());
-		if (Array.isArray(apiData?.printing_methods) && apiData.printing_methods.length > 0 && printingMethod !== "اختر") {
-			selected_options.push({
-				option_name: "طريقة الطباعة",
-				option_value: printingMethod,
-				additional_price: n(methodObj?.pivot_price ?? methodObj?.base_price),
-			});
-		}
-
-		const locObj = apiData?.print_locations?.find((l: any) => String(l.name).trim() === String(printLocation).trim());
-		if (Array.isArray(apiData?.print_locations) && apiData.print_locations.length > 0 && printLocation !== "اختر") {
-			selected_options.push({
-				option_name: "مكان الطباعة",
-				option_value: printLocation,
-				additional_price: n(locObj?.pivot_price ?? locObj?.additional_price),
-			});
-		}
-
-		const payload: any = {
-			selected_options,
-			size_id: sizeObj?.id ?? null,
-			color_id: colorObj?.id ?? null,
-			material_id: materialObj?.id ?? null,
-			printing_method_id: methodObj?.id ?? null,
-			print_locations: [] as number[],
-			embroider_locations: [] as number[],
-		};
-
-		if (locObj?.id) {
-			if (String(locObj.type).toLowerCase() === "embroider") payload.embroider_locations = [locObj.id];
-			else payload.print_locations = [locObj.id];
-		}
-
-		try {
-			const success = await updateCartItem(cartItemId, payload);
-			if (success) {
-				setSavedSuccessfully(true);
-				setHasUnsavedChanges(false);
-				setShowSaveButton(false);
-				setTimeout(() => setSavedSuccessfully(false), 2500);
+		if (sizeTierQty) {
+			const found = sizeTiers.find((t: any) => n(t.quantity) === n(sizeTierQty));
+			if (found) {
+				setSizeTierId(n(found.id));
+				setSizeTierUnit(n(found.price_per_unit));
+				setSizeTierTotal(n(found.total_price));
 			}
-		} finally {
-			setSaving(false);
 		}
-	};
+	}, [needSizeTier, sizeTiers, sizeTierQty]);
 
 	const resetAllOptions = () => {
 		setSize("اختر");
@@ -784,7 +779,12 @@ const StickerForm = forwardRef(function StickerForm(
 		setOptionGroups(resetGroups);
 
 		setPrintingMethod("اختر");
-		setPrintLocation("اختر");
+		setPrintLocations([]);
+
+		setSizeTierId(null);
+		setSizeTierQty(null);
+		setSizeTierUnit(null);
+		setSizeTierTotal(null);
 
 		setHasUnsavedChanges(true);
 		setShowSaveButton(true);
@@ -798,6 +798,36 @@ const StickerForm = forwardRef(function StickerForm(
 		setSavedSuccessfully(false);
 	};
 
+	const handleSizeChange = (value: string) => {
+		handleOptionChange(setSize, value);
+		setSizeTierId(null);
+		setSizeTierQty(null);
+		setSizeTierUnit(null);
+		setSizeTierTotal(null);
+	};
+
+	const handleTierChange = (tierIdStr: string) => {
+		if (!tierIdStr || tierIdStr === "اختر") {
+			setSizeTierId(null);
+			setSizeTierQty(null);
+			setSizeTierUnit(null);
+			setSizeTierTotal(null);
+			return;
+		}
+
+		const tierId = Number(tierIdStr);
+		const tier = sizeTiers.find((t: any) => n(t?.id) === tierId) || null;
+
+		setSizeTierId(tier ? n(tier.id) : null);
+		setSizeTierQty(tier ? n(tier.quantity) : null);
+		setSizeTierUnit(tier ? n(tier.price_per_unit) : null);
+		setSizeTierTotal(tier ? n(tier.total_price) : null);
+
+		setHasUnsavedChanges(true);
+		setShowSaveButton(true);
+		setSavedSuccessfully(false);
+	};
+
 	const handleGroupChange = (groupName: string, value: string) => {
 		setOptionGroups((prev) => {
 			const next = { ...prev, [groupName]: value };
@@ -806,6 +836,117 @@ const StickerForm = forwardRef(function StickerForm(
 			setSavedSuccessfully(false);
 			return next;
 		});
+	};
+
+	const handlePrintLocationsChange = (value: string[]) => {
+		setPrintLocations(value);
+		setHasUnsavedChanges(true);
+		setShowSaveButton(true);
+		setSavedSuccessfully(false);
+	};
+
+	const saveAllOptions = async () => {
+		if (!cartItemId || !apiData) return;
+
+		setSaving(true);
+		setSavedSuccessfully(false);
+
+		const selected_options: any[] = [];
+
+		const sizeObj = apiData?.sizes?.find((s: any) => String(s.name).trim() === String(size).trim());
+		if (apiData.sizes?.length > 0 && size !== "اختر") {
+			selected_options.push({ option_name: "المقاس", option_value: size, additional_price: 0 });
+		}
+
+		if (needSizeTier && sizeTierQty) {
+			selected_options.push({ option_name: "كمية المقاس", option_value: String(sizeTierQty), additional_price: 0 });
+		}
+		if (needSizeTier && sizeTierTotal) {
+			selected_options.push({ option_name: "سعر المقاس الإجمالي", option_value: String(sizeTierTotal), additional_price: 0 });
+		}
+
+		const colorObj = apiData?.colors?.find((c: any) => String(c.name).trim() === String(color).trim());
+		if (apiData.colors?.length > 0 && color !== "اختر") {
+			selected_options.push({ option_name: "اللون", option_value: color, additional_price: n(colorObj?.additional_price) });
+		}
+
+		const materialObj = apiData?.materials?.find((m: any) => String(m.name).trim() === String(material).trim());
+		if (apiData.materials?.length > 0 && material !== "اختر") {
+			selected_options.push({ option_name: "الخامة", option_value: material, additional_price: n(materialObj?.additional_price) });
+		}
+
+		Object.entries(optionGroups || {}).forEach(([group, value]) => {
+			if (!value || value === "اختر") return;
+
+			const row = (Array.isArray(apiData?.options) ? apiData.options : []).find(
+				(o: any) =>
+					String(o.option_name).trim() === String(group).trim() &&
+					String(o.option_value).trim() === String(value).trim()
+			);
+
+			selected_options.push({ option_name: group, option_value: value, additional_price: n(row?.additional_price) });
+		});
+
+		const methodObj = apiData?.printing_methods?.find((p: any) => String(p.name).trim() === String(printingMethod).trim());
+		if (Array.isArray(apiData?.printing_methods) && apiData.printing_methods.length > 0 && printingMethod !== "اختر") {
+			selected_options.push({
+				option_name: "طريقة الطباعة",
+				option_value: printingMethod,
+				additional_price: n(methodObj?.pivot_price ?? methodObj?.base_price),
+			});
+		}
+
+		const locList = Array.isArray(apiData?.print_locations) ? apiData.print_locations : [];
+		const selectedLocObjs = (printLocations || [])
+			.map((name) => locList.find((l: any) => String(l.name).trim() === String(name).trim()))
+			.filter(Boolean);
+
+		for (const locObj of selectedLocObjs) {
+			selected_options.push({
+				option_name: "مكان الطباعة",
+				option_value: String(locObj.name),
+				additional_price: n(locObj?.pivot_price ?? locObj?.additional_price),
+			});
+		}
+
+		let print_location_ids: number[] = [];
+		let embroider_location_ids: number[] = [];
+
+		for (const locObj of selectedLocObjs) {
+			const id = locObj?.id;
+			if (typeof id !== "number") continue;
+
+			const t = String(locObj?.type || "").toLowerCase();
+			if (t === "embroider" || t === "embroidery") embroider_location_ids.push(id);
+			else print_location_ids.push(id);
+		}
+
+		// ✅ FIX: also update cart quantity to tier quantity so backend totals match too
+		const payload: any = {
+			selected_options,
+
+			size_id: sizeObj?.id ?? null,
+			color_id: colorObj?.id ?? null,
+			material_id: materialObj?.id ?? null,
+			printing_method_id: methodObj?.id ?? null,
+
+			print_locations: print_location_ids,
+			embroider_locations: embroider_location_ids,
+
+			quantity: needSizeTier && sizeTierQty ? Number(sizeTierQty) : undefined,
+		};
+
+		try {
+			const success = await updateCartItem(cartItemId, payload);
+			if (success) {
+				setSavedSuccessfully(true);
+				setHasUnsavedChanges(false);
+				setShowSaveButton(false);
+				setTimeout(() => setSavedSuccessfully(false), 2500);
+			}
+		} finally {
+			setSaving(false);
+		}
 	};
 
 	if (formLoading) return <StickerFormSkeleton />;
@@ -875,7 +1016,7 @@ const StickerForm = forwardRef(function StickerForm(
 					<Box>
 						<FormControl fullWidth size="small" required error={showValidation && needSize && size === "اختر"}>
 							<InputLabel>المقاس</InputLabel>
-							<Select value={size} onChange={(e) => handleOptionChange(setSize, e.target.value as string)} label="المقاس" className="bg-white">
+							<Select value={size} onChange={(e) => handleSizeChange(e.target.value as string)} label="المقاس" className="bg-white">
 								<MenuItem value="اختر" disabled>
 									<em className="text-gray-400">اختر</em>
 								</MenuItem>
@@ -886,6 +1027,41 @@ const StickerForm = forwardRef(function StickerForm(
 								))}
 							</Select>
 							{showValidation && needSize && size === "اختر" && <FormHelperText className="text-red-500 text-xs">يجب اختيار المقاس</FormHelperText>}
+						</FormControl>
+					</Box>
+				)}
+
+				{needSizeTier && (
+					<Box>
+						<FormControl fullWidth size="small" required error={showValidation && !sizeTierId}>
+							<InputLabel>الكمية</InputLabel>
+							<Select
+								value={sizeTierId ? String(sizeTierId) : "اختر"}
+								onChange={(e) => handleTierChange(e.target.value as string)}
+								label="الكمية"
+								className="bg-white"
+							>
+								<MenuItem value="اختر" disabled>
+									<em className="text-gray-400">اختر</em>
+								</MenuItem>
+
+								{sizeTiers.map((t: any) => (
+									<MenuItem key={t.id} value={String(t.id)}>
+										<div className="flex items-center justify-between gap-3 w-full">
+											<span>{n(t.quantity)} قطعة</span>
+											<span className="text-xs font-black text-slate-700">{money(n(t.total_price))} ر.س</span>
+										</div>
+									</MenuItem>
+								))}
+							</Select>
+
+							{showValidation && !sizeTierId && <FormHelperText className="text-red-500 text-xs">يجب اختيار الكمية</FormHelperText>}
+
+							{!!sizeTierId && (
+								<FormHelperText className="text-slate-600 text-xs">
+									سعر الوحدة: {money(n(sizeTierUnit))} — الإجمالي: {money(n(sizeTierTotal))}
+								</FormHelperText>
+							)}
 						</FormControl>
 					</Box>
 				)}
@@ -998,12 +1174,16 @@ const StickerForm = forwardRef(function StickerForm(
 
 				{needPrintLocation && (
 					<Box>
-						<FormControl fullWidth size="small" required error={showValidation && printLocation === "اختر"}>
+						<FormControl fullWidth size="small" required error={showValidation && (!printLocations || printLocations.length === 0)}>
 							<InputLabel>مكان الطباعة</InputLabel>
-							<Select value={printLocation} onChange={(e) => handleOptionChange(setPrintLocation, e.target.value as string)} label="مكان الطباعة" className="bg-white">
-								<MenuItem value="اختر" disabled>
-									<em className="text-gray-400">اختر</em>
-								</MenuItem>
+							<Select
+								multiple
+								value={printLocations}
+								onChange={(e) => handlePrintLocationsChange(e.target.value as string[])}
+								label="مكان الطباعة"
+								className="bg-white"
+								renderValue={(selected) => (Array.isArray(selected) ? selected.join("، ") : "")}
+							>
 								{apiData.print_locations.map((p: any) => (
 									<MenuItem key={p.id} value={p.name}>
 										<div className="flex items-center justify-between gap-3 w-full">
@@ -1014,7 +1194,9 @@ const StickerForm = forwardRef(function StickerForm(
 								))}
 							</Select>
 
-							{showValidation && printLocation === "اختر" && <FormHelperText className="text-red-500 text-xs">يجب اختيار مكان الطباعة</FormHelperText>}
+							{showValidation && (!printLocations || printLocations.length === 0) && (
+								<FormHelperText className="text-red-500 text-xs">يجب اختيار مكان الطباعة</FormHelperText>
+							)}
 						</FormControl>
 					</Box>
 				)}

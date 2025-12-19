@@ -20,9 +20,7 @@ export default function ProductGallery({ mainImage, images }: any) {
     () => [{ path: mainImage, alt: "Main Product" }, ...(images || [])].filter(Boolean),
     [mainImage, images]
   );
-
-	console.log(allImages);
-
+ 
   const hasNav = allImages.length > 1;
 
   return (

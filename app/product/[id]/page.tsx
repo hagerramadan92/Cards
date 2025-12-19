@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
@@ -34,6 +35,8 @@ import {
 	CircularProgress,
 	Alert,
 	Button,
+	Checkbox,
+	ListItemText,
 } from "@mui/material";
 import { Save, CheckCircle, Warning, Info, Refresh } from "@mui/icons-material";
 
@@ -96,11 +99,21 @@ type ReviewsResponse = {
 // ✅ SelectedOptions
 interface SelectedOptions {
 	size: string;
+
+	// ✅ NEW: tier selection for size
+	size_tier_id?: number | null;
+	size_quantity?: number | null;
+	size_price_per_unit?: number | null;
+	size_total_price?: number | null;
+
 	color: string;
 	material: string;
 	optionGroups: { [groupName: string]: string };
 	printing_method: string;
-	print_location: string;
+
+	// ✅ NEW: multi-select print locations
+	print_locations: string[];
+
 	isValid: boolean;
 }
 
@@ -210,6 +223,34 @@ function Pill({ children, tone = "slate" }: { children: React.ReactNode; tone?: 
 	return <span className={`text-[11px] font-extrabold px-2 py-1 rounded-full border ${map[tone]}`}>{children}</span>;
 }
 
+	function buildIdsPayload(apiData: any, opts: any) {
+		const sizeObj = apiData?.sizes?.find((s: any) => s?.name === opts.size);
+		const colorObj = apiData?.colors?.find((c: any) => c?.name === opts.color);
+		const materialObj = apiData?.materials?.find((m: any) => m?.name === opts.material);
+		const pmObj = apiData?.printing_methods?.find((p: any) => p?.name === opts.printing_method);
+
+		// ✅ print locations => array of IDs
+		const printLocationIds =
+			Array.isArray(opts.print_locations) && opts.print_locations.length
+				? opts.print_locations
+					.map((name:any) => apiData?.print_locations?.find((pl: any) => pl?.name === name)?.id)
+					.filter((id: any) => typeof id === "number")
+				: [];
+
+		return {
+			size_id: typeof sizeObj?.id === "number" ? sizeObj.id : null,
+			color_id: typeof colorObj?.id === "number" ? colorObj.id : null,
+			material_id: typeof materialObj?.id === "number" ? materialObj.id : null,
+			printing_method_id: typeof pmObj?.id === "number" ? pmObj.id : null,
+
+			// ✅ API expects this field as array (usually ids)
+			print_locations: printLocationIds,
+
+			// keep as-is if you don’t support it yet
+			embroider_locations: [],
+		};
+	}
+	
 // -------------------------
 // ✅ helpers for pricing + selected_options payload
 // -------------------------
@@ -221,10 +262,24 @@ const num = (v: any) => {
 function buildSelectedOptionsWithPrice(apiData: any, opts: SelectedOptions) {
 	const selected_options: Array<{ option_name: string; option_value: string; additional_price: number }> = [];
 
-	// size
+	// ✅ size (name)
 	if (opts.size && opts.size !== "اختر") {
-		// sizes don't have additional_price in your response => 0
 		selected_options.push({ option_name: "المقاس", option_value: opts.size, additional_price: 0 });
+	}
+
+	// ✅ size tier (quantity pricing info) -> send as extra fields as options (keeps backend compatible)
+	// If your backend supports a dedicated field, replace this with it.
+	if (opts.size_tier_id && opts.size_quantity && opts.size_total_price != null) {
+		selected_options.push({
+			option_name: "كمية المقاس",
+			option_value: String(opts.size_quantity),
+			additional_price: 0,
+		});
+		selected_options.push({
+			option_name: "سعر المقاس الإجمالي",
+			option_value: String(opts.size_total_price),
+			additional_price: 0,
+		});
 	}
 
 	// color
@@ -257,7 +312,6 @@ function buildSelectedOptionsWithPrice(apiData: any, opts: SelectedOptions) {
 	// printing method
 	if (opts.printing_method && opts.printing_method !== "اختر") {
 		const pm = apiData?.printing_methods?.find((x: any) => x.name === opts.printing_method);
-		// base_price is the extra
 		selected_options.push({
 			option_name: "طريقة الطباعة",
 			option_value: opts.printing_method,
@@ -265,13 +319,15 @@ function buildSelectedOptionsWithPrice(apiData: any, opts: SelectedOptions) {
 		});
 	}
 
-	// print location
-	if (opts.print_location && opts.print_location !== "اختر") {
-		const pl = apiData?.print_locations?.find((x: any) => x.name === opts.print_location);
-		selected_options.push({
-			option_name: "مكان الطباعة",
-			option_value: opts.print_location,
-			additional_price: num(pl?.additional_price ?? pl?.pivot_price),
+	// ✅ print locations (MULTI)
+	if (Array.isArray(opts.print_locations) && opts.print_locations.length > 0) {
+		opts.print_locations.forEach((locName) => {
+			const pl = apiData?.print_locations?.find((x: any) => x.name === locName);
+			selected_options.push({
+				option_name: "مكان الطباعة",
+				option_value: locName,
+				additional_price: num(pl?.additional_price ?? pl?.pivot_price),
+			});
 		});
 	}
 
@@ -303,11 +359,16 @@ export default function ProductPageClient() {
 
 	const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({
 		size: "اختر",
+		size_tier_id: null,
+		size_quantity: null,
+		size_price_per_unit: null,
+		size_total_price: null,
+
 		color: "اختر",
 		material: "اختر",
 		optionGroups: {},
 		printing_method: "اختر",
-		print_location: "اختر",
+		print_locations: [],
 		isValid: false,
 	});
 
@@ -391,27 +452,32 @@ export default function ProductPageClient() {
 		};
 	}, [productId, token, API_URL]);
 
+	const hasSeededDefaultRef = useRef(false);
+
+	useEffect(() => {
+		if (Array.isArray(product?.reviews) && product.reviews.length > 0) {
+			hasSeededDefaultRef.current = true;
+		}
+	}, [product?.id]); // or [productId]
+
 	// ✅ fetch reviews ONLY when needed
 	const fetchReviews = useCallback(async () => {
 		if (!API_URL || !productId) return;
 
-		// ✅ if we're on page 1, no filters, and already have reviews from product => skip
 		const isDefaultQuery =
 			reviewsPage === 1 &&
 			reviewsRatingFilter === "" &&
 			reviewsSortBy === "created_at" &&
 			reviewsSortDir === "desc";
 
-		if (isDefaultQuery && Array.isArray(product?.reviews) && product.reviews.length > 0 && reviewsData?.pagination?.current_page === 1) {
-			return;
-		}
+		if (isDefaultQuery && hasSeededDefaultRef.current) return;
 
 		setReviewsLoading(true);
 		setReviewsError(null);
 
 		try {
 			const params = new URLSearchParams();
-			params.set("sort_by", reviewsSortBy === "created_at" ? "created_at" : "rating");
+			params.set("sort_by", reviewsSortBy);
 			params.set("sort_direction", reviewsSortDir);
 			params.set("page", String(reviewsPage));
 			if (reviewsRatingFilter !== "") params.set("rating", String(reviewsRatingFilter));
@@ -421,25 +487,17 @@ export default function ProductPageClient() {
 				cache: "no-store",
 			});
 
-			const json: ReviewsResponse = await res.json();
+			const json = await res.json();
 			if (!res.ok || !json.status) throw new Error(json.message || "فشل تحميل التقييمات");
 
 			setReviewsData(json.data);
-
-			if (json.data.user_review) {
-				setMyRating(json.data.user_review.rating || 5);
-				setMyComment(json.data.user_review.comment || "");
-			} else {
-				setMyRating(5);
-				setMyComment("");
-			}
+			hasSeededDefaultRef.current = false; // now server data is source of truth
 		} catch (e: any) {
 			setReviewsError(e?.message || "حدث خطأ أثناء تحميل التقييمات");
-			setReviewsData(null);
 		} finally {
 			setReviewsLoading(false);
 		}
-	}, [API_URL, productId, token, reviewsPage, reviewsRatingFilter, reviewsSortBy, reviewsSortDir, product?.reviews, reviewsData]);
+	}, [API_URL, productId, token, reviewsPage, reviewsRatingFilter, reviewsSortBy, reviewsSortDir]);
 
 	// ✅ only auto-fetch reviews when user opens the tab (or after product has seeded empty)
 	useEffect(() => {
@@ -522,6 +580,14 @@ export default function ProductPageClient() {
 			missingOptions.push("المقاس");
 		}
 
+		// ✅ if size has tiers -> require tier selection
+		const selectedSizeObj = (data?.sizes || []).find((s: any) => s?.name === options.size);
+		const hasTiers = Array.isArray(selectedSizeObj?.tiers) && selectedSizeObj.tiers.length > 0;
+		if (data.sizes?.length > 0 && hasTiers && !options.size_tier_id) {
+			isValid = false;
+			missingOptions.push("كمية المقاس");
+		}
+
 		if (data.colors?.length > 0 && (!options.color || options.color === "اختر")) {
 			isValid = false;
 			missingOptions.push("اللون");
@@ -562,8 +628,9 @@ export default function ProductPageClient() {
 			}
 		}
 
+		// ✅ print locations multi select: at least one
 		if (Array.isArray(data?.print_locations) && data.print_locations.length > 0) {
-			if (!options.print_location || options.print_location === "اختر") {
+			if (!Array.isArray(options.print_locations) || options.print_locations.length === 0) {
 				isValid = false;
 				missingOptions.push("مكان الطباعة");
 			}
@@ -581,24 +648,37 @@ export default function ProductPageClient() {
 		return selectedOptions;
 	};
 
-	// ✅ compute base price (if final_price/price are 0, fallback to lowest_price)
+	// ✅ BASE price:
+	// - if user chose size tier, base price = tier.total_price
+	// - otherwise fallback to product final_price/price/lowest_price
 	const basePrice = useMemo(() => {
+		const tierTotal = num(selectedOptions?.size_total_price);
+		if (tierTotal > 0) return tierTotal;
+
 		const p = num(product?.final_price ?? product?.price);
 		if (p > 0) return p;
-		return num(product?.lowest_price ?? 0);
-	}, [product]);
 
-	// ✅ compute extras from selected options
+		return num(product?.lowest_price ?? 0);
+	}, [product, selectedOptions?.size_total_price]);
+
+	// ✅ compute extras from selected options (excluding size tier because it's now basePrice)
 	const extrasTotal = useMemo(() => {
 		if (!apiData) return 0;
 		const selected = buildSelectedOptionsWithPrice(apiData, selectedOptions);
-		return selected.reduce((sum, o) => sum + num(o.additional_price), 0);
+
+		// remove our helper options "كمية المقاس" & "سعر المقاس الإجمالي" from extras
+		const filtered = selected.filter((o) => !["كمية المقاس", "سعر المقاس الإجمالي"].includes(o.option_name));
+
+		return filtered.reduce((sum, o) => sum + num(o.additional_price), 0);
 	}, [apiData, selectedOptions]);
 
 	const displayTotal = useMemo(() => {
 		const total = basePrice + extrasTotal;
 		return total > 0 ? total : 0;
 	}, [basePrice, extrasTotal]);
+
+
+
 
 	const handleAddToCart = async () => {
 		if (!product || !apiData) return;
@@ -615,13 +695,28 @@ export default function ProductPageClient() {
 
 		if (!token) return toast.error("يجب تسجيل الدخول أولاً");
 
+		// const selected_options = buildSelectedOptionsWithPrice(apiData, opts);
+
 		const selected_options = buildSelectedOptionsWithPrice(apiData, opts);
+		const idsPayload = buildIdsPayload(apiData, opts);
 
 		const cartData = {
 			product_id: product.id,
 			quantity: 1,
-			selected_options, // ✅ now includes additional_price
+
+			// ✅ IDs
+			...idsPayload,
+
+			// ✅ keep your detailed options too
+			selected_options,
+
+			// optional fields you already have in example:
+			design_service_id: null,
+			is_sample: false,
+			note: "",
+			image_design: null,
 		};
+
 
 		try {
 			await addToCart(product.id, cartData);
@@ -769,12 +864,12 @@ export default function ProductPageClient() {
 		selectedOptions.color !== "اختر" ||
 		selectedOptions.material !== "اختر" ||
 		selectedOptions.printing_method !== "اختر" ||
-		selectedOptions.print_location !== "اختر" ||
+		(selectedOptions.print_locations?.length ?? 0) > 0 ||
 		Object.values(selectedOptions.optionGroups || {}).some((v) => v !== "اختر");
 
 	return (
 		<>
-			<section className="container pt-4 pb-24" dir="rtl">
+			<section className="container pt-8 pb-24" dir="rtl">
 				<motion.div variants={fadeUp} initial="hidden" animate="show" className="mb-4">
 					<CustomSeparator proName={product.name} />
 				</motion.div>
@@ -894,7 +989,7 @@ export default function ProductPageClient() {
 
 								{activeTab === "reviews" && (
 									<div className="space-y-5">
-										{reviewsLoading ? (
+										{!reviewsData && reviewsLoading ? (
 											<ReviewsSkeleton />
 										) : reviewsError ? (
 											<div className="rounded-2xl border border-slate-200 bg-white p-5">
@@ -1082,11 +1177,19 @@ export default function ProductPageClient() {
 
 									<div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
 										{selectedOptions.size !== "اختر" && <OptChip label="المقاس" value={selectedOptions.size} />}
+
+										{!!selectedOptions.size_quantity && (
+											<OptChip label="كمية المقاس" value={`${selectedOptions.size_quantity}`} />
+										)}
+
 										{selectedOptions.color !== "اختر" && <OptChip label="اللون" value={selectedOptions.color} />}
 										{selectedOptions.material !== "اختر" && <OptChip label="الخامة" value={selectedOptions.material} />}
 
 										{selectedOptions.printing_method !== "اختر" && <OptChip label="طريقة الطباعة" value={selectedOptions.printing_method} />}
-										{selectedOptions.print_location !== "اختر" && <OptChip label="مكان الطباعة" value={selectedOptions.print_location} />}
+
+										{(selectedOptions.print_locations?.length ?? 0) > 0 && (
+											<OptChip label="مكان الطباعة" value={selectedOptions.print_locations.join("، ")} />
+										)}
 
 										{Object.entries(selectedOptions.optionGroups || {}).map(([k, v]) => (v !== "اختر" ? <OptChip key={k} label={k} value={v} /> : null))}
 									</div>
@@ -1290,12 +1393,21 @@ const StickerForm = forwardRef(function StickerForm(
 	const { updateCartItem, fetchCartItemOptions } = useCart();
 
 	const [size, setSize] = useState("اختر");
+
+	// ✅ NEW: tier fields for size
+	const [sizeTierId, setSizeTierId] = useState<number | null>(null);
+	const [sizeTierTotal, setSizeTierTotal] = useState<number | null>(null);
+	const [sizeTierQty, setSizeTierQty] = useState<number | null>(null);
+	const [sizeTierUnit, setSizeTierUnit] = useState<number | null>(null);
+
 	const [color, setColor] = useState("اختر");
 	const [material, setMaterial] = useState("اختر");
 
 	const [optionGroups, setOptionGroups] = useState<Record<string, string>>({});
 	const [printingMethod, setPrintingMethod] = useState("اختر");
-	const [printLocation, setPrintLocation] = useState("اختر");
+
+	// ✅ NEW: print locations multi
+	const [printLocations, setPrintLocations] = useState<string[]>([]);
 
 	const [apiData, setApiData] = useState<any>(null);
 	const [formLoading, setFormLoading] = useState(true);
@@ -1328,12 +1440,26 @@ const StickerForm = forwardRef(function StickerForm(
 		return required;
 	}, [groupedOptions]);
 
+	const selectedSizeObj = useMemo(() => {
+		return (apiData?.sizes || []).find((s: any) => s?.name === size) || null;
+	}, [apiData, size]);
+
+	const sizeTiers = useMemo(() => {
+		const tiers = selectedSizeObj?.tiers;
+		return Array.isArray(tiers) ? tiers : [];
+	}, [selectedSizeObj]);
+
 	const validateCurrentOptions = useCallback(() => {
 		if (!apiData) return false;
 
 		let isValid = true;
 
 		if (apiData.sizes?.length > 0 && (!size || size === "اختر")) isValid = false;
+
+		// ✅ require tier if size has tiers
+		const hasTiers = Array.isArray(selectedSizeObj?.tiers) && selectedSizeObj.tiers.length > 0;
+		if (apiData.sizes?.length > 0 && hasTiers && !sizeTierId) isValid = false;
+
 		if (apiData.colors?.length > 0 && (!color || color === "اختر")) isValid = false;
 		if (apiData.materials?.length > 0 && (!material || material === "اختر")) isValid = false;
 
@@ -1347,21 +1473,28 @@ const StickerForm = forwardRef(function StickerForm(
 		if (Array.isArray(apiData?.printing_methods) && apiData.printing_methods.length > 0) {
 			if (!printingMethod || printingMethod === "اختر") isValid = false;
 		}
+
+		// ✅ multi locations required if exist
 		if (Array.isArray(apiData?.print_locations) && apiData.print_locations.length > 0) {
-			if (!printLocation || printLocation === "اختر") isValid = false;
+			if (!Array.isArray(printLocations) || printLocations.length === 0) isValid = false;
 		}
 
 		return isValid;
-	}, [apiData, size, color, material, optionGroups, requiredOptionGroups, printingMethod, printLocation]);
+	}, [apiData, size, color, material, optionGroups, requiredOptionGroups, printingMethod, printLocations, selectedSizeObj, sizeTierId]);
 
 	useImperativeHandle(ref, () => ({
 		getOptions: () => ({
 			size,
+			size_tier_id: sizeTierId,
+			size_quantity: sizeTierQty,
+			size_price_per_unit: sizeTierUnit,
+			size_total_price: sizeTierTotal,
+
 			color,
 			material,
 			optionGroups,
 			printing_method: printingMethod,
-			print_location: printLocation,
+			print_locations: printLocations,
 			isValid: validateCurrentOptions(),
 		}),
 		validate: () => validateCurrentOptions(),
@@ -1371,14 +1504,32 @@ const StickerForm = forwardRef(function StickerForm(
 		if (!onOptionsChange) return;
 		onOptionsChange({
 			size,
+			size_tier_id: sizeTierId,
+			size_quantity: sizeTierQty,
+			size_price_per_unit: sizeTierUnit,
+			size_total_price: sizeTierTotal,
+
 			color,
 			material,
 			optionGroups,
 			printing_method: printingMethod,
-			print_location: printLocation,
+			print_locations: printLocations,
 			isValid: validateCurrentOptions(),
 		});
-	}, [size, color, material, optionGroups, printingMethod, printLocation, validateCurrentOptions, onOptionsChange]);
+	}, [
+		size,
+		sizeTierId,
+		sizeTierQty,
+		sizeTierUnit,
+		sizeTierTotal,
+		color,
+		material,
+		optionGroups,
+		printingMethod,
+		printLocations,
+		validateCurrentOptions,
+		onOptionsChange,
+	]);
 
 	// ✅ NO FETCH HERE: use productData from parent
 	useEffect(() => {
@@ -1405,7 +1556,13 @@ const StickerForm = forwardRef(function StickerForm(
 			}
 
 			setPrintingMethod("اختر");
-			setPrintLocation("اختر");
+			setPrintLocations([]);
+
+			// reset size tier
+			setSizeTierId(null);
+			setSizeTierTotal(null);
+			setSizeTierQty(null);
+			setSizeTierUnit(null);
 		} catch (err: any) {
 			setApiError(err?.message || "حدث خطأ أثناء تحميل الخيارات");
 			setApiData(null);
@@ -1420,6 +1577,15 @@ const StickerForm = forwardRef(function StickerForm(
 		return option ? option.option_value : null;
 	}, []);
 
+	// ✅ NEW: extract multiple values (for "مكان الطباعة")
+	const extractValuesFromOptions = useCallback((options: any[], optionName: string) => {
+		if (!options || !Array.isArray(options)) return [];
+		return options
+			.filter((opt: any) => opt.option_name === optionName)
+			.map((x: any) => String(x.option_value || "").trim())
+			.filter(Boolean);
+	}, []);
+
 	const loadSavedOptions = useCallback(async () => {
 		if (!cartItemId) return;
 		setFormLoading(true);
@@ -1432,14 +1598,33 @@ const StickerForm = forwardRef(function StickerForm(
 				const colorFromOptions = extractValueFromOptions(savedOptions.selected_options, "اللون");
 				const materialFromOptions = extractValueFromOptions(savedOptions.selected_options, "الخامة");
 				const printingFromOptions = extractValueFromOptions(savedOptions.selected_options, "طريقة الطباعة");
-				const locationFromOptions = extractValueFromOptions(savedOptions.selected_options, "مكان الطباعة");
+
+				// ✅ multi locations
+				const locationsFromOptions = extractValuesFromOptions(savedOptions.selected_options, "مكان الطباعة");
+
+				// ✅ tier info if present
+				const qtyFromOptions = extractValueFromOptions(savedOptions.selected_options, "كمية المقاس");
+				const totalFromOptions = extractValueFromOptions(savedOptions.selected_options, "سعر المقاس الإجمالي");
 
 				setSize(sizeFromOptions || savedOptions.size || "اختر");
 				setColor(colorFromOptions || (savedOptions.color?.name || savedOptions.color) || "اختر");
 				setMaterial(materialFromOptions || savedOptions.material || "اختر");
 
 				setPrintingMethod(printingFromOptions || "اختر");
-				setPrintLocation(locationFromOptions || "اختر");
+				setPrintLocations(locationsFromOptions || []);
+
+				// try rebuild tier id from size+qty (best effort)
+				const q = qtyFromOptions ? Number(qtyFromOptions) : null;
+				const t = totalFromOptions ? Number(totalFromOptions) : null;
+
+				if (q && t && apiData?.sizes) {
+					const sz = apiData.sizes.find((s: any) => s?.name === (sizeFromOptions || savedOptions.size));
+					const tier = (sz?.tiers || []).find((x: any) => Number(x?.quantity) === q && Number(x?.total_price) === t) || null;
+					setSizeTierId(tier?.id ?? null);
+					setSizeTierQty(tier?.quantity ?? q ?? null);
+					setSizeTierTotal(tier?.total_price ?? t ?? null);
+					setSizeTierUnit(num(tier?.price_per_unit) || null);
+				}
 
 				const out: Record<string, string> = {};
 				Object.keys(groupedOptions).forEach((g) => (out[g] = "اختر"));
@@ -1449,7 +1634,7 @@ const StickerForm = forwardRef(function StickerForm(
 						const value = String(opt.option_value || "").trim();
 						if (!name || !value) return;
 
-						if (["المقاس", "اللون", "الخامة", "طريقة الطباعة", "مكان الطباعة"].includes(name)) return;
+						if (["المقاس", "اللون", "الخامة", "طريقة الطباعة", "مكان الطباعة", "كمية المقاس", "سعر المقاس الإجمالي"].includes(name)) return;
 						if (Object.prototype.hasOwnProperty.call(out, name)) out[name] = value;
 					});
 				}
@@ -1463,7 +1648,7 @@ const StickerForm = forwardRef(function StickerForm(
 		} finally {
 			setFormLoading(false);
 		}
-	}, [cartItemId, fetchCartItemOptions, extractValueFromOptions, groupedOptions]);
+	}, [cartItemId, fetchCartItemOptions, extractValueFromOptions, extractValuesFromOptions, groupedOptions, apiData]);
 
 	useEffect(() => {
 		if (!cartItemId || !apiData) return;
@@ -1479,18 +1664,28 @@ const StickerForm = forwardRef(function StickerForm(
 
 		const opts: SelectedOptions = {
 			size,
+			size_tier_id: sizeTierId,
+			size_quantity: sizeTierQty,
+			size_price_per_unit: sizeTierUnit,
+			size_total_price: sizeTierTotal,
+
 			color,
 			material,
 			optionGroups,
 			printing_method: printingMethod,
-			print_location: printLocation,
+			print_locations: printLocations,
 			isValid: validateCurrentOptions(),
 		};
 
 		const selected_options = buildSelectedOptionsWithPrice(apiData, opts);
 
 		try {
-			const success = await updateCartItem(cartItemId, { selected_options });
+			const idsPayload = buildIdsPayload(apiData, opts);
+
+			const success = await updateCartItem(cartItemId, {
+				...idsPayload,
+				selected_options,
+			});
 			if (success) {
 				setSavedSuccessfully(true);
 				setHasUnsavedChanges(false);
@@ -1507,12 +1702,18 @@ const StickerForm = forwardRef(function StickerForm(
 		setColor("اختر");
 		setMaterial("اختر");
 
+		// reset tier
+		setSizeTierId(null);
+		setSizeTierTotal(null);
+		setSizeTierQty(null);
+		setSizeTierUnit(null);
+
 		const resetGroups: Record<string, string> = {};
 		Object.keys(groupedOptions).forEach((g) => (resetGroups[g] = "اختر"));
 		setOptionGroups(resetGroups);
 
 		setPrintingMethod("اختر");
-		setPrintLocation("اختر");
+		setPrintLocations([]);
 
 		setHasUnsavedChanges(true);
 		setShowSaveButton(true);
@@ -1536,6 +1737,43 @@ const StickerForm = forwardRef(function StickerForm(
 		});
 	};
 
+	// ✅ when size changes -> reset tier
+	const handleSizeChange = (value: string) => {
+		handleOptionChange(setSize, value);
+		setSizeTierId(null);
+		setSizeTierTotal(null);
+		setSizeTierQty(null);
+		setSizeTierUnit(null);
+	};
+
+	// ✅ when tier changes -> set tier fields (and mark unsaved)
+	const handleTierChange = (tierIdStr: string) => {
+		const tierId = Number(tierIdStr);
+		const tier = sizeTiers.find((t: any) => Number(t?.id) === tierId) || null;
+
+		setSizeTierId(tier ? Number(tier.id) : null);
+		setSizeTierQty(tier ? Number(tier.quantity) : null);
+		setSizeTierUnit(tier ? num(tier.price_per_unit) : null);
+		setSizeTierTotal(tier ? Number(tier.total_price) : null);
+
+		setHasUnsavedChanges(true);
+		setShowSaveButton(true);
+		setSavedSuccessfully(false);
+	};
+
+
+	// const selectedSizeObj = useMemo(() => {
+	// 	return (apiData?.sizes || []).find((s: any) => s?.name === size) || null;
+	// }, [apiData, size]);
+
+	// const sizeTiers = useMemo(() => {
+	// 	const tiers = selectedSizeObj?.tiers;
+	// 	return Array.isArray(tiers) ? tiers : [];
+	// }, [selectedSizeObj]);
+
+	// const needSizeTier = needSize && size !== "اختر" && sizeTiers.length > 0;
+
+
 	if (formLoading) return <StickerFormSkeleton />;
 
 	if (apiError || !apiData) {
@@ -1552,6 +1790,8 @@ const StickerForm = forwardRef(function StickerForm(
 
 	const needPrintingMethod = Array.isArray(apiData?.printing_methods) && apiData.printing_methods.length > 0;
 	const needPrintLocation = Array.isArray(apiData?.print_locations) && apiData.print_locations.length > 0;
+
+	const needSizeTier = needSize && size !== "اختر" && (sizeTiers?.length ?? 0) > 0;
 
 	return (
 		<motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="pt-4 mt-4">
@@ -1603,7 +1843,7 @@ const StickerForm = forwardRef(function StickerForm(
 					<Box>
 						<FormControl fullWidth size="small" required error={showValidation && needSize && size === "اختر"}>
 							<InputLabel>المقاس</InputLabel>
-							<Select value={size} onChange={(e) => handleOptionChange(setSize, e.target.value as string)} label="المقاس" className="bg-white">
+							<Select value={size} onChange={(e) => handleSizeChange(e.target.value as string)} label="المقاس" className="bg-white">
 								<MenuItem value="اختر" disabled>
 									<em className="text-gray-400">اختر</em>
 								</MenuItem>
@@ -1614,6 +1854,47 @@ const StickerForm = forwardRef(function StickerForm(
 								))}
 							</Select>
 							{showValidation && needSize && size === "اختر" && <FormHelperText className="text-red-500 text-xs">يجب اختيار المقاس</FormHelperText>}
+						</FormControl>
+					</Box>
+				)}
+
+				{/* ✅ NEW: Size Tier (quantity) */}
+				{needSizeTier && (
+					<Box>
+						<FormControl
+							fullWidth
+							size="small"
+							required
+							error={showValidation && needSizeTier && !sizeTierId}
+						>
+							<InputLabel>الكمية</InputLabel>
+							<Select
+								value={sizeTierId ? String(sizeTierId) : "اختر"}
+								onChange={(e) => handleTierChange(e.target.value as string)}
+								label="الكمية"
+								className="bg-white"
+							>
+								<MenuItem value="اختر" disabled>
+									<em className="text-gray-400">اختر</em>
+								</MenuItem>
+
+								{sizeTiers.map((t: any) => (
+									<MenuItem key={t.id} value={String(t.id)}>
+										<div className="flex items-center justify-between gap-3 w-full">
+											<span>{t.quantity} قطعة</span>
+											<span className="text-xs font-black text-slate-700">{Number(t.total_price).toFixed(2)} ر.س</span>
+										</div>
+									</MenuItem>
+								))}
+							</Select>
+
+							{showValidation && needSizeTier && !sizeTierId && <FormHelperText className="text-red-500 text-xs">يجب اختيار كمية المقاس</FormHelperText>}
+
+							{!!sizeTierId && (
+								<FormHelperText className="text-slate-600 text-xs">
+									سعر الوحدة: {num(sizeTierUnit).toFixed(2)} — الإجمالي: {num(sizeTierTotal).toFixed(2)}
+								</FormHelperText>
+							)}
 						</FormControl>
 					</Box>
 				)}
@@ -1729,25 +2010,51 @@ const StickerForm = forwardRef(function StickerForm(
 					</Box>
 				)}
 
+				{/* ✅ UPDATED: Print Locations MULTI */}
 				{needPrintLocation && (
 					<Box>
-						<FormControl fullWidth size="small" required error={showValidation && printLocation === "اختر"}>
+						<FormControl
+							fullWidth
+							size="small"
+							required
+							error={showValidation && (!Array.isArray(printLocations) || printLocations.length === 0)}
+						>
 							<InputLabel>مكان الطباعة</InputLabel>
-							<Select value={printLocation} onChange={(e) => handleOptionChange(setPrintLocation, e.target.value as string)} label="مكان الطباعة" className="bg-white">
-								<MenuItem value="اختر" disabled>
-									<em className="text-gray-400">اختر</em>
-								</MenuItem>
-								{apiData.print_locations.map((p: any) => (
-									<MenuItem key={p.id} value={p.name}>
-										<div className="flex items-center justify-between gap-3 w-full">
-											<span>{p.name}</span>
-											<span className="text-xs font-black text-slate-500">{p.type}</span>
-										</div>
-									</MenuItem>
-								))}
+							<Select
+								multiple
+								value={printLocations}
+								onChange={(e) => {
+									const value = e.target.value as string[];
+									setPrintLocations(value);
+									setHasUnsavedChanges(true);
+									setShowSaveButton(true);
+									setSavedSuccessfully(false);
+								}}
+								label="مكان الطباعة"
+								className="bg-white"
+								renderValue={(selected) => (Array.isArray(selected) ? selected.join("، ") : "")}
+							>
+								{apiData.print_locations.map((p: any) => {
+									const checked = printLocations.includes(p.name);
+									return (
+										<MenuItem key={p.id} value={p.name}>
+											<Checkbox checked={checked} />
+											<ListItemText
+												primary={
+													<div className="flex items-center justify-between gap-3 w-full">
+														<span>{p.name}</span>
+														<span className="text-xs font-black text-slate-500">{p.type}</span>
+													</div>
+												}
+											/>
+										</MenuItem>
+									);
+								})}
 							</Select>
 
-							{showValidation && printLocation === "اختر" && <FormHelperText className="text-red-500 text-xs">يجب اختيار مكان الطباعة</FormHelperText>}
+							{showValidation && (!Array.isArray(printLocations) || printLocations.length === 0) && (
+								<FormHelperText className="text-red-500 text-xs">يجب اختيار مكان الطباعة</FormHelperText>
+							)}
 						</FormControl>
 					</Box>
 				)}

@@ -106,7 +106,7 @@ export function CategorySectionSkeleton() {
 
 export function ProductPageSkeleton() {
 	return (
-		<section className="container pt-4 pb-24" dir="rtl">
+		<section className="container pt-8 pb-24" dir="rtl">
 			{/* Breadcrumb */}
 			<Sk className="h-4 w-64 mb-6" />
 

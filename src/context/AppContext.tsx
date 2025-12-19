@@ -23,7 +23,7 @@ interface HomeData {
 	products: ProductI[];
 	sub_categories: SubCategoriesI[];
 	sliders: BannerI[];
-
+	sub_categories_pagination : any
 }
 
 interface AppContextType {
@@ -88,8 +88,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 				// 3) Categories Child
 				fetchApi("categories?type=child").then(res => {
 					setChildCategories(Array.isArray(res) ? res : []);
-
 				})
+				
 				// 4) socialMedia
 				const socialMedia = await fetchApi("social-media");
 				setSocialMedia(Array.isArray(socialMedia) ? socialMedia : []);

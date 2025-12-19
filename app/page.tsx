@@ -1,24 +1,92 @@
-'use client';
+"use client";
 
-import CategoriesSlider from '@/components/CategoriesC';
-import InStockSlider from '@/components/InStockSlider';
-import ProductCard from '@/components/ProductCard';
-import SliderComponent from '@/components/SliderComponent';
-import { fetchApi } from '@/lib/api';
-import { useAppContext } from '@/src/context/AppContext';
-import { BannerI } from '@/Types/BannerI';
-import { useEffect, useMemo, useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
+import CategoriesSlider from "@/components/CategoriesC";
+import InStockSlider from "@/components/InStockSlider";
+import ProductCard from "@/components/ProductCard";
+import SliderComponent from "@/components/SliderComponent";
+import { fetchApi, fetchApi2 } from "@/lib/api";
+import { useAppContext } from "@/src/context/AppContext";
+import { BannerI } from "@/Types/BannerI";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import Image from "next/image";
+import Link from "next/link";
 
 // ✅ Skeletons
-import { CategoriesSliderSkeleton, HeroSliderSkeleton, CategorySectionSkeleton } from '@/components/skeletons/HomeSkeletons';
+import {
+	CategoriesSliderSkeleton,
+	HeroSliderSkeleton,
+	CategorySectionSkeleton,
+} from "@/components/skeletons/HomeSkeletons";
 
 export default function Home() {
-	const { homeData, loading, loadingCategories, parentCategories, loadingHome } = useAppContext();
+	const { homeData, loadingCategories, parentCategories, loadingHome } =
+		useAppContext();
 
-	const categories2 = homeData?.sub_categories || [];
+	// ✅ local copy so we can append pages
+	const [categories2, setCategories2] = useState<any[]>(
+		homeData?.sub_categories || []
+	);
+	const [paginationState, setPaginationState] = useState<any>(
+		homeData?.sub_categories_pagination || null
+	);
 
+	// ✅ load-more UI state
+	const [showLoadMoreBtn, setShowLoadMoreBtn] = useState(false);
+	const [loadingMore, setLoadingMore] = useState(false);
+
+	// ✅ keep local state synced when context homeData updates (first load / refresh)
+	useEffect(() => {
+		setCategories2(homeData?.sub_categories || []);
+		setPaginationState(homeData?.sub_categories_pagination || null);
+	}, [homeData?.sub_categories, homeData?.sub_categories_pagination]);
+
+	// ✅ detect scroll near bottom => show button
+	useEffect(() => {
+		const onScroll = () => {
+			const scrollY = window.scrollY;
+			const vh = window.innerHeight;
+			const full = document.documentElement.scrollHeight;
+
+			const nearBottom = scrollY + vh >= full - 500;
+			setShowLoadMoreBtn(nearBottom);
+		};
+
+		window.addEventListener("scroll", onScroll, { passive: true });
+		onScroll();
+		return () => window.removeEventListener("scroll", onScroll);
+	}, []);
+
+	const loadMore = useCallback(async () => {
+		if (!paginationState?.next_page) return;
+		if (loadingMore) return;
+
+		setLoadingMore(true);
+		try {
+			const nextUrl = String(paginationState.next_page);
+			const res = await fetchApi2(nextUrl); // ✅ uses your helper
+
+			const newCats = res?.data?.sub_categories ?? res?.sub_categories ?? [];
+			const newPagination =
+				res?.data?.sub_categories_pagination ??
+				res?.sub_categories_pagination ??
+				res?.pagination ??
+				null;
+
+			// ✅ append + de-dup by id
+			setCategories2((prev) => {
+				const merged = [...prev, ...(Array.isArray(newCats) ? newCats : [])];
+				const map = new Map(merged.map((c: any) => [c.id, c]));
+				return Array.from(map.values());
+			});
+
+			setPaginationState(newPagination);
+		} catch (e) {
+		} finally {
+			setLoadingMore(false);
+		}
+	}, [paginationState?.next_page, loadingMore]);
+
+	// ------------------ slider (your existing code) ------------------
 	const [mainSlider, setMainSlider] = useState<BannerI[]>([]);
 	const [isMainSliderLoading, setIsMainSliderLoading] = useState(true);
 
@@ -28,7 +96,7 @@ export default function Home() {
 		const getMainSlider = async () => {
 			setIsMainSliderLoading(true);
 			try {
-				const data = await fetchApi('banners?type=main_slider');
+				const data = await fetchApi("banners?type=main_slider");
 				if (!mounted) return;
 				setMainSlider(Array.isArray(data) ? data : []);
 			} catch (e) {
@@ -46,21 +114,38 @@ export default function Home() {
 		};
 	}, []);
 
-	const sliderSrc = useMemo(() => (mainSlider?.[0]?.items || []).map(i => i.image), [mainSlider]);
+	const sliderSrc = useMemo(
+		() => (mainSlider?.[0]?.items || []).map((i) => i.image),
+		[mainSlider]
+	);
+
+	const hasNext = Boolean(paginationState?.next_page);
 
 	return (
-		<div className='container  !mt-8 !mb-8  '>
-			<div className=' flex flex-col gap-8'>
-				<div className='rounded-3xl overflow-hidden border border-gray-100 bg-white shadow-sm'>{isMainSliderLoading ? <HeroSliderSkeleton /> : sliderSrc.length > 0 ? <SliderComponent src={mainSlider?.[0]} /> : <div className='h-[200px] md:h-[420px] flex items-center justify-center text-gray-400'>لا توجد بنرات حالياً</div>}</div>
+		<div className="container  !mt-8 !mb-8">
+			<div className="flex flex-col gap-8">
+				<div className="rounded-3xl overflow-hidden border border-gray-100 bg-white shadow-sm">
+					{isMainSliderLoading ? (
+						<HeroSliderSkeleton />
+					) : sliderSrc.length > 0 ? (
+						<SliderComponent src={mainSlider?.[0]} />
+					) : (
+						<div className="h-[200px] md:h-[420px] flex items-center justify-center text-gray-400">
+							لا توجد بنرات حالياً
+						</div>
+					)}
+				</div>
 
-				{/* <div className=' max-md:overflow-hidden w-full pb-12 pt-8'>{status == "" ? <CategoriesSliderSkeleton /> : <CategoriesSlider categories={categories}  />}</div> */}
 				<div className="max-md:overflow-hidden w-full pb-12 pt-8">
-					{loadingCategories ? <CategoriesSliderSkeleton /> : <CategoriesSlider categories={parentCategories} />}
-
+					{loadingCategories ? (
+						<CategoriesSliderSkeleton />
+					) : (
+						<CategoriesSlider categories={parentCategories} />
+					)}
 				</div>
 
 				{/* ✅ SECTIONS */}
-				<div className='flex flex-col gap-10'>
+				<div className="flex flex-col gap-10">
 					{loadingHome ? (
 						<>
 							<CategorySectionSkeleton />
@@ -68,32 +153,48 @@ export default function Home() {
 							<CategorySectionSkeleton />
 						</>
 					) : (
-						categories2.map(category => {
-							const hasProducts = Array.isArray(category.products) && category.products.length > 0;
+						categories2.map((category) => {
+							const hasProducts =
+								Array.isArray(category.products) && category.products.length > 0;
 							if (!hasProducts) return null;
 
-							const banner = category.category_banners?.[0]?.image ?? '/images/d4.jpg';
+							const banner =
+								category.category_banners?.[0]?.image ?? "/images/d4.jpg";
 
 							return (
-								<section key={category.id} className=' rounded-[10px_10px_0_0] md:rounded-3xl md:border md:border-gray-100 !bg-gray-50/50 overflow-hidden'>
-									<div className='relative w-full h-[120px] md:h-[160px]'>
-										<Image src={banner} alt={category.name} fill className='object-cover' priority={false} />
-										<div className='absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent' />
-										<div className='absolute bottom-3 left-3 right-3 flex items-end justify-between'>
-											<h2 className='text-white text-lg md:text-2xl font-extrabold drop-shadow'>{category.name}</h2>
+								<section
+									key={category.id}
+									className="rounded-[10px_10px_0_0] md:rounded-3xl md:border md:border-gray-100 !bg-gray-50/50 overflow-hidden"
+								>
+									<div className="relative w-full h-[120px] md:h-[160px]">
+										<Image
+											src={banner}
+											alt={category.name}
+											fill
+											className="object-cover"
+											priority={false}
+										/>
+										<div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
+										<div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
+											<h2 className="text-white text-lg md:text-2xl font-extrabold drop-shadow">
+												{category.name}
+											</h2>
 
-											<Link href={`/category/${category.id}`} className='text-white/95 text-sm md:text-base font-semibold px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 transition'>
+											<Link
+												href={`/category/${category.id}`}
+												className="text-white/95 text-sm md:text-base font-semibold px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 transition"
+											>
 												الكل
 											</Link>
 										</div>
 									</div>
 
 									{/* Products */}
-									<div className='  md:p-6'>
+									<div className="md:p-6">
 										<InStockSlider
 											inStock={category.products}
 											isLoading={false}
-											title=''
+											title=""
 											hiddenArrow={false}
 											CardComponent={(product: any) => (
 												<ProductCard
@@ -102,15 +203,14 @@ export default function Home() {
 													key={product.id}
 													id={product.id}
 													name={product.name}
-													image={product.image || '/images/c1.png'}
+													image={product.image || "/images/c1.png"}
 													stock={product.stock}
 													average_rating={product.average_rating}
 													reviews={product.reviews}
-													// ✅ keep your props but make consistent:
-													className='hidden'
-													className2='hidden'
-													classNameHome=''
-													Bottom='bottom-3'
+													className="hidden"
+													className2="hidden"
+													classNameHome=""
+													Bottom="bottom-3"
 												/>
 											)}
 										/>
@@ -120,7 +220,20 @@ export default function Home() {
 						})
 					)}
 				</div>
+				{/* ✅ Load More button appears only near bottom */}
+				{hasNext && showLoadMoreBtn && (
+					<div className=" flex items-center justify-center mt-3  z-[9999]">
+						<button
+							onClick={loadMore}
+							disabled={loadingMore}
+							className="px-6 cursor-pointer py-3 rounded-2xl bg-[#14213d] text-white font-extrabold shadow-lg disabled:opacity-60"
+						>
+							{loadingMore ? "جاري تحميل المزيد..." : "تحميل المزيد"}
+						</button>
+					</div>
+				)}
 			</div>
+
 		</div>
 	);
 }
