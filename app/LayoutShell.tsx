@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FloatingWhatsAppButton from "../components/WhatsappButton";
+import HeaderAdsSlider from "../components/HeaderAdsSlider";
 
 export default function LayoutShell({
 	children,
@@ -12,15 +13,15 @@ export default function LayoutShell({
 }) {
 	const pathname = usePathname();
 
-	const hideLayout = ["/login", "/signup", "/login/forgetPassword" , "/login/resetpassword"].includes(
+	const hideLayout = ["/login", "/signup", "/login/forgetPassword", "/login/resetpassword"].includes(
 		pathname
 	);
 
 	return (
 		<>
-			{!hideLayout && <Navbar />}
+ 			{!hideLayout && <Navbar />}
 
-			<div className={`${!hideLayout ? "pt-[90px] lg:pt-[140px]" : ""}  min-h-[80vh]`}>
+			<div className={`${!hideLayout ? "pt-[110px] lg:pt-[190px]" : ""}   min-h-[80vh]`}>
 				{children}
 			</div>
 

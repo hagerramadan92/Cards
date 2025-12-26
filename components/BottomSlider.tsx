@@ -1,53 +1,82 @@
 "use client";
-import React from "react";
+
+import React, { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { MdStars } from "react-icons/md";
 import { PiTruckLight } from "react-icons/pi";
-import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { FaGift, FaHeart } from "react-icons/fa";
 
-export default function BottomSlider() {
-  const items = [
-    {
-      icon: <PiTruckLight size={20} />,
-      text: "شحن مجاني",
-    },
-    {
-      icon: <MdStars size={20} />,
-      text: "#1 في  التوصيل السريع",
-    },
-    {
-      icon: <p className="text-lg">!</p>,
-      text: (
-        <>
-          متبقي <span className="font-bold text-red-600">عدد قليل</span>  في المخزن
-        </>
-      ),
-    },
-  ];
+type TextAd = {
+  id: number;
+  name: string;
+  icon?: string;
+};
+
+type Props = {
+  text_ads?: TextAd[];
+};
+
+/* -------- Icon Mapper -------- */
+function mapIcon(icon?: string) {
+  switch (icon) {
+    case "fa-gift":
+      return <FaGift size={16} />;
+    case "fa-heart":
+      return <FaHeart size={16} className="text-red-500" />;
+    case "fa-truck":
+      return <PiTruckLight size={16} />;
+    case "fa-stars":
+      return <MdStars size={16} />;
+    default:
+      return <MdStars size={16} />;
+  }
+}
+
+export default function BottomSlider({ text_ads }: Props) {
+  /* -------- Safe Items -------- */
+  const items = useMemo(() => {
+    if (!Array.isArray(text_ads) || text_ads.length === 0) {
+      return [];
+    }
+
+    return text_ads.map((ad) => ({
+      id: ad.id,
+      icon: mapIcon(ad.icon),
+      text: ad.name,
+    }));
+  }, [text_ads]);
 
   const [index, setIndex] = useState(0);
 
+  /* -------- Auto change -------- */
   useEffect(() => {
+    if (items.length <= 1) return;
+
     const interval = setInterval(() => {
       setIndex((prev) => (prev + 1) % items.length);
     }, 2500);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [items.length]);
+
+  /* -------- Nothing to show -------- */
+  if (items.length === 0) return null;
 
   return (
-    <div className="h-5 flex items-center">
+    <div className="flex h-5 items-center overflow-hidden">
       <AnimatePresence mode="wait">
         <motion.div
-          key={index}
+          key={items[index].id}
           className="flex items-center gap-2"
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.5 }}
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
         >
           {items[index].icon}
-          <p className="text-xs line-clamp-1 text-gray-700">{items[index].text}</p>
+          <p className="line-clamp-1 text-xs text-gray-700">
+            {items[index].text}
+          </p>
         </motion.div>
       </AnimatePresence>
     </div>

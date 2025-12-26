@@ -176,8 +176,7 @@ export default function ProductCard({
 		return displayPrice !== displayFinalPrice;
 	}, [displayPrice, displayFinalPrice]);
 
-	const showDiscountChip = Boolean(discount?.value);
-
+	const showDiscountChip = Boolean(discount?.value); 
 	return (
 		<motion.div
 			className="relative group"
@@ -289,7 +288,7 @@ export default function ProductCard({
 					<div className={`flex items-center gap-2 max-md:!mb-1 ${classNameHome}`}>
 						{displayFinalPrice > 0 ? (
 							<div className='flex items-center gap-1 flex-wrap' >
-								<PriceComponent start final_price={displayFinalPrice} />
+								<PriceComponent start price_text={product?.price_text} />
 								{priceHasDiscount && (
 									<span className="text-sm text-gray-400 line-through">{displayPrice} ر.س</span>
 								)}
@@ -304,7 +303,7 @@ export default function ProductCard({
 					<div className="h-px bg-gray-200/70" />
 
 					{/* Bottom */}
-					<BottomSlider />
+					<BottomSlider text_ads={product?.text_ads} />
 				</div>
 			</motion.div>
 		</motion.div>

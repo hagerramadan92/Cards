@@ -15,16 +15,7 @@ import { useCart } from "@/src/context/CartContext";
 import CoBon from "@/components/cobon";
 import Button from "@mui/material/Button";
 import CartSkeleton from "@/components/skeletons/CartSkeleton";
-import {
-	Box,
-	FormControl,
-	InputLabel,
-	Select,
-	MenuItem,
-	FormHelperText,
-	CircularProgress,
-	Alert,
-} from "@mui/material";
+import { Box, FormControl, InputLabel, Select, MenuItem, FormHelperText, CircularProgress, Alert } from "@mui/material";
 import { motion } from "framer-motion";
 import { Save, CheckCircle, Warning, Info, Refresh } from "@mui/icons-material";
 import { StickerFormSkeleton } from "../../components/skeletons/HomeSkeletons";
@@ -162,7 +153,7 @@ function computePricing(item: any) {
 	const extras = computeExtrasFromSelectedOptions(item, p);
 
 	// ✅ if tierTotal exists => it replaces base line total (size price already computed by backend tier)
-	const baseLineFromTier = tierTotal > 0 ? tierTotal : (base * qty);
+	const baseLineFromTier = tierTotal > 0 ? tierTotal : base * qty;
 
 	// final line = baseLine + extras*qty
 	const lineAfterOptions = baseLineFromTier + extras * qty;
@@ -224,9 +215,11 @@ function missingRequiredFields(item: any) {
 		if (!ok) miss.push(name);
 	}
 
-	if ((p?.printing_methods?.length ?? 0) > 0 && !selected.some((o) => o.option_name?.includes("طريقة الطباعة"))) miss.push("طريقة الطباعة");
+	if ((p?.printing_methods?.length ?? 0) > 0 && !selected.some((o) => o.option_name?.includes("طريقة الطباعة")))
+		miss.push("طريقة الطباعة");
 
-	if ((p?.print_locations?.length ?? 0) > 0 && !selected.some((o) => o.option_name?.includes("مكان الطباعة"))) miss.push("مكان الطباعة");
+	if ((p?.print_locations?.length ?? 0) > 0 && !selected.some((o) => o.option_name?.includes("مكان الطباعة")))
+		miss.push("مكان الطباعة");
 
 	// ✅ if selected size has tiers => require tier selection too
 	const sizeName = selected.find((o) => o.option_name?.includes("المقاس"))?.option_value;
@@ -308,7 +301,7 @@ ${errors.join("\n")}
 	};
 
 	return (
-		<div className="container pb-8 pt-5" dir="rtl">
+		<div className="container pb-8 !pt-5" dir="rtl">
 			<div className="flex items-center gap-2 text-sm mb-2">
 				<Link href="/" aria-label="go to home" className="text-pro-max font-bold">
 					الرئيسيه
@@ -369,28 +362,18 @@ ${errors.join("\n")}
 																</>
 															)}
 
-															{n(item._real?.extras) > 0 && (
-																<span className="text-[11px] font-extrabold px-2 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-																	+ إضافات {money(n(item._real?.extras))}
-																</span>
-															)}
+															<p className="text-sm text-emerald-700   font-extrabold">
+																الإجمالي: {money(n(item._line))} ريال
+															</p>
 
-															<span className="text-[11px] font-extrabold px-2 py-1 rounded-full bg-slate-50 text-slate-700 border border-slate-200">
-																إجمالي القطعة بعد الخيارات
-															</span>
 														</div>
 
-														<p className="text-sm text-emerald-700 mt-2 font-extrabold">
-															الإجمالي: {money(n(item._line))} ريال
-														</p>
 													</div>
 												</div>
 											</div>
 
-											{/* ✅ IMPORTANT:
-                        If tier quantity chosen, disable +/− because tier qty controls quantity
-                      */}
-											<div className="flex items-center gap-2">
+											{/* ✅ IMPORTANT: if tier qty chosen, disable +/- because tier controls qty */}
+											<div className="flex max-md:mt-6 max-md:justify-end items-center gap-2">
 												<div className={`flex items-center gap-3 border border-slate-200 rounded-2xl overflow-hidden ${hasTierQty ? "opacity-50 pointer-events-none" : ""}`}>
 													<button
 														onClick={() => {
@@ -405,7 +388,10 @@ ${errors.join("\n")}
 														<FaPlus size={16} />
 													</button>
 
-													<span className="font-extrabold w-6 text-lg text-center bg-white text-slate-900">{item.quantity}</span>
+													{/* ✅ SHOW effective quantity */}
+													<span className="font-extrabold w-6 text-lg text-center bg-white text-slate-900">
+														{item._effectiveQty}
+													</span>
 
 													<button
 														onClick={() => {
@@ -507,9 +493,7 @@ ${errors.join("\n")}
 							تابع عملية الشراء
 						</Button>
 
-						<p className="text-xs text-slate-500 text-center mt-3 font-bold">
-							ملحوظة: السعر الإجمالي محسوب حسب اختياراتك الحالية.
-						</p>
+						<p className="text-xs text-slate-500 text-center mt-3 font-bold">ملحوظة: السعر الإجمالي محسوب حسب اختياراتك الحالية.</p>
 					</div>
 				</div>
 			</div>
@@ -521,7 +505,8 @@ const StickerForm = forwardRef(function StickerForm(
 	{ cartItemId, productId, productData, onOptionsChange, showValidation = false }: StickerFormProps,
 	ref
 ) {
-	const { updateCartItem, fetchCartItemOptions } = useCart();
+	// ✅ ADD updateQuantity HERE so we can POST quantity after tier is chosen
+	const { updateCartItem, fetchCartItemOptions, updateQuantity } = useCart();
 
 	const [size, setSize] = useState("اختر");
 	const [color, setColor] = useState("اختر");
@@ -644,7 +629,20 @@ const StickerForm = forwardRef(function StickerForm(
 			size_tier_total: sizeTierTotal,
 			isValid: validateCurrentOptions(),
 		});
-	}, [size, color, material, optionGroups, printingMethod, printLocations, sizeTierId, sizeTierQty, sizeTierUnit, sizeTierTotal, validateCurrentOptions, onOptionsChange]);
+	}, [
+		size,
+		color,
+		material,
+		optionGroups,
+		printingMethod,
+		printLocations,
+		sizeTierId,
+		sizeTierQty,
+		sizeTierUnit,
+		sizeTierTotal,
+		validateCurrentOptions,
+		onOptionsChange,
+	]);
 
 	// ✅ NO FETCH: load options from productData (cart item)
 	useEffect(() => {
@@ -707,9 +705,9 @@ const StickerForm = forwardRef(function StickerForm(
 				const locationsFromOptions: string[] =
 					Array.isArray(savedOptions.selected_options)
 						? savedOptions.selected_options
-								.filter((o: any) => String(o?.option_name || "").includes("مكان الطباعة"))
-								.map((o: any) => String(o?.option_value || "").trim())
-								.filter((v: any) => !!v && v !== "اختر")
+							.filter((o: any) => String(o?.option_name || "").includes("مكان الطباعة"))
+							.map((o: any) => String(o?.option_value || "").trim())
+							.filter((v: any) => !!v && v !== "اختر")
 						: [];
 
 				setSize(sizeFromOptions || savedOptions.size || "اختر");
@@ -729,7 +727,8 @@ const StickerForm = forwardRef(function StickerForm(
 						const value = String(opt.option_value || "").trim();
 						if (!name || !value) return;
 
-						if (["المقاس", "كمية المقاس", "سعر المقاس الإجمالي", "اللون", "الخامة", "طريقة الطباعة", "مكان الطباعة"].includes(name)) return;
+						if (["المقاس", "كمية المقاس", "سعر المقاس الإجمالي", "اللون", "الخامة", "طريقة الطباعة", "مكان الطباعة"].includes(name))
+							return;
 						if (Object.prototype.hasOwnProperty.call(out, name)) out[name] = value;
 					});
 				}
@@ -750,6 +749,7 @@ const StickerForm = forwardRef(function StickerForm(
 		loadSavedOptions();
 	}, [cartItemId, apiData, loadSavedOptions]);
 
+	// ✅ restore tier meta from qty (and handle total_price=0 by computing qty*unit)
 	useEffect(() => {
 		if (!needSizeTier) {
 			setSizeTierId(null);
@@ -762,9 +762,12 @@ const StickerForm = forwardRef(function StickerForm(
 		if (sizeTierQty) {
 			const found = sizeTiers.find((t: any) => n(t.quantity) === n(sizeTierQty));
 			if (found) {
+				const backendTotal = n(found.total_price);
+				const computedTotal = n(found.quantity) * n(found.price_per_unit);
+
 				setSizeTierId(n(found.id));
 				setSizeTierUnit(n(found.price_per_unit));
-				setSizeTierTotal(n(found.total_price));
+				setSizeTierTotal(backendTotal > 0 ? backendTotal : computedTotal);
 			}
 		}
 	}, [needSizeTier, sizeTiers, sizeTierQty]);
@@ -806,6 +809,7 @@ const StickerForm = forwardRef(function StickerForm(
 		setSizeTierTotal(null);
 	};
 
+	// ✅ compute total for tier even if total_price missing
 	const handleTierChange = (tierIdStr: string) => {
 		if (!tierIdStr || tierIdStr === "اختر") {
 			setSizeTierId(null);
@@ -818,10 +822,24 @@ const StickerForm = forwardRef(function StickerForm(
 		const tierId = Number(tierIdStr);
 		const tier = sizeTiers.find((t: any) => n(t?.id) === tierId) || null;
 
-		setSizeTierId(tier ? n(tier.id) : null);
-		setSizeTierQty(tier ? n(tier.quantity) : null);
-		setSizeTierUnit(tier ? n(tier.price_per_unit) : null);
-		setSizeTierTotal(tier ? n(tier.total_price) : null);
+		if (!tier) {
+			setSizeTierId(null);
+			setSizeTierQty(null);
+			setSizeTierUnit(null);
+			setSizeTierTotal(null);
+			return;
+		}
+
+		const qty = n(tier.quantity);
+		const unit = n(tier.price_per_unit);
+		const backendTotal = n(tier.total_price);
+		const computedTotal = qty > 0 && unit > 0 ? qty * unit : 0;
+		const finalTotal = backendTotal > 0 ? backendTotal : computedTotal;
+
+		setSizeTierId(n(tier.id));
+		setSizeTierQty(qty > 0 ? qty : null);
+		setSizeTierUnit(unit > 0 ? unit : null);
+		setSizeTierTotal(finalTotal > 0 ? finalTotal : null);
 
 		setHasUnsavedChanges(true);
 		setShowSaveButton(true);
@@ -879,9 +897,7 @@ const StickerForm = forwardRef(function StickerForm(
 			if (!value || value === "اختر") return;
 
 			const row = (Array.isArray(apiData?.options) ? apiData.options : []).find(
-				(o: any) =>
-					String(o.option_name).trim() === String(group).trim() &&
-					String(o.option_value).trim() === String(value).trim()
+				(o: any) => String(o.option_name).trim() === String(group).trim() && String(o.option_value).trim() === String(value).trim()
 			);
 
 			selected_options.push({ option_name: group, option_value: value, additional_price: n(row?.additional_price) });
@@ -901,7 +917,7 @@ const StickerForm = forwardRef(function StickerForm(
 			.map((name) => locList.find((l: any) => String(l.name).trim() === String(name).trim()))
 			.filter(Boolean);
 
-		for (const locObj of selectedLocObjs) {
+		for (const locObj of selectedLocObjs as any[]) {
 			selected_options.push({
 				option_name: "مكان الطباعة",
 				option_value: String(locObj.name),
@@ -912,7 +928,7 @@ const StickerForm = forwardRef(function StickerForm(
 		let print_location_ids: number[] = [];
 		let embroider_location_ids: number[] = [];
 
-		for (const locObj of selectedLocObjs) {
+		for (const locObj of selectedLocObjs as any[]) {
 			const id = locObj?.id;
 			if (typeof id !== "number") continue;
 
@@ -921,23 +937,31 @@ const StickerForm = forwardRef(function StickerForm(
 			else print_location_ids.push(id);
 		}
 
-		// ✅ FIX: also update cart quantity to tier quantity so backend totals match too
+		// ✅ payload
 		const payload: any = {
 			selected_options,
-
 			size_id: sizeObj?.id ?? null,
 			color_id: colorObj?.id ?? null,
 			material_id: materialObj?.id ?? null,
 			printing_method_id: methodObj?.id ?? null,
-
 			print_locations: print_location_ids,
 			embroider_locations: embroider_location_ids,
-
-			quantity: needSizeTier && sizeTierQty ? Number(sizeTierQty) : undefined,
+			quantity: needSizeTier && sizeTierQty ? Number(sizeTierQty) : undefined, // try to update here too
 		};
 
 		try {
 			const success = await updateCartItem(cartItemId, payload);
+
+			// ✅ FORCE POST quantity update if updateCartItem doesn't change it
+			const qty = needSizeTier && sizeTierQty ? Number(sizeTierQty) : null;
+			if (success && qty && typeof updateQuantity === "function") {
+				try {
+					await updateQuantity(cartItemId, qty);
+				} catch {
+					// ignore
+				}
+			}
+
 			if (success) {
 				setSavedSuccessfully(true);
 				setHasUnsavedChanges(false);
@@ -1035,24 +1059,27 @@ const StickerForm = forwardRef(function StickerForm(
 					<Box>
 						<FormControl fullWidth size="small" required error={showValidation && !sizeTierId}>
 							<InputLabel>الكمية</InputLabel>
-							<Select
-								value={sizeTierId ? String(sizeTierId) : "اختر"}
-								onChange={(e) => handleTierChange(e.target.value as string)}
-								label="الكمية"
-								className="bg-white"
-							>
+							<Select value={sizeTierId ? String(sizeTierId) : "اختر"} onChange={(e) => handleTierChange(e.target.value as string)} label="الكمية" className="bg-white">
 								<MenuItem value="اختر" disabled>
 									<em className="text-gray-400">اختر</em>
 								</MenuItem>
 
-								{sizeTiers.map((t: any) => (
-									<MenuItem key={t.id} value={String(t.id)}>
-										<div className="flex items-center justify-between gap-3 w-full">
-											<span>{n(t.quantity)} قطعة</span>
-											<span className="text-xs font-black text-slate-700">{money(n(t.total_price))} ر.س</span>
-										</div>
-									</MenuItem>
-								))}
+								{sizeTiers.map((t: any) => {
+									const qty = n(t.quantity);
+									const unit = n(t.price_per_unit);
+									const backendTotal = n(t.total_price);
+									const computedTotal = qty > 0 && unit > 0 ? qty * unit : 0;
+									const showTotal = backendTotal > 0 ? backendTotal : computedTotal;
+
+									return (
+										<MenuItem key={t.id} value={String(t.id)}>
+											<div className="flex items-center justify-between gap-3 w-full">
+												<span>{qty} قطعة</span>
+												<span className="text-xs font-black text-slate-700">{money(showTotal)} ر.س</span>
+											</div>
+										</MenuItem>
+									);
+								})}
 							</Select>
 
 							{showValidation && !sizeTierId && <FormHelperText className="text-red-500 text-xs">يجب اختيار الكمية</FormHelperText>}

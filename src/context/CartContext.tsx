@@ -129,8 +129,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 			});
  
 			if (res.status === 401) {
-				console.log("here");
-				localStorage.removeItem("auth_token");
+ 				localStorage.removeItem("auth_token");
 				localStorage.removeItem("fullName");
 				localStorage.removeItem("userName");
 				localStorage.removeItem("userEmail");
@@ -403,8 +402,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 			});
 
 			const data = await response.json();
-			console.log("Update response:", data);
-
+ 
 			if (response.ok && data.status) {
 				await loadItemOptions(cartItemId);
 				// toast.success("تم تحديث العنصر بنجاح");

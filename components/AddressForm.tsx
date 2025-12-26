@@ -20,10 +20,7 @@ interface AddressFormProps {
 interface AddressFormInputs {
   id?: number;
   firstName: string;
-  lastName: string;
-  building?: string;
-  floor: string;
-  apartment: string;
+  lastName: string; 
   details: string;
   nickname: string;
   phone: string;
@@ -35,8 +32,6 @@ interface AddressFormInputs {
 const schema = yup.object().shape({
   firstName: yup.string().required("الإسم الأول مطلوب"),
   lastName: yup.string().required("الإسم الأخير مطلوب"),
-  floor: yup.string().required("الدور مطلوب"),
-  apartment: yup.string().required("رقم الشقة مطلوب"),
   nickname: yup.string().required("العنوان مختصر مطلوب"),
   details: yup.string().required("تفاصيل العنوان مطلوبة"),
   phone: yup
@@ -123,9 +118,6 @@ export default function AddressForm({
       const parts = (initialData.full_name || "").split(" ");
       setValue("firstName", parts[0] || "");
       setValue("lastName", parts.slice(1).join(" ") || "");
-      setValue("building", initialData.building || "");
-      setValue("floor", initialData.floor || "");
-      setValue("apartment", initialData.apartment_number || "");
       setValue("details", initialData.details || "");
       setValue("nickname", initialData.label || "");
       setValue("phone", initialData.phone || "");
@@ -150,10 +142,7 @@ export default function AddressForm({
         area: data.area,
         address_details: data.details,
         label: data.nickname || `${data.firstName} ${data.lastName}`,
-        type: data.addressType,
-        building: data.building || null,
-        floor: data.floor,
-        apartment_number: data.apartment,
+        type: data.addressType, 
       };
 
       let url = `${base_url}/addresses`;
@@ -203,7 +192,7 @@ export default function AddressForm({
       {open && (
         <motion.div
           dir="rtl"
-          className="fixed inset-0 z-50 grid place-items-center p-4"
+          className="fixed inset-0 z-[1000000000] grid place-items-center p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -309,46 +298,7 @@ export default function AddressForm({
 
                 {/* Section: Address */}
                 <div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-5 shadow-sm">
-                  <h3 className="text-base md:text-lg font-extrabold text-slate-900 mb-4">
-                    تفاصيل العنوان
-                  </h3>
-
-                  <div className="grid md:grid-cols-3 gap-4 md:gap-5">
-                    <Field label="المبنى (اختياري)">
-                      <input
-                        {...register("building")}
-                        className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none transition
-                                   focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
-                        placeholder="مثال: 12"
-                      />
-                    </Field>
-
-                    <Field label="الدور" error={errors.floor?.message}>
-                      <input
-                        {...register("floor")}
-                        className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none transition
-                          ${
-                            errors.floor
-                              ? "border-rose-300 focus:ring-4 focus:ring-rose-100"
-                              : "border-slate-200 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
-                          }`}
-                        placeholder="مثال: 3"
-                      />
-                    </Field>
-
-                    <Field label="رقم الشقة" error={errors.apartment?.message}>
-                      <input
-                        {...register("apartment")}
-                        className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none transition
-                          ${
-                            errors.apartment
-                              ? "border-rose-300 focus:ring-4 focus:ring-rose-100"
-                              : "border-slate-200 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
-                          }`}
-                        placeholder="مثال: 12"
-                      />
-                    </Field>
-                  </div>
+                   
 
                   <div className="mt-4">
                     <Field label="تفاصيل العنوان" error={errors.details?.message}>

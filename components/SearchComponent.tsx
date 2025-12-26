@@ -74,8 +74,7 @@ export default function SearchComponent({ className = "", setMenuOpen }: any) {
 			setActiveIndex(items.length ? 0 : -1);
 		} catch (err: any) {
 			if (err?.name === "AbortError") return;
-			console.log("Search error:", err);
-			setResults([]);
+ 			setResults([]);
 			setActiveIndex(-1);
 		} finally {
 			setLoading(false);

@@ -6,17 +6,7 @@ import { useEffect } from "react";
 
 export default function Profile() {
   const { data: session, status } = useSession();
-
-  useEffect(() => {
-    if (status === "authenticated" && session?.user) {
-      console.log("Full session object:", session);
-      console.log("Profile Image URL:", session.user.image);
-      console.log("User sub:", session.user.sub);
-      console.log("Provider:", session.user.provider);
-      console.log("Email:", session.user.email);
-      console.log("Name:", session.user.name);
-    }
-  }, [status, session]);
+ 
 
   if (status === "loading") return <p>Loading...</p>;
   if (!session) return <p>لم يتم تسجيل الدخول</p>;
