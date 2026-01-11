@@ -5,8 +5,10 @@ import { FaWhatsapp } from "react-icons/fa";
 import { useAppContext } from "../src/context/AppContext";
 import { useMemo } from "react";
 import { usePathname } from "next/navigation";
+import { MdDownload, MdTouchApp } from "react-icons/md";
+import Image from "next/image";
 
-export default function FloatingWhatsAppButton() {
+export default function FloatingChatButton() {
 	const { socialMedia } = useAppContext() as any;
 	const pathname = usePathname();
 
@@ -31,6 +33,7 @@ export default function FloatingWhatsAppButton() {
 
 	if (!whatsappUrl) return null;
 	return (
+		<>
 		<motion.a
 			href={whatsappUrl}
 			target="_blank"
@@ -42,15 +45,47 @@ export default function FloatingWhatsAppButton() {
 			whileHover={{ scale: 1.1 }}
 			whileTap={{ scale: 0.95 }}
 			className={[
-				"fixed right-5 z-[9999] w-14 h-14 rounded-full bg-[#25D366] flex items-center justify-center shadow-xl hover:shadow-2xl",
+				"fixed right-5 z-[9999] w-14 h-14 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl",
 				// ✅ default bottom
 				"bottom-5",
 				// ✅ on PRODUCT page: push it up ONLY on mobile
 				isProductPage ? "max-sm:bottom-[200px] !right-3" : "",
 			].join(" ")}
 		>
-			<span className="absolute h-full w-full rounded-full bg-[#25D366] opacity-30 animate-ping" />
-			<FaWhatsapp size={28} className="text-white relative z-10" />
+			{/* <span className="absolute h-full w-full rounded-full bg-[#25D366] opacity-30 animate-ping" /> */}
+			<Image
+				src="/images/chat.png"
+				alt="chat"
+				width={24}
+				height={24}
+				className="text-white relative z-10 w-full h-full"
+			/>
+
 		</motion.a>
+		<motion.a
+			href={whatsappUrl}
+			target="_blank"
+			rel="noreferrer"
+			aria-label="تواصل معنا عبر واتساب"
+			initial={{ opacity: 0, scale: 0.6, y: 40 }}
+			animate={{ opacity: 1, scale: 1, y: 0 }}
+			transition={{ type: "spring", stiffness: 260, damping: 20 }}
+			whileHover={{ scale: 1.1 }}
+			whileTap={{ scale: 0.95 }}
+			className={[
+				"fixed sm:hidden left-5 z-[9999] w-14 h-14 rounded-full bg-pro-max flex items-center justify-center shadow-xl hover:shadow-2xl",
+				// ✅ default bottom
+				"bottom-5",
+				// ✅ on PRODUCT page: push it up ONLY on mobile
+				isProductPage ? "max-sm:bottom-[200px] !left-3" : "",
+			].join(" ")}
+		>
+			{/* <span className="absolute h-full w-full rounded-full bg-[#25D366] opacity-30 animate-ping" /> */}
+			{/* <FaWhatsapp size={28} className="text-white relative z-10" /> */}
+			
+			<MdTouchApp size={28} className="text-white relative z-10"/>
+
+		</motion.a>
+		</>
 	);
 }

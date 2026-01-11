@@ -5,6 +5,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FloatingWhatsAppButton from "../components/WhatsappButton";
 import HeaderAdsSlider from "../components/HeaderAdsSlider";
+import { MdDownload } from "react-icons/md";
+import FloatingChatButton from "../components/WhatsappButton";
 
 export default function LayoutShell({
 	children,
@@ -26,7 +28,9 @@ export default function LayoutShell({
 			</div>
 
 			{!hideLayout && <Footer />}
-			<FloatingWhatsAppButton />
+			<FloatingChatButton />
+			
+			<MdDownload />
 		</>
 	);
 }

@@ -20,9 +20,10 @@ const fastBuyItems = [
 export default function FastBuy() {
     return (
         <>
-            <div className='p-3 fast_buy'>
+            <div className='p-3  fast_buy absolute z-[9999] 
+             md:top-[28rem] lg:top-[33rem] xl:top-[34rem] max-w-[1400px] w-10/12 mx-auto '>
                 <div className='flex items-center gap-1'>
-                    <h1 className='text-2xl font-bold text-pro-max mb-2'>الشراء السريع</h1>
+                    <h1 className='lg:text-2xl text-xl font-bold text-pro-max mb-2'>الشراء السريع</h1>
                     <Image src="/images/tap.svg" alt="fast-buy" width={50} height={50} className='w-[32px] h-[32px]' />
                 </div>
                 <div id="all_cate" className="flex overflow-x-auto gap-2 scrollbar-light">

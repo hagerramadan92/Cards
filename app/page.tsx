@@ -108,9 +108,9 @@ export default function Home() {
 	);
 
 	return (
-		<div className="container  !mt-8 !mb-8">
-			<div className="flex flex-col gap-8">
-				<div className="rounded-3xl overflow-hidden border border-gray-100 bg-white shadow-sm">
+		<div className="  !mt-8 !mb-8 ">
+			<div className="flex flex-col gap-8 ">
+				<div className=" relative rounded-3xl overflow-hidden border border-gray-100 bg-white shadow-sm ">
 					{isMainSliderLoading ? (
 						<HeroSliderSkeleton />
 					) : sliderSrc.length > 0 ? (
@@ -120,12 +120,15 @@ export default function Home() {
 							لا توجد بنرات حالياً
 						</div>
 					)}
+				
+					
 				</div>
-				<div>
-					<FastBuy/>
-				</div>
+					 <div className="md:flex hidden">
+						<FastBuy/>
+					 </div>
+						
 
-				<div className="max-md:overflow-hidden w-full pb-12 pt-8">
+				<div className="container max-md:overflow-hidden w-full pb-12 pt-8 mt-20">
 					{loadingCategories ? (
 						<CategoriesSliderSkeleton />
 					) : (
@@ -134,7 +137,7 @@ export default function Home() {
 				</div>
 
 				{/* ✅ SECTIONS */}
-				<div className="flex flex-col gap-10">
+				<div className="container flex flex-col gap-10 mt-20">
 					{loadingHome ? (
 						<>
 							<CategorySectionSkeleton />
@@ -155,31 +158,31 @@ export default function Home() {
 									key={category.id}
 									className="rounded-[10px_10px_0_0] md:rounded-3xl md:border md:border-gray-100 !bg-gray-50/50 overflow-hidden"
 								>
-									<div className="relative w-full h-[120px] md:h-[160px]">
-										<Image
+									<div className="relative w-full p-3">
+										{/* <Image
 											src={banner}
 											alt={category.name}
 											fill
 											className="object-cover"
 											priority={false}
-										/>
-										<div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
-										<div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
-											<h2 className="text-white text-lg md:text-2xl font-extrabold drop-shadow">
+										/> */}
+										{/* <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" /> */}
+										<div className=" flex items-end justify-between">
+											<h2 className="text-dark-gray-pro text-lg md:text-2xl  drop-shadow">
 												{category.name}
 											</h2>
 
 											<Link
 												href={`/category/${category.id}`}
-												className="text-white/95 text-sm md:text-base font-semibold px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 transition"
+												className="text-pro-max text-sm md:text-base font-semibold px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 transition"
 											>
-												الكل
+												عرض الكل
 											</Link>
 										</div>
 									</div>
 
 									{/* Products */}
-									<div className="md:p-6">
+									<div className="md:px-6 md:pb-5">
 										<InStockSlider
 											inStock={category.products}
 											isLoading={false}
@@ -212,7 +215,7 @@ export default function Home() {
 
 				{/* ✅ Load More Button (manual) */}
 				{hasNext && !loadingHome && (
-					<div className="mt-2 flex items-center justify-center">
+					<div className="mt-2 flex items-center container justify-center">
 						<button
 							type="button"
 							onClick={loadMore}
@@ -224,8 +227,10 @@ export default function Home() {
 					</div>
 				)}
  
+              <div className="container">	
+			  <WhyAndFaqs />
 
-				<WhyAndFaqs />
+			  </div>
 			</div>
 		</div>
 	);
