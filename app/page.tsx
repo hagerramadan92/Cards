@@ -18,6 +18,7 @@ import {
 	CategorySectionSkeleton,
 } from "@/components/skeletons/HomeSkeletons";
 import WhyAndFaqs from "../components/WhyAndFaqs";
+import FastBuy from "@/components/HomeSection/FastBuy";
 
 export default function Home() {
 	const { homeData, loadingCategories, parentCategories, loadingHome } =
@@ -119,6 +120,9 @@ export default function Home() {
 							لا توجد بنرات حالياً
 						</div>
 					)}
+				</div>
+				<div>
+					<FastBuy/>
 				</div>
 
 				<div className="max-md:overflow-hidden w-full pb-12 pt-8">
