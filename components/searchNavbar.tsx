@@ -15,6 +15,7 @@ import { useAppContext } from "@/src/context/AppContext";
 import Logo from "./Logo";
 import { CategoriesSliderSkeleton } from "./skeletons/HomeSkeletons";
 import CategoriesSlider from "./CategoriesC";
+import LanguageSelector from "./LanguageSelector";
 
 function cn(...c: (string | false | null | undefined)[]) {
 	return c.filter(Boolean).join(" ");
@@ -106,6 +107,9 @@ export default function SearchNavbar() {
 							</a>
 						</div>}
 
+						{/* Language Selector */}
+						<LanguageSelector />
+
 						{/* Cart */}
 						<div className={`cursor-pointer ${!fullName && "hidden"}`}>
 							<CartSidebar />
@@ -170,13 +174,19 @@ export default function SearchNavbar() {
 									</div>
 								</div>
 
-								<button
-									aria-label="Close menu"
-									onClick={() => setMenuOpen(false)}
-									className="rounded-xl p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition focus:outline-none focus:ring-4 focus:ring-gray-200"
-								>
-									<AiOutlineClose size={22} />
-								</button>
+								<div className="flex items-center gap-2">
+									{/* Language Selector for Mobile */}
+									<div className="md:hidden">
+										<LanguageSelector />
+									</div>
+									<button
+										aria-label="Close menu"
+										onClick={() => setMenuOpen(false)}
+										className="rounded-xl p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition focus:outline-none focus:ring-4 focus:ring-gray-200"
+									>
+										<AiOutlineClose size={22} />
+									</button>
+								</div>
 							</div>
 
 							{/* Drawer content */}

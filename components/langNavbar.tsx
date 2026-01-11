@@ -7,6 +7,7 @@ import { FaFacebook, FaPhoneAlt } from "react-icons/fa";
 import SubIcon from "./subIcon";
 import { link } from "@/Types/data";
 import { useAppContext } from "@/src/context/AppContext";
+import LanguageSelector from "./LanguageSelector";
 
 export default function LangNavbar() {
   const pathname = usePathname();
@@ -40,9 +41,9 @@ export default function LangNavbar() {
           <p>{social_Media?.[0]?.value|| '98098'}</p>
         </div>
       </div>
-      <div className="flex gap-6">
+      <div className="flex gap-6 items-center">
         <SubIcon className="flex1 gap-3"/>
-        <p className="text-end text-gray-500">عربي</p>
+        <LanguageSelector />
       </div>
     </div>
   );
