@@ -21,7 +21,7 @@ export default function FastBuy() {
     return (
         <>
             <div className='p-3  fast_buy absolute z-[9999] 
-             md:top-[28rem] lg:top-[33rem] xl:top-[34rem] max-w-[1400px] w-10/12 mx-auto '>
+             md:top-[28rem] lg:top-[33rem] xl:top-[34rem] xl:left-[15%] xl:right-[15%] lg:left-[10%] lg:right-[10%] md:left-[7%] md:right-[7%] '>
                 <div className='flex items-center gap-1'>
                     <h1 className='lg:text-2xl text-xl font-bold text-pro-max mb-2'>الشراء السريع</h1>
                     <Image src="/images/tap.svg" alt="fast-buy" width={50} height={50} className='w-[32px] h-[32px]' />
