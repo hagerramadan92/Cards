@@ -114,7 +114,7 @@ export default function FloatingChatButton() {
 				<>
 					{/* Backdrop */}
 					<motion.div
-						className="fixed inset-0 z-[9998] "
+						className="fixed inset-0 z-[9998] bg-black/50"
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
@@ -216,7 +216,7 @@ export default function FloatingChatButton() {
 				whileHover={{ scale: 1.1 }}
 				whileTap={{ scale: 0.95 }}
 				className={[
-					"fixed right-5 z-[9997] w-14 h-14 rounded-full bg-pro flex items-center justify-center shadow-xl hover:shadow-2xl",
+					"fixed right-5 z-[9997] w-14 h-14 rounded-full  flex items-center justify-center shadow-xl hover:shadow-2xl",
 					"bottom-5",
 					isProductPage ? "max-sm:bottom-[200px] !right-3" : "",
 				].join(" ")}
@@ -226,7 +226,7 @@ export default function FloatingChatButton() {
 					alt="chat"
 					width={24}
 					height={24}
-					className="w-6 h-6"
+					className="w-14 h-14"
 				/>
 			</motion.button>
 
