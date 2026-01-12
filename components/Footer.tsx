@@ -124,22 +124,22 @@ export default function Footer() {
   // Social media brand colors
   const getSocialColor = (key: string) => {
     const colors: Record<string, string> = {
-      whatsapp: "bg-[#25D366] hover:bg-[#20BA5A] border-[#25D366]/20",
-      facebook: "bg-[#1877F2] hover:bg-[#166FE5] border-[#1877F2]/20",
-      instagram: "bg-gradient-to-br from-[#E4405F] via-[#C13584] to-[#833AB4] hover:from-[#D12E4D] hover:via-[#B02A73] hover:to-[#7230A3] border-[#C13584]/20",
-      twitter: "bg-[#1DA1F2] hover:bg-[#1A91DA] border-[#1DA1F2]/20",
-      linkedin: "bg-[#0077B5] hover:bg-[#006BA3] border-[#0077B5]/20",
-      youtube: "bg-[#FF0000] hover:bg-[#E60000] border-[#FF0000]/20",
-      tiktok: "bg-[#000000] hover:bg-[#1A1A1A] border-[#000000]/20",
-      snapchat: "bg-[#FFFC00] hover:bg-[#E6E300] border-[#FFFC00]/20 text-black",
-      telegram: "bg-[#0088CC] hover:bg-[#0077B3] border-[#0088CC]/20",
-      pinterest: "bg-[#BD081C] hover:bg-[#A50718] border-[#BD081C]/20",
-      reddit: "bg-[#FF4500] hover:bg-[#E63D00] border-[#FF4500]/20",
-      discord: "bg-[#5865F2] hover:bg-[#4752C4] border-[#5865F2]/20",
-      email: "bg-[#EA4335] hover:bg-[#D33B2C] border-[#EA4335]/20",
-      phone: "bg-[#34C759] hover:bg-[#2FB350] border-[#34C759]/20",
+      whatsapp: "text-[#25D366]",
+      facebook: "text-[#1877F2]",
+      instagram: "text-[#E4405F]",
+      twitter: "text-[#1DA1F2]",
+      linkedin: "text-[#0077B5]",
+      youtube: "text-[#FF0000]",
+      tiktok: "text-[#000000]",
+      snapchat: "text-[#FFFC00]",
+      telegram: "text-[#0088CC]",
+      pinterest: "text-[#BD081C]",
+      reddit: "text-[#FF4500]",
+      discord: "text-[#5865F2]",
+      email: "text-[#EA4335]",
+      phone: "text-[#34C759]",
     };
-    return colors[key.toLowerCase()] || "bg-white/8 hover:bg-white/20 border-white/10";
+    return colors[key.toLowerCase()] || "text-slate-600";
   };
 
   const Links = [
@@ -189,7 +189,7 @@ export default function Footer() {
 
           {/* Categories - First Section */}
           <div className="col-span-2">
-            <h4 className="text-sm font-extrabold tracking-wide">الأقسام</h4>
+            <h4 className="text-lg font-extrabold tracking-wide">الأقسام</h4>
             <div className="grid grid-cols-2 gap-3">  
             <div className="mt-4 flex flex-col gap-3">
               {firstSectionCategories.length > 0 ? (
@@ -197,7 +197,7 @@ export default function Footer() {
                   <Link
                     key={category.id}
                     href={`/category/${category.id}`}
-                    className="text-white/85 hover:text-white transition underline-offset-4 hover:underline"
+                    className="text-white/50 hover:text-white transition underline-offset-4 hover:underline"
                   >
                     {category.name}
                   </Link>
@@ -212,7 +212,7 @@ export default function Footer() {
                   <Link
                     key={category.id}
                     href={`/category/${category.id}`}
-                    className="text-white/85 hover:text-white transition underline-offset-4 hover:underline"
+                    className="text-white/50 hover:text-white transition underline-offset-4 hover:underline"
                   >
                     {category.name}
                   </Link>
@@ -229,13 +229,13 @@ export default function Footer() {
 
           {/* Important */}
           <div>
-            <h4 className="text-sm font-extrabold tracking-wide">روابط مهمة</h4>
+            <h4 className="text-lg font-extrabold tracking-wide">روابط مهمة</h4>
             <div className="mt-4 flex flex-col gap-3">
               {importantLinks.map((link, index) => (
                 <Link
                   key={index}
                   href={link.href}
-                  className="text-white/85 hover:text-white transition underline-offset-4 hover:underline"
+                  className="text-white/50 hover:text-white transition underline-offset-4 hover:underline"
                 >
                   {link.title}
                 </Link>
@@ -245,14 +245,14 @@ export default function Footer() {
 
           {/* Help / Address */}
           <div className="space-y-4">
-            <h4 className="text-sm font-extrabold tracking-wide">تريد مساعدة؟</h4>
+            <h4 className="text-lg font-extrabold tracking-wide">تريد مساعدة؟</h4>
 
             <div className="flex flex-col gap-3">
               {helpLinks.map((link, index) => (
                 <Link
                   key={index}
                   href={link.href}
-                  className="text-white/85 hover:text-white transition underline-offset-4 hover:underline"
+                  className="text-white/50 hover:text-white transition underline-offset-4 hover:underline"
                 >
                   {link.title}
                 </Link>
@@ -263,7 +263,7 @@ export default function Footer() {
                 <Link
                   key={index}
                   href="/FAQ"
-                  className="text-white/85 hover:text-white transition underline-offset-4 hover:underline"
+                      className="text-white/50 hover:text-white transition underline-offset-4 hover:underline"
                 >
                   الاسئلة الشائعة
                 </Link>
@@ -281,7 +281,7 @@ export default function Footer() {
         <div className="grid max-md:w-fit max-md:mx-auto grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 py-8">
           {/* payments */}
           <div className="space-y-2 lg:col-span-3">
-            <p className="text-sm font-extrabold">نحن نقبل</p>
+            <p className="text-lg font-extrabold">نحن نقبل</p>
 
             {activePayments.length === 0 ? (
               <span className="text-white/70 text-sm">طرق الدفع غير متاحة حالياً</span>
@@ -324,9 +324,9 @@ export default function Footer() {
 
           {/* socials */}
           <div className="space-y-2">
-            <p className="text-sm font-extrabold">تابعنا</p>
+            <p className="text-lg font-extrabold">تابعنا</p>
 
-            <div className="flex items-center gap-1.5 flex-wrap">
+            <div className="flex items-center gap-3 flex-wrap">
               {socialButtons.length === 0 ? (
                 <span className="text-white/70 text-xs">لا توجد روابط اجتماعية حالياً</span>
               ) : (
@@ -339,22 +339,18 @@ export default function Footer() {
                   const target = isExternal ? "_blank" : undefined;
 
                   const socialColor = getSocialColor(social.key);
-                  const isGradient = socialColor.includes("gradient");
-                  
+
                   return (
                     <Link
                       key={`${social.key}-${idx}`}
                       href={href || "#"}
                       target={target}
                       rel={isExternal ? "noreferrer" : undefined}
-                      className={`group relative inline-flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 border hover:scale-105 active:scale-95 ${socialColor} ${isGradient ? "" : "hover:shadow-lg"}`}
+                      className="group relative inline-flex items-center justify-center w-10 h-10 rounded-full bg-white hover:bg-white/90 transition-all duration-200 hover:scale-110 active:scale-95 shadow-md hover:shadow-lg"
                       aria-label={social.key}
                       title={social.key}
                     >
-                      <Icon className={`${social.key.toLowerCase() === "snapchat" ? "text-black" : "text-white"} group-hover:scale-110 transition-transform duration-200`} size={14} />
-                      {isGradient && (
-                        <span className="absolute inset-0 rounded-lg bg-gradient-to-br from-white/0 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                      )}
+                      <Icon className={`${socialColor} group-hover:scale-110 transition-all duration-200`} size={22} />
                     </Link>
                   );
                 })
