@@ -29,6 +29,7 @@ import {
   FaCreditCard,
   FaMoneyBill,
 } from "react-icons/fa";
+import Image from "next/image";
 
 type SocialItem = { key: string; value: any; icon?: string };
 type PaymentMethod = { id: number; name: string; icon?: string; is_active: boolean };
@@ -91,10 +92,16 @@ function getPaymentIcon(iconName: string | undefined, paymentName: string) {
 }
 
 export default function Footer() {
-  const { socialMedia, paymentMethods } = useAppContext() as any;
+  const { socialMedia, paymentMethods, parentCategories } = useAppContext() as any;
 
   const socials: SocialItem[] = Array.isArray(socialMedia) ? socialMedia : [];
   const payments: PaymentMethod[] = Array.isArray(paymentMethods) ? paymentMethods : [];
+  
+  // Split categories into two sections (first 10 only)
+  const categories = Array.isArray(parentCategories) ? parentCategories.slice(0, 10) : [];
+  const midPoint = Math.ceil(categories.length / 2);
+  const firstSectionCategories = categories.slice(0, midPoint);
+  const secondSectionCategories = categories.slice(midPoint);
 
   const socialIcons: Record<string, any> = {
     phone: FaPhone,
@@ -114,7 +121,29 @@ export default function Footer() {
     address: FaMapMarkerAlt,
   };
 
+  // Social media brand colors
+  const getSocialColor = (key: string) => {
+    const colors: Record<string, string> = {
+      whatsapp: "bg-[#25D366] hover:bg-[#20BA5A] border-[#25D366]/20",
+      facebook: "bg-[#1877F2] hover:bg-[#166FE5] border-[#1877F2]/20",
+      instagram: "bg-gradient-to-br from-[#E4405F] via-[#C13584] to-[#833AB4] hover:from-[#D12E4D] hover:via-[#B02A73] hover:to-[#7230A3] border-[#C13584]/20",
+      twitter: "bg-[#1DA1F2] hover:bg-[#1A91DA] border-[#1DA1F2]/20",
+      linkedin: "bg-[#0077B5] hover:bg-[#006BA3] border-[#0077B5]/20",
+      youtube: "bg-[#FF0000] hover:bg-[#E60000] border-[#FF0000]/20",
+      tiktok: "bg-[#000000] hover:bg-[#1A1A1A] border-[#000000]/20",
+      snapchat: "bg-[#FFFC00] hover:bg-[#E6E300] border-[#FFFC00]/20 text-black",
+      telegram: "bg-[#0088CC] hover:bg-[#0077B3] border-[#0088CC]/20",
+      pinterest: "bg-[#BD081C] hover:bg-[#A50718] border-[#BD081C]/20",
+      reddit: "bg-[#FF4500] hover:bg-[#E63D00] border-[#FF4500]/20",
+      discord: "bg-[#5865F2] hover:bg-[#4752C4] border-[#5865F2]/20",
+      email: "bg-[#EA4335] hover:bg-[#D33B2C] border-[#EA4335]/20",
+      phone: "bg-[#34C759] hover:bg-[#2FB350] border-[#34C759]/20",
+    };
+    return colors[key.toLowerCase()] || "bg-white/8 hover:bg-white/20 border-white/10";
+  };
+
   const Links = [
+    { title: "المدونة", href: "/blogs" },
     { title: "معلومات عنا", href: "/about" },
     { title: "الشروط و الأحكام", href: "/terms" },
     { title: "سياسة الإسترجاع", href: "/returnsPolicy" },
@@ -125,9 +154,9 @@ export default function Footer() {
     { title: "اتصل بنا", href: "/contactUs" },
   ];
 
-  const companyLinks = Links.slice(0, 3);
-  const importantLinks = Links.slice(3, 7);
-  const helpLinks = Links.slice(7);
+ 
+  const importantLinks = Links.slice(0, 3);
+  const helpLinks = Links.slice(8,9);
 
   const email = socials.find((s) => s.key === "email")?.value;
   const phone = socials.find((s) => s.key === "phone")?.value;
@@ -156,31 +185,47 @@ export default function Footer() {
       <div className="container max-md:!px-6 px-5">
         {/* top */}
         <div className=" max-md:w-fit max-md:mx-auto grid grid-cols-2 lg:grid-cols-4 gap-10 py-12">
-          {/* Brand/About */}
-          <div className="space-y-2">
-            <h3 className="text-lg font-extrabold">Tala Aliazeera</h3>
-            <p className=" max-md:max-w-[200px] text-white/80 text-sm leading-relaxed">
-              منصة تساعدك تشتري بسهولة، وتتابع طلباتك، وتوصل لمنتجاتك بأفضل تجربة.
-            </p>
+         
 
-          
-          </div>
-
-          {/* Company */}
-          <div>
-            <h4 className="text-sm font-extrabold tracking-wide">الشركة</h4>
+          {/* Categories - First Section */}
+          <div className="col-span-2">
+            <h4 className="text-sm font-extrabold tracking-wide">الأقسام</h4>
+            <div className="grid grid-cols-2 gap-3">  
             <div className="mt-4 flex flex-col gap-3">
-              {companyLinks.map((link, index) => (
-                <Link
-                  key={index}
-                  href={link.href}
-                  className="text-white/85 hover:text-white transition underline-offset-4 hover:underline"
-                >
-                  {link.title}
-                </Link>
-              ))}
+              {firstSectionCategories.length > 0 ? (
+                firstSectionCategories.map((category: any) => (
+                  <Link
+                    key={category.id}
+                    href={`/category/${category.id}`}
+                    className="text-white/85 hover:text-white transition underline-offset-4 hover:underline"
+                  >
+                    {category.name}
+                  </Link>
+                ))
+              ) : (
+                <span className="text-white/70 text-sm">لا توجد أقسام متاحة</span>
+              )}
             </div>
+            <div className="mt-4 flex flex-col gap-3">
+              {secondSectionCategories.length > 0 ? (
+                secondSectionCategories.map((category: any) => (
+                  <Link
+                    key={category.id}
+                    href={`/category/${category.id}`}
+                    className="text-white/85 hover:text-white transition underline-offset-4 hover:underline"
+                  >
+                    {category.name}
+                  </Link>
+                ))
+              ) : (
+                <span className="text-white/70 text-sm">لا توجد أقسام متاحة</span>
+              )}
+            </div>
+            </div>
+           
           </div>
+
+    
 
           {/* Important */}
           <div>
@@ -225,31 +270,7 @@ export default function Footer() {
               ))}
             </div>
 
-            {/* Contact details */}
-            <div className="mt-5 space-y-2 text-sm text-white/85">
-              {!isEmptyValue(email) && (
-                <div className="flex items-center gap-2">
-                  <FaEnvelope className="opacity-80" />
-                  <span className="break-all">{String(email)}</span>
-                </div>
-              )}
-
-              {!isEmptyValue(phone) && (
-                <div className="flex items-center gap-2">
-                  <FaPhone className="opacity-80" />
-                  <span className="tabular-nums">{String(phone)}</span>
-                </div>
-              )}
-
-              {!isEmptyValue(address) && (
-                <div className="flex items-start gap-2">
-                  <FaMapMarkerAlt className="opacity-80 mt-0.5" />
-                  <span className="leading-relaxed">{String(address)}</span>
-                </div>
-              )}
-
-              {!email && !phone && !address && <p className="text-white/70">بيانات التواصل غير متاحة حالياً.</p>}
-            </div>
+          
           </div>
         </div>
 
@@ -265,8 +286,8 @@ export default function Footer() {
             {activePayments.length === 0 ? (
               <span className="text-white/70 text-sm">طرق الدفع غير متاحة حالياً</span>
             ) : (
-              <div className="flex flex-wrap gap-2">
-                {activePayments.map((p) => {
+              <div className="flex flex-wrap gap-2 md:gap-3">
+                {/* {activePayments.map((p) => {
                   const PaymentIcon = getPaymentIcon(p.icon, p.name);
                   return (
                     <span
@@ -276,9 +297,24 @@ export default function Footer() {
                     >
                       <PaymentIcon className="text-sm opacity-90" />
                       <span>{p.name}</span>
+                     
                     </span>
                   );
-                })}
+                })} */}
+                 <Image
+                        src="/images/visa.svg"
+                        alt="p.name"
+                        width={20}
+                        height={20}
+                        className="w-[50px] h-[30px]"
+                      />
+                       <Image
+                        src="/images/fawry.svg"
+                        alt="p.name"
+                        width={20}
+                        height={20}
+                         className="w-[50px] h-[30px]"
+                      />
               </div>
             )}
 
@@ -290,9 +326,9 @@ export default function Footer() {
           <div className="space-y-2">
             <p className="text-sm font-extrabold">تابعنا</p>
 
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 flex-wrap">
               {socialButtons.length === 0 ? (
-                <span className="text-white/70 text-sm">لا توجد روابط اجتماعية حالياً</span>
+                <span className="text-white/70 text-xs">لا توجد روابط اجتماعية حالياً</span>
               ) : (
                 socialButtons.map((social, idx) => {
                   const Icon = socialIcons[social.key];
@@ -302,16 +338,23 @@ export default function Footer() {
                   const isExternal = href.startsWith("http");
                   const target = isExternal ? "_blank" : undefined;
 
+                  const socialColor = getSocialColor(social.key);
+                  const isGradient = socialColor.includes("gradient");
+                  
                   return (
                     <Link
                       key={`${social.key}-${idx}`}
                       href={href || "#"}
                       target={target}
                       rel={isExternal ? "noreferrer" : undefined}
-                      className="group inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/15 transition ring-1 ring-white/10"
+                      className={`group relative inline-flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 border hover:scale-105 active:scale-95 ${socialColor} ${isGradient ? "" : "hover:shadow-lg"}`}
                       aria-label={social.key}
+                      title={social.key}
                     >
-                      <Icon className="text-white group-hover:scale-110 transition" size={18} />
+                      <Icon className={`${social.key.toLowerCase() === "snapchat" ? "text-black" : "text-white"} group-hover:scale-110 transition-transform duration-200`} size={14} />
+                      {isGradient && (
+                        <span className="absolute inset-0 rounded-lg bg-gradient-to-br from-white/0 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                      )}
                     </Link>
                   );
                 })
