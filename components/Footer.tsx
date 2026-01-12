@@ -213,6 +213,17 @@ export default function Footer() {
                 </Link>
               ))}
             </div>
+            <div className="flex flex-col gap-3">
+              {helpLinks.map((link, index) => (
+                <Link
+                  key={index}
+                  href="/FAQ"
+                  className="text-white/85 hover:text-white transition underline-offset-4 hover:underline"
+                >
+                  الاسئلة الشائعة
+                </Link>
+              ))}
+            </div>
 
             {/* Contact details */}
             <div className="mt-5 space-y-2 text-sm text-white/85">

@@ -239,7 +239,7 @@ export default function ProductCard({
 						disabled={isAdding || !inStock}
 						whileHover={inStock && !isAdding ? { scale: 1.06 } : undefined}
 						whileTap={inStock && !isAdding ? { scale: 0.92 } : undefined}
-						className={`absolute right-[6px] md:right-3 top-[64px]  md:top-[72px] -translate-y-1/2 z-20 ${classNameCate}`}
+						className={`absolute start-[6px] md:start-3 top-[64px]  md:top-[72px] -translate-y-1/2 z-20 ${classNameCate}`}
 					>
 						<div
 							className={`w-9 h-9 rounded-full flex items-center justify-center shadow-lg ring-1 ring-black/5 ${inStock ? 'bg-pro text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
