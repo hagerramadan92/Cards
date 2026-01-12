@@ -449,13 +449,11 @@ export default function ContactPageOne() {
 
 	const inputBase =
 		"w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-slate-900 placeholder:text-slate-400 outline-none transition";
-	const withIcon = "ps-9"; // RTL + icon on left
 
 	const inputClass = useCallback(
 		(field: keyof FormData) =>
 			[
 				inputBase,
-				withIcon,
 				errors[field]
 					? "border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
 					: "border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 duration-200",
@@ -467,7 +465,6 @@ export default function ContactPageOne() {
 		(field: keyof FormData) =>
 			[
 				inputBase,
-				"ps-9",
 				"min-h-[150px] resize-none",
 				errors[field]
 					? "border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
@@ -607,33 +604,27 @@ export default function ContactPageOne() {
 								className="p-6 md:p-8 grid md:grid-cols-2 gap-5 mt-0"
 							>
 								<Field label="الإسم " error={errors.full_name}>
-									<div className="relative">
-										<FiUser className="absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" />
-										<input
-											name="full_name"
-											value={form.full_name}
-											onChange={handleChange}
-											className={inputClass("full_name")}
-											placeholder="أدخل الاسم كامل"
-											autoComplete="given-name"
-										/>
-									</div>
+									<input
+										name="full_name"
+										value={form.full_name}
+										onChange={handleChange}
+										className={inputClass("full_name")}
+										placeholder="أدخل الاسم كامل"
+										autoComplete="given-name"
+									/>
 								</Field>
 
 							
 								<Field label="البريد الإلكتروني" error={errors.email}>
-									<div className="relative">
-										<FiMail className="absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" />
-										<input
-											name="email"
-											type="text"
-											value={form.email}
-											onChange={handleChange}
-											className={inputClass("email")}
-											placeholder="example@email.com"
-											autoComplete="email"
-										/>
-									</div>
+									<input
+										name="email"
+										type="text"
+										value={form.email}
+										onChange={handleChange}
+										className={inputClass("email")}
+										placeholder="example@email.com"
+										autoComplete="email"
+									/>
 								</Field>
 
 								
@@ -656,7 +647,7 @@ export default function ContactPageOne() {
 												<option value="inquiry">استفسار</option>
 												<option value="other">أخرى</option>
 											</select>
-											<FiChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+											<FiChevronDown className="absolute end-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
 										</div>
 									</Field>
 								</div>
@@ -664,15 +655,15 @@ export default function ContactPageOne() {
 									label="رقم الهاتف"
 									error={errors.phone}
 								>
-									<div className="relative flex flex-row-reverse">
-										{/* Country Dropdown - Right side for RTL */}
-										<div className="relative flex-shrink-0 w-20 " ref={countryDropdownRef}>
+									<div className="relative flex" dir="ltr">
+										{/* Country Dropdown - Left side */}
+										<div className="relative flex-shrink-0 w-20" ref={countryDropdownRef}>
 											{/* Selected Country Button */}
 											<button
 												type="button"
 												onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
 												className={cn(
-													"w-full rounded-e-lg border border-slate-200 bg-white px-2 py-3.5 text-sm font-semibold text-slate-900 outline-none transition border-s-0 cursor-pointer hover:bg-slate-50 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 flex items-center justify-between",
+													"w-full rounded-l-lg border border-slate-200 bg-white px-2 py-3.5 text-sm font-semibold text-slate-900 outline-none transition border-r-0 cursor-pointer hover:bg-slate-50 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 flex items-center justify-between",
 													errors.phone ? "border-red-400" : ""
 												)}
 											>
@@ -691,7 +682,7 @@ export default function ContactPageOne() {
 
 											{/* Dropdown Options */}
 											{countryDropdownOpen && (
-												<div className="absolute top-full start-0 mt-1  w-[190px]  bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+												<div className="absolute top-full left-0 mt-1 w-[190px] bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
 													{Object.entries(phonePatterns).map(([code, country]) => (
 														<button
 															key={code}
@@ -701,7 +692,7 @@ export default function ContactPageOne() {
 																setCountryDropdownOpen(false);
 															}}
 															className={cn(
-																"flex items-center gap-2 px-3 rounded py-2 text-sm text-start hover:bg-slate-50 transition-colors",
+																"w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-slate-50 transition-colors",
 																form.country === code ? "bg-orange-50 text-orange-700 font-semibold" : "text-slate-900"
 															)}
 														>
@@ -713,16 +704,15 @@ export default function ContactPageOne() {
 												</div>
 											)}
 										</div>
-										{/* Phone Input - Left side for RTL */}
+										{/* Phone Input - Right side */}
 										<div className="relative flex-1">
-											<FiPhone className="absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" />
 											<input
 												name="phone"
 												value={form.phone}
 												onChange={handleChange}
 												className={cn(
 													inputClass("phone"),
-													"rounded-e-none rounded-e-lg ps-12"
+													"rounded-l-none rounded-r-lg"
 												)}
 												placeholder={
 													form.country && phonePatterns[form.country]
@@ -735,31 +725,25 @@ export default function ContactPageOne() {
 									</div>
 								</Field>
 								<Field label="العنوان" error={errors.address}>
-										<div className="relative">
-											<FiMapPin className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
-											<input
-												name="address"
-												value={form.address}
-												onChange={handleChange}
-												className={inputClass("address")}
-												placeholder="أدخل العنوان الكامل"
-												autoComplete="street-address"
-											/>
-										</div>
-									</Field>
+									<input
+										name="address"
+										value={form.address}
+										onChange={handleChange}
+										className={inputClass("address")}
+										placeholder="أدخل العنوان الكامل"
+										autoComplete="street-address"
+									/>
+								</Field>
 								<div className="md:col-span-2">
 									<Field label="الرسالة" error={errors.message}>
-										<div className="relative">
-											<FiMessageSquare className="absolute right-4 top-4 text-slate-400" />
-											<textarea
-												name="message"
-												value={form.message}
-												onChange={handleChange}
-												rows={6}
-												className={textareaClass("message")}
-												placeholder="فضلاً اكتب رسالتك بالتفصيل..."
-											/>
-										</div>
+										<textarea
+											name="message"
+											value={form.message}
+											onChange={handleChange}
+											rows={6}
+											className={textareaClass("message")}
+											placeholder="فضلاً اكتب رسالتك بالتفصيل..."
+										/>
 									</Field>
 								</div>
 
