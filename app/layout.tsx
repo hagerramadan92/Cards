@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "@/styles/screen.css";
+import "flag-icons/css/flag-icons.min.css";
 import { Toaster } from "react-hot-toast";
 import Providers from "./Providers";
 import { AppProvider } from "@/src/context/AppContext";

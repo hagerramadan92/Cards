@@ -128,7 +128,21 @@ export default function Home() {
 					 </div>
 						
 
-				<div className="container max-md:overflow-hidden w-full pb-12 pt-8 mt-20">
+				<div className="container max-md:overflow-hidden w-full pt-8 mt-20">
+					{loadingCategories ? (
+						<CategoriesSliderSkeleton />
+					) : (
+						<CategoriesSlider categories={parentCategories} />
+					)}
+				</div>
+				<div className="container max-md:overflow-hidden w-full  ">
+					{loadingCategories ? (
+						<CategoriesSliderSkeleton />
+					) : (
+						<CategoriesSlider categories={parentCategories} />
+					)}
+				</div>
+				<div className="container max-md:overflow-hidden w-full  ">
 					{loadingCategories ? (
 						<CategoriesSliderSkeleton />
 					) : (
@@ -169,7 +183,7 @@ export default function Home() {
 										{/* <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" /> */}
 										<div className=" flex items-end justify-between">
 											<h2 className="text-dark-gray-pro text-lg md:text-2xl  drop-shadow">
-												{category.name}
+												{category.name} 
 											</h2>
 
 											<Link
@@ -191,11 +205,18 @@ export default function Home() {
 											CardComponent={(product: any) => (
 												<ProductCard
 													{...product}
-													product={product}
+													product={{
+														...product,
+														showBuyNow: true,
+														price_text: product.price_text
+													}}
 													key={product.id}
 													id={product.id}
 													name={product.name}
 													image={product.image || "/images/c1.png"}
+													price={product.price}
+													final_price={product.final_price}
+													discount={product.discount}
 													stock={product.stock}
 													average_rating={product.average_rating}
 													reviews={product.reviews}
@@ -227,10 +248,7 @@ export default function Home() {
 					</div>
 				)}
  
-              <div className="container">	
-			  <WhyAndFaqs />
-
-			  </div>
+           
 			</div>
 		</div>
 	);

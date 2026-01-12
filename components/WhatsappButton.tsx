@@ -123,7 +123,7 @@ export default function FloatingChatButton() {
 
 					{/* Chat Window */}
 					<motion.div
-						className="fixed bottom-20 right-5 z-[9999] w-[380px] h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+						className="fixed bottom-4 right-4 sm:bottom-20 sm:right-5 z-[9999] w-[320px] h-[500px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-6rem)] sm:w-[380px] sm:h-[600px] bg-white rounded-xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
 						initial={{ opacity: 0, y: 20, scale: 0.95 }}
 						animate={{ opacity: 1, y: 0, scale: 1 }}
 						exit={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -131,42 +131,42 @@ export default function FloatingChatButton() {
 						dir="rtl"
 					>
 						{/* Header */}
-						<div className="bg-pro text-white px-4 py-3 flex items-center justify-between">
-							<div className="flex items-center gap-3">
-								<div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-									<Image src="/images/chat.png" alt="chat" width={24} height={24} className="w-6 h-6" />
+						<div className="bg-pro text-white px-2.5 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
+							<div className="flex items-center gap-1.5 sm:gap-3">
+								<div className="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+									<Image src="/images/chat.png" alt="chat" width={24} height={24} className="w-4 h-4 sm:w-6 sm:h-6" />
 								</div>
-								<div>
-									<h3 className="font-bold text-sm">مركز المساعدة</h3>
-									<p className="text-xs text-white/80">نحن هنا للمساعدة</p>
+								<div className="min-w-0">
+									<h3 className="font-bold text-[11px] sm:text-sm truncate">مركز المساعدة</h3>
+									<p className="text-[10px] sm:text-xs text-white/80 truncate">نحن هنا للمساعدة</p>
 								</div>
 							</div>
 							<button
 								onClick={() => setIsOpen(false)}
-								className="w-8 h-8 rounded-full hover:bg-white/20 flex items-center justify-center transition"
+								className="w-6 h-6 sm:w-8 sm:h-8 rounded-full hover:bg-white/20 flex items-center justify-center transition flex-shrink-0"
 								aria-label="Close"
 							>
-								<AiOutlineClose size={18} />
+								<AiOutlineClose size={14} className="sm:w-[18px] sm:h-[18px]" />
 							</button>
 						</div>
 
 						{/* Messages */}
-						<div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+						<div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 sm:space-y-4 bg-gray-50">
 							{messages.map((message) => (
 								<div
 									key={message.id}
 									className={`flex ${message.isBot ? "justify-start" : "justify-end"}`}
 								>
 									<div
-										className={`max-w-[75%] rounded-2xl px-4 py-2 ${
+										className={`max-w-[80%] sm:max-w-[75%] rounded-xl sm:rounded-2xl px-2.5 py-1.5 sm:px-4 sm:py-2 ${
 											message.isBot
 												? "bg-white text-gray-800 rounded-tl-sm"
 												: "bg-pro text-white rounded-tr-sm"
 										}`}
 									>
-										<p className="text-sm leading-relaxed">{message.text}</p>
+										<p className="text-[11px] sm:text-sm leading-relaxed break-words">{message.text}</p>
 										<p
-											className={`text-xs mt-1 ${
+											className={`text-[9px] sm:text-xs mt-0.5 sm:mt-1 ${
 												message.isBot ? "text-gray-400" : "text-white/70"
 											}`}
 										>
@@ -182,14 +182,14 @@ export default function FloatingChatButton() {
 						</div>
 
 						{/* Questions */}
-						<div className="p-4 bg-white border-t border-gray-200">
-							<p className="text-xs text-gray-500 mb-2">أسئلة شائعة:</p>
-							<div className="space-y-2 max-h-[120px] overflow-y-auto">
+						<div className="p-2 sm:p-4 bg-white border-t border-gray-200">
+							<p className="text-[10px] sm:text-xs text-gray-500 mb-1.5 sm:mb-2">أسئلة شائعة:</p>
+							<div className="space-y-1 sm:space-y-2 max-h-[80px] sm:max-h-[120px] overflow-y-auto">
 								{questions.map((q) => (
 									<button
 										key={q.id}
 										onClick={() => handleQuestionClick(q)}
-										className="w-full text-right text-sm text-pro hover:bg-gray-100 px-3 py-2 rounded-lg transition text-start"
+										className="w-full text-right text-[11px] sm:text-sm text-pro hover:bg-gray-100 px-2 sm:px-3 py-1 sm:py-2 rounded-md sm:rounded-lg transition text-start"
 									>
 										{q.question}
 									</button>
@@ -216,8 +216,8 @@ export default function FloatingChatButton() {
 				whileHover={{ scale: 1.1 }}
 				whileTap={{ scale: 0.95 }}
 				className={[
-					"fixed right-5 z-[9997] w-14 h-14 rounded-full  flex items-center justify-center shadow-xl hover:shadow-2xl",
-					"bottom-5",
+					"fixed right-4 sm:right-5 z-[9997] w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl",
+					"bottom-4 sm:bottom-5",
 					isProductPage ? "max-sm:bottom-[200px] !right-3" : "",
 				].join(" ")}
 			>
@@ -226,7 +226,7 @@ export default function FloatingChatButton() {
 					alt="chat"
 					width={24}
 					height={24}
-					className="w-14 h-14"
+					className="w-12 h-12 sm:w-14 sm:h-14"
 				/>
 			</motion.button>
 

@@ -5,7 +5,7 @@ import HearComponent from './HearComponent';
 import PriceComponent from './PriceComponent';
 import ImageComponent from './ImageComponent';
 import Link from 'next/link';
-import { BsCart3 } from 'react-icons/bs';
+import { IoMdCart } from 'react-icons/io';
 import { useCart } from '@/src/context/CartContext';
 import BottomSlider from './BottomSlider';
 import { ProductI } from '@/Types/ProductsI';
@@ -13,7 +13,6 @@ import ShowImage from './ShowImage';
 import RatingStars from './RatingStars';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/src/context/AuthContext';
-import { GoEye } from 'react-icons/go';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickViewModal from './QuickViewModal';
 
@@ -207,34 +206,13 @@ export default function ProductCard({
 							ClassName="text-pro "
 							ClassNameP="!w-9 !h-9"
 						/>
-						{/* Discount / Stock */}
-						{showDiscountChip ? (
+						{/* Discount */}
+						{showDiscountChip && (
 							<span className="px-3 py-1 text-[11px] font-extrabold rounded-lg md:rounded-full bg-red-50 text-red-600 ring-1 ring-red-100">
 								-{discount?.value}%
 							</span>
-						) : (
-							<span
-								className={`px-3 py-1 text-[11px] font-extrabold rounded-lg md:rounded-full ring-1 ring-black/5 ${inStock ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
-									}`}
-							>
-								{inStock ? 'متوفر' : 'غير متوفر'}
-							</span>
 						)}
 					</div>
-
-					<motion.button
-						aria-label="quick view"
-						onClick={(e) => {
-							e.preventDefault();
-							e.stopPropagation();
-							setQuickViewOpen(true);
-						}}
-						whileHover={{ scale: 1.08 }}
-						whileTap={{ scale: 0.92 }}
-						className={`absolute top-[88px] md:top-[95px] right-[6px] md:start-[14px] border border-slate-100 bg-white/90 backdrop-blur w-9 h-9  rounded-full flex items-center justify-center shadow ring-1 ring-black/5 `}
-					>
-						<GoEye className="text-gray-800" />
-					</motion.button>
 
 					<QuickViewModal
 						open={quickViewOpen}
@@ -270,7 +248,7 @@ export default function ProductCard({
 							{isAdding ? (
 								<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
 							) : (
-								<BsCart3 className="w-18 max-md:!w-16 " />
+								<IoMdCart className="w-5 h-5" />
 							)}
 						</div>
 					</motion.button>
@@ -297,10 +275,20 @@ export default function ProductCard({
 					</div>
 
 					{/* Rating */}
-					<RatingStars average_ratingc={average_rating || 0} reviewsc={reviews || []} />
 
 					{/* Divider */}
 					<div className="h-px bg-gray-200/70" />
+
+					{/* Buy Now Button */}
+					<Link
+						href={`/product/${id}`}
+						className="w-full bg-pro text-white px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg sm:rounded-xl font-bold hover:bg-pro/90 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md hover:shadow-lg"
+					>
+						<span>شراء الآن</span>
+						<svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+						</svg>
+					</Link>
 
 					{/* Bottom */}
 					<BottomSlider text_ads={product?.text_ads} />

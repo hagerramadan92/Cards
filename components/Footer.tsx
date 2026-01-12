@@ -163,43 +163,7 @@ export default function Footer() {
               منصة تساعدك تشتري بسهولة، وتتابع طلباتك، وتوصل لمنتجاتك بأفضل تجربة.
             </p>
 
-            {/* Quick actions */}
-            <div className="flex flex-wrap gap-2 pt-2">
-              {!isEmptyValue(phone) && (
-                <a
-                  href={normalizeSocialHref("phone", String(phone))}
-                  className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-bold hover:bg-white/15 transition"
-                  aria-label="اتصال بالدعم"
-                >
-                  <FaPhone className="opacity-90" />
-                  <span>اتصل</span>
-                </a>
-              )}
-
-              {!isEmptyValue(email) && (
-                <a
-                  href={normalizeSocialHref("email", String(email))}
-                  className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-bold hover:bg-white/15 transition"
-                  aria-label="إرسال بريد"
-                >
-                  <FaEnvelope className="opacity-90" />
-                  <span>بريد</span>
-                </a>
-              )}
-
-              {!isEmptyValue(socials.find((s) => s.key === "whatsapp")?.value) && (
-                <a
-                  href={normalizeSocialHref("whatsapp", String(socials.find((s) => s.key === "whatsapp")!.value))}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-bold hover:bg-white/15 transition"
-                  aria-label="واتساب"
-                >
-                  <FaWhatsapp className="opacity-90" />
-                  <span>واتساب</span>
-                </a>
-              )}
-            </div>
+          
           </div>
 
           {/* Company */}
@@ -307,25 +271,8 @@ export default function Footer() {
               </div>
             )}
 
-            {/* ✅ tax number panel (NOT social) */}
-            {!isEmptyValue(taxNumber) && (
-              <div className="pt-4">
-                <p className="text-sm font-extrabold">بيانات قانونية</p>
-
-                <div className="mt-2 inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-3 text-sm ring-1 ring-white/10">
-                  <span className="text-white/80">الرقم الضريبي:</span>
-                  <span className="font-extrabold tabular-nums">{String(taxNumber)}</span>
-
-                  <button
-                    type="button"
-                    onClick={() => navigator.clipboard?.writeText(String(taxNumber))}
-                    className="ms-2 rounded-lg bg-white/10 px-2 py-1 text-xs hover:bg-white/15 transition"
-                  >
-                    نسخ
-                  </button>
-                </div>
-              </div>
-            )}
+      
+         
           </div>
 
           {/* socials */}

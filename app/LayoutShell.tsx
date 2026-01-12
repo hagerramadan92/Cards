@@ -27,11 +27,12 @@ export default function LayoutShell({
 				{children}
 			</div>
 
-			{!hideLayout && <Footer />}
-			<FloatingChatButton />
-			<QuickBuyButton />
+				{!hideLayout && <Footer />}
+				<FloatingChatButton />
+			<div className="sm:hidden block">
+				<QuickBuyButton />
+			</div>
 			
-			<MdDownload />
 		</>
 	);
 }

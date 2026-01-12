@@ -24,6 +24,7 @@
     "critters": "^0.0.23",
     "dompurify": "^3.3.1",
     "firebase": "^12.6.0",
+    "flag-icons": "^7.5.0",
     "framer-motion": "^12.23.26",
     "html-react-parser": "^5.2.10",
     "lucide-react": "^0.552.0",
