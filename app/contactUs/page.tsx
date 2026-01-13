@@ -11,7 +11,11 @@ import {
 	FiArrowUpRight,
 	FiChevronDown,
 	FiMapPin,
+	FiAlertCircle,
+	FiHelpCircle,
+	FiMoreHorizontal,
 } from "react-icons/fi";
+import { HiLightBulb } from "react-icons/hi";
 
 interface FormData {
 	full_name: string;
@@ -116,6 +120,8 @@ export default function ContactPageOne() {
 	const [errors, setErrors] = useState<Errors>({});
 	const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
 	const countryDropdownRef = useRef<HTMLDivElement>(null);
+	const [suggestionTypeOpen, setSuggestionTypeOpen] = useState(false);
+	const suggestionTypeRef = useRef<HTMLDivElement>(null);
 	const [form, setForm] = useState<FormData>({
 		full_name: "",
 		country: "EG",
@@ -128,11 +134,24 @@ export default function ContactPageOne() {
 
 	const base_url = `${process.env.NEXT_PUBLIC_API_URL}/contact-us`;
 
+	// Suggestion type options
+	const suggestionTypes = [
+		{ value: "complaint", label: "شكوى", icon: FiAlertCircle, color: "text-red-600", bgColor: "bg-red-50", borderColor: "border-red-200" },
+		{ value: "suggestion", label: "اقتراح", icon: HiLightBulb, color: "text-yellow-600", bgColor: "bg-yellow-50", borderColor: "border-yellow-200" },
+		{ value: "inquiry", label: "استفسار", icon: FiHelpCircle, color: "text-blue-600", bgColor: "bg-blue-50", borderColor: "border-blue-200" },
+		{ value: "other", label: "أخرى", icon: FiMoreHorizontal, color: "text-slate-600", bgColor: "bg-slate-50", borderColor: "border-slate-200" },
+	];
+
+	const selectedSuggestionType = suggestionTypes.find((t) => t.value === form.suggestion_type);
+
 	// Close country dropdown when clicking outside
 	useEffect(() => {
 		function handleClickOutside(event: MouseEvent) {
 			if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target as Node)) {
 				setCountryDropdownOpen(false);
+			}
+			if (suggestionTypeRef.current && !suggestionTypeRef.current.contains(event.target as Node)) {
+				setSuggestionTypeOpen(false);
 			}
 		}
 		document.addEventListener("mousedown", handleClickOutside);
@@ -631,23 +650,87 @@ export default function ContactPageOne() {
 
 								<div className="md:col-span-2">
 									<Field label="اختر نوع الاقتراح" error={errors.suggestion_type}>
-										<div className="relative">
-											<select
-												name="suggestion_type"
-												value={form.suggestion_type}
-												onChange={handleChange}
+										<div ref={suggestionTypeRef} className="relative">
+											{/* Custom Dropdown Button */}
+											<button
+												type="button"
+												onClick={() => setSuggestionTypeOpen(!suggestionTypeOpen)}
 												className={cn(
-													inputClass("suggestion_type"),
-													"appearance-none pe-10"
+													"w-full rounded-2xl border bg-white px-4 py-3.5 text-sm font-semibold outline-none transition-all duration-200 flex items-center justify-between",
+													errors.suggestion_type
+														? "border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+														: "border-slate-200 hover:border-slate-300 focus:border-pro focus:ring-2 focus:ring-pro/20",
+													suggestionTypeOpen && "border-pro ring-2 ring-pro/20"
 												)}
 											>
-												<option value="">اختر نوع الاقتراح</option>
-												<option value="complaint">شكوى</option>
-												<option value="suggestion">اقتراح</option>
-												<option value="inquiry">استفسار</option>
-												<option value="other">أخرى</option>
-											</select>
-											<FiChevronDown className="absolute end-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+												<div className="flex items-center gap-3">
+													{selectedSuggestionType ? (
+														<>
+															<div className={cn("p-2 rounded-lg", selectedSuggestionType.bgColor)}>
+																<selectedSuggestionType.icon className={cn("w-4 h-4", selectedSuggestionType.color)} />
+															</div>
+															<span className="text-slate-900">{selectedSuggestionType.label}</span>
+														</>
+													) : (
+														<span className="text-slate-400">اختر نوع الاقتراح</span>
+													)}
+												</div>
+												<FiChevronDown
+													className={cn(
+														"text-slate-400 transition-transform duration-200",
+														suggestionTypeOpen && "rotate-180"
+													)}
+												/>
+											</button>
+
+											{/* Dropdown Menu */}
+											{suggestionTypeOpen && (
+												<div className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+													<div className="py-1">
+														{suggestionTypes.map((type) => {
+															const Icon = type.icon;
+															const isSelected = form.suggestion_type === type.value;
+															return (
+																<button
+																	key={type.value}
+																	type="button"
+																	onClick={() => {
+																		setForm((prev) => ({ ...prev, suggestion_type: type.value }));
+																		setSuggestionTypeOpen(false);
+																		if (errors.suggestion_type) {
+																			setErrors((prev) => ({ ...prev, suggestion_type: undefined }));
+																		}
+																	}}
+																	className={cn(
+																		"w-full flex items-center gap-3 px-4 py-3 text-right transition-colors",
+																		isSelected
+																			? cn(type.bgColor, type.color, "font-bold")
+																			: "text-slate-700 hover:bg-slate-50"
+																	)}
+																>
+																	<div
+																		className={cn(
+																			"p-2 rounded-lg transition-colors",
+																			isSelected ? type.bgColor : "bg-slate-100"
+																		)}
+																	>
+																		<Icon
+																			className={cn(
+																				"w-4 h-4",
+																				isSelected ? type.color : "text-slate-600"
+																			)}
+																		/>
+																	</div>
+																	<span className="flex-1">{type.label}</span>
+																	{isSelected && (
+																		<div className={cn("w-2 h-2 rounded-full", type.bgColor.replace("50", "500"))} />
+																	)}
+																</button>
+															);
+														})}
+													</div>
+												</div>
+											)}
 										</div>
 									</Field>
 								</div>

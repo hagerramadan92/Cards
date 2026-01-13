@@ -6,6 +6,7 @@ import PriceComponent from './PriceComponent';
 import ImageComponent from './ImageComponent';
 import Link from 'next/link';
 import { IoMdCart } from 'react-icons/io';
+import { PiDiamondFill } from 'react-icons/pi';
 import { useCart } from '@/src/context/CartContext';
 import BottomSlider from './BottomSlider';
 import { ProductI } from '@/Types/ProductsI';
@@ -15,6 +16,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '@/src/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickViewModal from './QuickViewModal';
+import Image from 'next/image';
 
 export default function ProductCard({
 	product,
@@ -191,6 +193,20 @@ export default function ProductCard({
 			>
 				{/* Image */}
 				<div className={`relative w-full h-[150px] md:h-[240px] bg-gray-50`}>
+					{/* VIP Diamond Icon */}
+					<div className="absolute start-2 px-1 bg-white md:start-3 bottom-2 md:bottom-3 z-20 flex items-center rounded-full gap-0 shadow-lg">
+						{/* <PiDiamondFill className="w-4 h-4 md:w-5 md:h-5 text-pro" /> */}
+						<Image
+							src="/images/diamond.svg"
+							alt="diamond"
+							width={20}
+							height={20}
+							className="w-4 h-4 md:w-5 md:h-5 "
+						/>
+						<span className="text-[10px] md:text-xs font-bold px-1.5 py-0.5 text-pro-max ">
+							{id}
+						</span>
+					</div>
 					<Link href={`/product/${id}`} className="block h-full">
 						<div className="relative h-full overflow-hidden">
 							<ImageComponent image={image || '/images/c1.png'} />
@@ -229,29 +245,28 @@ export default function ProductCard({
 
 
 					{/* Cart Floating Button (intentional placement) */}
-					<motion.button
-						aria-label="add to cart"
-						onClick={(e) => {
-							e.preventDefault();
-							e.stopPropagation();
-							handleAddToCart();
-						}}
-						disabled={isAdding || !inStock}
-						whileHover={inStock && !isAdding ? { scale: 1.06 } : undefined}
-						whileTap={inStock && !isAdding ? { scale: 0.92 } : undefined}
-						className={`absolute start-[6px] md:start-3 top-[64px]  md:top-[72px] -translate-y-1/2 z-20 ${classNameCate}`}
-					>
-						<div
-							className={`w-9 h-9 rounded-full flex items-center justify-center shadow-lg ring-1 ring-black/5 ${inStock ? 'bg-pro text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-								}`}
+					{inStock && (
+						<motion.button
+							aria-label="add to cart"
+							onClick={(e) => {
+								e.preventDefault();
+								e.stopPropagation();
+								handleAddToCart();
+							}}
+							disabled={isAdding}
+							whileHover={!isAdding ? { scale: 1.06 } : undefined}
+							whileTap={!isAdding ? { scale: 0.92 } : undefined}
+							className={`absolute start-[6px] md:start-3 top-[64px]  md:top-[72px] -translate-y-1/2 z-20 ${classNameCate}`}
 						>
-							{isAdding ? (
-								<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-							) : (
-								<IoMdCart className="w-5 h-5" />
-							)}
-						</div>
-					</motion.button>
+							<div className="w-9 h-9 rounded-full flex items-center justify-center shadow-lg ring-1 ring-black/5 bg-pro text-white">
+								{isAdding ? (
+									<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+								) : (
+									<IoMdCart className="w-5 h-5" />
+								)}
+							</div>
+						</motion.button>
+					)}
 				</div>
 
 				{/* Content */}
@@ -279,16 +294,22 @@ export default function ProductCard({
 					{/* Divider */}
 					<div className="h-px bg-gray-200/70" />
 
-					{/* Buy Now Button */}
-					<Link
-						href={`/product/${id}`}
-						className="w-full bg-pro text-white px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg sm:rounded-xl font-bold hover:bg-pro/90 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md hover:shadow-lg"
-					>
-						<span>شراء الآن</span>
-						<svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-						</svg>
-					</Link>
+					{/* Buy Now Button or Out of Stock */}
+					{inStock ? (
+						<Link
+							href={`/product/${id}`}
+							className="w-full bg-pro text-white px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg sm:rounded-xl font-bold hover:bg-pro/90 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md hover:shadow-lg"
+						>
+							<span>شراء الآن</span>
+							<svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+							</svg>
+						</Link>
+					) : (
+						<div className="w-full bg-gray-200 text-gray-600 px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg sm:rounded-xl font-bold flex items-center justify-center gap-2 text-xs sm:text-sm cursor-not-allowed">
+							<span>نفدت الكمية</span>
+						</div>
+					)}
 
 					{/* Bottom */}
 					<BottomSlider text_ads={product?.text_ads} />

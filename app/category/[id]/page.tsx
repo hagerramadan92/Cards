@@ -2,20 +2,16 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import Discount from "@/components/Discount";
 import ProductCard from "@/components/ProductCard";
-import ProductFilter from "@/components/ProductFilter";
-import { FiFilter, FiGrid, FiList } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ProductI } from "@/Types/ProductsI";
 import CategoryPageSkeleton from "@/components/skeletons/HomeSkeletons";
-import { ChevronDown } from "lucide-react";
-import { ChevronRight, ChevronLeft } from "lucide-react";
-import { LayoutGrid, Grid2X2, Columns3, Columns4 } from "lucide-react"; // nice grid icons
+import { ChevronDown, ChevronRight, ChevronLeft, BookOpen, FileText, Package } from "lucide-react";
 import { FormControl, Select } from "@mui/material";
 import { MenuItem } from "@mui/material";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
+import Link from "next/link";
 
 
 interface CategoryChild {
@@ -35,15 +31,11 @@ interface CategoryData {
 	children: CategoryChild[];
 	products: ProductI[];
 	category_banners: { image: string }[];
+	description?: string;
+	instructions?: string;
+	terms?: string;
 }
 
-interface Filters {
-	available: boolean;
-	brands: string[];
-	materials: string[];
-	colors: string[];
-	categories: number[];
-}
 
 const fadeUp = {
 	hidden: { opacity: 0, y: 10 },
@@ -59,34 +51,73 @@ export default function CategoryPage() {
 	const [category, setCategory] = useState<CategoryData | null>(null);
 
 	const [allProducts, setAllProducts] = useState<ProductI[]>([]);
+	const [subCategories, setSubCategories] = useState<CategoryChild[]>([]);
 	const [filteredProducts, setFilteredProducts] = useState<ProductI[]>([]);
 
-	const [showFilter, setShowFilter] = useState(false);
-
 	// UI state
-	const [layout, setLayout] = useState<"grid" | "list">("grid");
-	const [columns, setColumns] = useState<number>(4);
 	const [page, setPage] = useState(1);
 	const rowsPerPage = 12;
 
 	const [priceOrder, setPriceOrder] = useState<"" | "asc" | "desc" | "rating">("");
-	const [filterMaterials, setFilterMaterials] = useState<string[]>([]);
-	const [filterColors, setFilterColors] = useState<string[]>([]);
-	const [subCategories, setSubCategories] = useState<CategoryChild[]>([]);
+	const [selectedCountry, setSelectedCountry] = useState<string>("");
+	const [isDescriptionOpen, setIsDescriptionOpen] = useState<boolean>(true);
+	const [isInstructionsOpen, setIsInstructionsOpen] = useState<boolean>(false);
+	const [isTermsOpen, setIsTermsOpen] = useState<boolean>(false);
 
-	const extractFilters = (products: ProductI[]) => {
-		const materials = [
-			...new Set(
-				products.flatMap((p) => p.materials?.map((m) => m.name) || []).filter(Boolean)
-			),
-		];
-		const colors = [
-			...new Set(products.flatMap((p) => p.colors?.map((c) => c.name) || []).filter(Boolean)),
-		];
-
-		setFilterMaterials(materials as string[]);
-		setFilterColors(colors as string[]);
-	};
+	// Countries list
+	const countries = [
+		{ code: "EG", name: "مصر", flag: "eg" },
+		{ code: "SA", name: "السعودية", flag: "sa" },
+		{ code: "AE", name: "الإمارات", flag: "ae" },
+		{ code: "KW", name: "الكويت", flag: "kw" },
+		{ code: "QA", name: "قطر", flag: "qa" },
+		{ code: "BH", name: "البحرين", flag: "bh" },
+		{ code: "OM", name: "عمان", flag: "om" },
+		{ code: "JO", name: "الأردن", flag: "jo" },
+		{ code: "LB", name: "لبنان", flag: "lb" },
+		{ code: "IQ", name: "العراق", flag: "iq" },
+		{ code: "YE", name: "اليمن", flag: "ye" },
+		{ code: "SY", name: "سوريا", flag: "sy" },
+		{ code: "PS", name: "فلسطين", flag: "ps" },
+		{ code: "MA", name: "المغرب", flag: "ma" },
+		{ code: "DZ", name: "الجزائر", flag: "dz" },
+		{ code: "TN", name: "تونس", flag: "tn" },
+		{ code: "LY", name: "ليبيا", flag: "ly" },
+		{ code: "SD", name: "السودان", flag: "sd" },
+		{ code: "US", name: "الولايات المتحدة", flag: "us" },
+		{ code: "GB", name: "المملكة المتحدة", flag: "gb" },
+		{ code: "CA", name: "كندا", flag: "ca" },
+		{ code: "AU", name: "أستراليا", flag: "au" },
+		{ code: "DE", name: "ألمانيا", flag: "de" },
+		{ code: "FR", name: "فرنسا", flag: "fr" },
+		{ code: "IT", name: "إيطاليا", flag: "it" },
+		{ code: "ES", name: "إسبانيا", flag: "es" },
+		{ code: "NL", name: "هولندا", flag: "nl" },
+		{ code: "BE", name: "بلجيكا", flag: "be" },
+		{ code: "CH", name: "سويسرا", flag: "ch" },
+		{ code: "AT", name: "النمسا", flag: "at" },
+		{ code: "SE", name: "السويد", flag: "se" },
+		{ code: "NO", name: "النرويج", flag: "no" },
+		{ code: "DK", name: "الدنمارك", flag: "dk" },
+		{ code: "FI", name: "فنلندا", flag: "fi" },
+		{ code: "PL", name: "بولندا", flag: "pl" },
+		{ code: "TR", name: "تركيا", flag: "tr" },
+		{ code: "GR", name: "اليونان", flag: "gr" },
+		{ code: "PT", name: "البرتغال", flag: "pt" },
+		{ code: "IE", name: "أيرلندا", flag: "ie" },
+		{ code: "NZ", name: "نيوزيلندا", flag: "nz" },
+		{ code: "JP", name: "اليابان", flag: "jp" },
+		{ code: "CN", name: "الصين", flag: "cn" },
+		{ code: "KR", name: "كوريا الجنوبية", flag: "kr" },
+		{ code: "IN", name: "الهند", flag: "in" },
+		{ code: "BR", name: "البرازيل", flag: "br" },
+		{ code: "MX", name: "المكسيك", flag: "mx" },
+		{ code: "AR", name: "الأرجنتين", flag: "ar" },
+		{ code: "ZA", name: "جنوب أفريقيا", flag: "za" },
+		{ code: "NG", name: "نيجيريا", flag: "ng" },
+		{ code: "KE", name: "كينيا", flag: "ke" },
+		{ code: "RU", name: "روسيا", flag: "ru" },
+	];
 
 	useEffect(() => {
 		if (!categoryId) return;
@@ -122,12 +153,10 @@ export default function CategoryPage() {
 
 						setAllProducts(uniqueProducts);
 						setFilteredProducts(uniqueProducts);
-						extractFilters(uniqueProducts);
 					} else {
 						const prods = cat.products || [];
 						setAllProducts(prods);
 						setFilteredProducts(prods);
-						extractFilters(prods);
 					}
 				} else {
 					setCategory(null);
@@ -143,26 +172,36 @@ export default function CategoryPage() {
 		fetchCategoryAndProducts();
 	}, [categoryId, API_URL]);
 
-	const handleFilterChange = (filters: Filters) => {
-		let result = [...allProducts];
-
-		if (filters.available) result = result.filter((p) => (p.stock ?? 0) > 0);
-
-		if (filters.categories.length > 0) {
-			result = result.filter((p) => filters.categories.includes(p.category?.id || 0));
+	// Filter by country
+	useEffect(() => {
+		if (!selectedCountry) {
+			setFilteredProducts(allProducts);
+			return;
 		}
 
-		if (filters.materials.length > 0) {
-			result = result.filter((p) => p.materials?.some((m) => filters.materials.includes(m.name)));
-		}
+		// Filter products by country (assuming products have a country field or shipping_countries)
+		const filtered = allProducts.filter((product) => {
+			// Check if product has country-related fields
+			const productCountries = (product as any).shipping_countries || (product as any).countries || (product as any).available_countries || [];
+			const productCountry = (product as any).country || (product as any).country_code;
+			
+			// If product has specific countries list, check if selected country is in it
+			if (Array.isArray(productCountries) && productCountries.length > 0) {
+				return productCountries.includes(selectedCountry) || productCountries.some((c: any) => c.code === selectedCountry || c === selectedCountry);
+			}
+			
+			// If product has a single country field, check if it matches
+			if (productCountry) {
+				return productCountry === selectedCountry || (typeof productCountry === 'object' && productCountry.code === selectedCountry);
+			}
+			
+			// If no country info, show the product (or hide it - adjust based on requirements)
+			return true; // Show products without country info
+		});
 
-		if (filters.colors.length > 0) {
-			result = result.filter((p) => p.colors?.some((c) => filters.colors.includes(c.name)));
-		}
-
-		setFilteredProducts(result);
+		setFilteredProducts(filtered);
 		setPage(1);
-	};
+	}, [selectedCountry, allProducts]);
 
 	const sortedProducts = useMemo(() => {
 		if (!priceOrder) return filteredProducts;
@@ -187,11 +226,9 @@ export default function CategoryPage() {
 	}, [sortedProducts, page]);
 
 	const handleFavoriteChange = (productId: number, newValue: boolean) => {
-		const update = (arr: ProductI[]) =>
-			arr.map((p) => (p.id === productId ? { ...p, is_favorite: newValue } : p));
-
-		setAllProducts(update);
-		setFilteredProducts(update);
+		setAllProducts((prev) =>
+			prev.map((p) => (p.id === productId ? { ...p, is_favorite: newValue } : p))
+		);
 	};
 
 	if (loading) return <CategoryPageSkeleton />;
@@ -204,16 +241,7 @@ export default function CategoryPage() {
 		);
 	}
 
-	const gridClass =
-		layout === "list"
-			? "grid grid-cols-1  gap-2 md:gap-3  "
-			: columns === 1
-				? "grid grid-cols-1  gap-2 md:gap-3  "
-				: columns === 2
-					? "grid grid-cols-2 g gap-2 md:gap-3  "
-					: columns === 3
-						? "grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3  "
-						: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4  gap-2 md:gap-3  ";
+	const gridClass = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 md:gap-6";
 
 	const sortOptions: { label: string; value: "" | "rating" | "asc" | "desc" }[] = [
 		{ label: "الخيارات المميزة", value: "" },
@@ -255,63 +283,138 @@ export default function CategoryPage() {
 	const totalPages = Math.ceil(sortedProducts.length / rowsPerPage);
 
 	return (
-		<section className="  " >
-			<div className=" container pt-2 pb-6 md:py-12">
-				{/* Header */}
-				<motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-					<div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-						<div>
-							<h1 className="text-2xl md:text-3xl font-black text-slate-900">{category.name}</h1>
-							<p className=" max-md:hidden text-sm text-slate-500 mt-1">
-								عرض <span className="font-extrabold text-slate-900">{filteredProducts.length}</span>{" "}
-								منتج
-							</p>
-						</div>
+		<section className="">
+			{/* Full Width Banner */}
+		<div className="relative w-full h-[200px] md:h-[300px] lg:h-[400px] mb-3">
+			<Image
+				src={category.category_banners?.[0]?.image || "/images/cover.webp"}
+				alt={category.name}
+				fill
+				className="object-cover"
+				priority
+			/>
+			<div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent" />
+			
+			{/* Breadcrumb */}
+			<div className="absolute top-2 left-2 right-2 md:top-4 md:left-4 md:right-4 z-10">
+				<div className="container mx-auto px-2 pt-2">
+					<nav className="flex items-center gap-1 md:gap-2 text-xs md:text-sm text-white/90 flex-wrap">
+						<Link href="/" className="hover:text-white transition">
+							الرئيسية
+						</Link>
+						<span className="text-white/60">›</span>
+						<Link href="/category" className="hover:text-white transition">
+							الأقسام
+						</Link>
+						<span className="text-white/60">›</span>
+						<span className="text-white font-semibold line-clamp-1">{category.name}</span>
+					</nav>
+					<h1 className="text-2xl mt-3 font-black text-white mb-2">{category.name}</h1>
+				</div>
+			</div>
 
-						{/* actions */}
-						<div className="flex flex-wrap items-center gap-2">
-							{/* Mobile filter */}
-							<button
-								onClick={() => setShowFilter(true)}
-								className="lg:hidden inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-3 py-2 text-sm font-extrabold shadow-sm hover:shadow transition"
+			
+		</div>
+
+			<div className="container px-4 md:px-0 pt-4 md:pt-2 pb-6 md:py-12">
+				<div className="flex items-center md:justify-between">
+					{/* Header */}
+				<motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-4 md:mb-6">
+					<h1 className="text-xl md:text-2xl lg:text-3xl font-black text-slate-900 mb-1 md:mb-2">{category.name}</h1>
+					<p className="text-xs md:text-sm text-slate-500">
+						عرض <span className="font-extrabold text-slate-900">{filteredProducts.length}</span>{" "}
+						منتج
+					</p>
+				</motion.div>
+
+				{/* Filters and Sort */}
+				<motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-4 md:mb-6">
+					<div className="flex items-center gap-2 md:gap-2 flex-nowrap overflow-x-auto">
+						{/* Country Filter */}
+						<FormControl size="small" sx={{ minWidth: { xs: 140, sm: 160, md: 180 }, flexShrink: 0 }}>
+							<Select
+								value={selectedCountry}
+								onChange={(e) => setSelectedCountry(e.target.value)}
+								displayEmpty
+								IconComponent={KeyboardArrowDownRoundedIcon}
+								renderValue={(selected) => {
+									if (!selected) return "جميع البلدان";
+									const country = countries.find((c) => c.code === selected);
+									return country ? (
+										<div className="flex items-center gap-2">
+											<span className={`fi fi-${country.flag}`}></span>
+											<span>{country.name}</span>
+										</div>
+									) : "جميع البلدان";
+								}}
+								sx={{
+									direction: "rtl",
+									borderRadius: "14px",
+									backgroundColor: "#fff",
+									fontWeight: 800,
+									fontSize: "0.9rem",
+									boxShadow: "0 1px 2px rgba(0,0,0,.06)",
+									fontFamily: "Cairo, Cairo Fallback",
+									
+									"& .MuiSelect-select": {
+										padding: "10px 14px 10px 38px",
+									},
+									"& fieldset": {
+										borderColor: "#e2e8f0",
+									},
+									"&:hover fieldset": {
+										borderColor: "#cbd5e1",
+									},
+									"&.Mui-focused fieldset": {
+										borderColor: "#94a3b8",
+										boxShadow: "0 0 0 3px rgba(148,163,184,.25)",
+									},
+									"& .MuiSvgIcon-root": {
+										left: 10,
+										right: "auto",
+										color: "#64748b",
+									},
+								}}
+								MenuProps={{
+									PaperProps: {
+										sx: {
+											mt: 1,
+											borderRadius: "14px",
+											boxShadow: "0 12px 30px rgba(0,0,0,.12)",
+											direction: "rtl",
+											fontFamily: "Cairo, Cairo Fallback",
+											marginTop: "10%",
+											"& .MuiMenuItem-root": {
+												fontWeight: 700,
+												fontSize: "0.9rem",
+												borderRadius: "10px",
+												mx: 1,
+												my: 0.5,
+											},
+											"& .Mui-selected": {
+												backgroundColor: "#0f172a !important",
+												color: "#fff",
+											},
+										},
+									},
+								}}
 							>
-								<FiFilter /> تصفية
-							</button>
+								<MenuItem value="">
+									<em>جميع البلدان</em>
+								</MenuItem>
+								{countries.map((country) => (
+									<MenuItem key={country.code} value={country.code}>
+										<div className="flex items-center gap-2">
+											<span className={`fi fi-${country.flag}`}></span>
+											<span>{country.name}</span>
+										</div>
+									</MenuItem>
+								))}
+							</Select>
+						</FormControl>
 
-
-
-							{/* Columns (grid only) */}
-							<div className="hidden lg:flex items-center gap-1 rounded-xl bg-white border border-slate-200 p-1 shadow-sm">
-								{[
-									{ c: 4, Icon: Columns4, label: "٤ أعمدة" },
-									{ c: 3, Icon: Columns3, label: "٣ أعمدة" },
-									{ c: 2, Icon: Grid2X2, label: "عمودين" },
-								].map(({ c, Icon, label }) => {
-									const active = columns === c;
-									return (
-										<motion.button
-											key={c}
-											whileTap={{ scale: 0.95 }}
-											whileHover={{ scale: 1.03 }}
-											onClick={() => setColumns(c)}
-											className={[
-												"relative grid place-items-center w-9 h-7 rounded-lg transition",
-												active
-													? "bg-[#14213d] text-white shadow"
-													: "text-slate-600 hover:bg-slate-50",
-											].join(" ")}
-											aria-label={label}
-											title={label}
-										>
-											<Icon className="w-4 h-4" />
-
-										</motion.button>
-									);
-								})}
-							</div>
-
-							{/* Sort (enhanced select) */}
-							<FormControl size="small" sx={{ minWidth: 180 }}>
+						{/* Sort (enhanced select) */}
+							<FormControl size="small" sx={{ minWidth: { xs: 140, sm: 160, md: 180 }, flexShrink: 0 }}>
 								<Select
 									value={priceOrder}
 									onChange={(e) => setPriceOrder(e.target.value as any)}
@@ -383,40 +486,144 @@ export default function CategoryPage() {
 									))}
 								</Select>
 							</FormControl>
-						</div>
 					</div>
 				</motion.div>
+				</div>
 
-				{/* Banner */}
-				{category.category_banners?.[0]?.image && (
-					<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
-						<div className="rounded-2xl overflow-hidden shadow-sm border border-slate-200">
-							<Discount src={category.category_banners[0].image} href="#" />
+				{/* Products and Description Row */}
+				<div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
+					{/* Description, Instructions, Terms - 3 columns */}
+					<div className="lg:col-span-3 space-y-3 md:space-y-4 lg:sticky lg:top-[160px] order-1 lg:order-1">
+						{/* Description */}
+						<div className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
+							<button
+								onClick={() => setIsDescriptionOpen(!isDescriptionOpen)}
+								className="w-full flex items-center justify-between gap-2 p-3 md:p-4 cursor-pointer hover:bg-slate-100 transition"
+								aria-label="Toggle description"
+							>
+									<div className="flex items-center gap-2">
+										<Package className="w-5 h-5 text-pro-max shrink-0" />
+										<h3 className="text-sm font-extrabold text-slate-900">الوصف</h3>
+									</div>
+								<motion.span
+									animate={{ rotate: isDescriptionOpen ? 180 : 0 }}
+									transition={{ type: "spring", stiffness: 260, damping: 20 }}
+									className="grid place-items-center h-6 w-6 rounded-lg text-slate-600 shrink-0"
+								>
+									<ChevronDown className="w-4 h-4" />
+								</motion.span>
+							</button>
+							<AnimatePresence initial={false}>
+								{isDescriptionOpen && (
+									<motion.div
+										initial={{ height: 0, opacity: 0 }}
+										animate={{ height: "auto", opacity: 1 }}
+										exit={{ height: 0, opacity: 0 }}
+										transition={{ duration: 0.25, ease: "easeInOut" }}
+										className="overflow-hidden"
+									>
+									<div className="px-3 md:px-4 pb-3 md:pb-4">
+										{category.description ? (
+											<div className="prose prose-sm max-w-none text-slate-700 text-xs md:text-sm" dangerouslySetInnerHTML={{ __html: category.description }} />
+										) : (
+											<p className="text-xs md:text-sm text-slate-500">لا يوجد وصف متاح</p>
+										)}
+									</div>
+									</motion.div>
+								)}
+							</AnimatePresence>
 						</div>
-					</motion.div>
-				)}
 
-				<div className="  grid grid-cols-1 lg:grid-cols-12 gap-5">
-					{/* Desktop Filters */}
-					<div className="hidden lg:block lg:col-span-3">
-						<ProductFilter
-							materials={filterMaterials}
-							colors={filterColors}
-							categories={subCategories}
-							onFilterChange={handleFilterChange}
-						/>
+						{/* Instructions */}
+						<div className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
+							<button
+								onClick={() => setIsInstructionsOpen(!isInstructionsOpen)}
+								className="w-full flex items-center justify-between gap-2 p-3 md:p-4 cursor-pointer hover:bg-slate-100 transition"
+								aria-label="Toggle instructions"
+							>
+									<div className="flex items-center gap-2">
+										<BookOpen className="w-5 h-5 text-pro-max shrink-0" />
+										<h3 className="text-sm font-extrabold text-slate-900">التعليمات</h3>
+									</div>
+								<motion.span
+									animate={{ rotate: isInstructionsOpen ? 180 : 0 }}
+									transition={{ type: "spring", stiffness: 260, damping: 20 }}
+									className="grid place-items-center h-6 w-6 rounded-lg text-slate-600 shrink-0"
+								>
+									<ChevronDown className="w-4 h-4" />
+								</motion.span>
+							</button>
+							<AnimatePresence initial={false}>
+								{isInstructionsOpen && (
+									<motion.div
+										initial={{ height: 0, opacity: 0 }}
+										animate={{ height: "auto", opacity: 1 }}
+										exit={{ height: 0, opacity: 0 }}
+										transition={{ duration: 0.25, ease: "easeInOut" }}
+										className="overflow-hidden"
+									>
+									<div className="px-3 md:px-4 pb-3 md:pb-4">
+										{category.instructions ? (
+											<div className="prose prose-sm max-w-none text-slate-700 text-xs md:text-sm" dangerouslySetInnerHTML={{ __html: category.instructions }} />
+										) : (
+											<p className="text-xs md:text-sm text-slate-500">لا توجد تعليمات متاحة</p>
+										)}
+									</div>
+									</motion.div>
+								)}
+							</AnimatePresence>
+						</div>
+
+						{/* Terms */}
+						<div className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
+							<button
+								onClick={() => setIsTermsOpen(!isTermsOpen)}
+								className="w-full flex items-center justify-between gap-2 p-3 md:p-4 cursor-pointer hover:bg-slate-100 transition"
+								aria-label="Toggle terms"
+							>
+									<div className="flex items-center gap-2">
+										<FileText className="w-5 h-5 text-pro-max shrink-0" />
+										<h3 className="text-sm font-extrabold text-slate-900">الشروط والأحكام</h3>
+									</div>
+								<motion.span
+									animate={{ rotate: isTermsOpen ? 180 : 0 }}
+									transition={{ type: "spring", stiffness: 260, damping: 20 }}
+									className="grid place-items-center h-6 w-6 rounded-lg text-slate-600 shrink-0"
+								>
+									<ChevronDown className="w-4 h-4" />
+								</motion.span>
+							</button>
+							<AnimatePresence initial={false}>
+								{isTermsOpen && (
+									<motion.div
+										initial={{ height: 0, opacity: 0 }}
+										animate={{ height: "auto", opacity: 1 }}
+										exit={{ height: 0, opacity: 0 }}
+										transition={{ duration: 0.25, ease: "easeInOut" }}
+										className="overflow-hidden"
+									>
+									<div className="px-3 md:px-4 pb-3 md:pb-4">
+										{category.terms ? (
+											<div className="prose prose-sm max-w-none text-slate-700 text-xs md:text-sm" dangerouslySetInnerHTML={{ __html: category.terms }} />
+										) : (
+											<p className="text-xs md:text-sm text-slate-500">لا توجد شروط وأحكام متاحة</p>
+										)}
+									</div>
+									</motion.div>
+								)}
+							</AnimatePresence>
+						</div>
 					</div>
-
-					{/* Content */}
-					<div className="lg:col-span-9">
+					
+					<div className="lg:col-span-9 order-2 lg:order-2">
 						{/* Sub categories row */}
 						{subCategories.length > 0 && (
 							<motion.div
 								initial={{ opacity: 0, y: 8 }}
 								animate={{ opacity: 1, y: 0 }}
-								className="mb-6"
+								className="mb-4 md:mb-6"
 							>
-								<div className="flex gap-2 md:gap-3  overflow-x-auto pb-2">
+								<div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
 									{subCategories.map((sub) => (
 										<a
 											href={`/category/${sub.slug ?? sub.id}`}
@@ -444,29 +651,25 @@ export default function CategoryPage() {
 
 						{/* Products */}
 						{paginatedProducts.length === 0 ? (
-							<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white border border-slate-200 rounded-2xl p-10 text-center">
-								<p className="text-slate-700 font-extrabold text-lg">لا توجد منتجات مطابقة للفلاتر</p>
-								<p className="text-slate-500 text-sm mt-2">
-									جرّب إزالة بعض الفلاتر أو تغيير الترتيب
-								</p>
+							<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white border border-slate-200 rounded-xl md:rounded-2xl p-6 md:p-10 text-center">
+								<p className="text-slate-700 font-extrabold text-base md:text-lg">لا توجد منتجات</p>
 							</motion.div>
 						) : (
 							<motion.div
 								layout
-								className={gridClass + " gap-2 md:gap-3  "}
+								className={gridClass}
 							>
-								<AnimatePresence mode="popLayout">
-									{paginatedProducts.map((product, idx) => (
-										<motion.div
-											key={product.id}
-											layout
-											variants={fadeUp}
-											initial="hidden"
-											animate="show"
-											exit={{ opacity: 0, scale: 0.98 }}
-											custom={idx}
-										>
-											<ProductCard
+								{paginatedProducts.map((product, idx) => (
+									<motion.div
+										key={product.id}
+										layout
+										variants={fadeUp}
+										initial="hidden"
+										animate="show"
+										exit={{ opacity: 0, scale: 0.98 }}
+										custom={idx}
+									>
+										<ProductCard
 												id={product.id}
 												name={product.name}
 												product={product}
@@ -491,18 +694,17 @@ export default function CategoryPage() {
 												className2="hidden"
 												Bottom="bottom-41.5"
 											/>
-										</motion.div>
-									))}
-								</AnimatePresence>
+									</motion.div>
+								))}
 							</motion.div>
 						)}
 
 						{/* Pagination (simple + nice) */}
 
 						{sortedProducts.length > rowsPerPage && (
-							<div className="mt-10 flex items-center justify-center">
+							<div className="mt-6 md:mt-10 flex items-center justify-center overflow-x-auto">
 								<div
-									className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white 
+									className="flex items-center gap-1 rounded-lg md:rounded-xl border border-slate-200 bg-white 
                  px-2 py-1.5 shadow-sm
                  sm:gap-2 sm:rounded-2xl sm:px-3 sm:py-2"
 								>
@@ -570,51 +772,11 @@ export default function CategoryPage() {
 								</div>
 							</div>
 						)}
-
 					</div>
+
+					
 				</div>
 			</div>
-
-			{/* Mobile Filter Drawer (Framer Motion) */}
-			<AnimatePresence>
-				{showFilter && (
-					<>
-						<motion.div
-							className="fixed inset-0 bg-black/40 z-40"
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							onClick={() => setShowFilter(false)}
-						/>
-						<motion.div
-							className="fixed top-0 right-0 h-full w-[86%] max-w-[360px] bg-white z-50 shadow-2xl"
-							initial={{ x: "100%" }}
-							animate={{ x: 0 }}
-							exit={{ x: "100%" }}
-							transition={{ type: "spring", stiffness: 320, damping: 30 }}
-						>
-							<div className="p-4 border-b flex items-center justify-between">
-								<h3 className="font-black text-lg text-slate-900">تصفية</h3>
-								<button
-									onClick={() => setShowFilter(false)}
-									className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-extrabold hover:bg-slate-50 transition"
-								>
-									إغلاق
-								</button>
-							</div>
-
-							<div className="p-4 overflow-y-auto h-[calc(100%-64px)]">
-								<ProductFilter
-									materials={filterMaterials}
-									colors={filterColors}
-									categories={subCategories}
-									onFilterChange={handleFilterChange}
-								/>
-							</div>
-						</motion.div>
-					</>
-				)}
-			</AnimatePresence>
 		</section>
 	);
 }

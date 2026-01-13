@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/context/AuthContext";
 import { BiSolidHide, BiSolidShow } from "react-icons/bi";
@@ -8,7 +8,7 @@ import Link from "next/link";
 import LoginWithGoogle from "@/components/loginWithGoogle"; // ✅ use your new component name
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
-import { FiMail, FiLock, FiUser, FiPhone } from "react-icons/fi";
+import { FiMail, FiLock, FiUser, FiPhone, FiChevronDown } from "react-icons/fi";
 import ButtonComponent from "../../components/ButtonComponent";
 
 export default function SignupPage() {
@@ -20,6 +20,171 @@ export default function SignupPage() {
 	const [lastName, setLastName] = useState("");
 	const [email, setEmail] = useState("");
 	const [phone, setPhone] = useState("");
+	const [phoneCountry, setPhoneCountry] = useState("EG");
+	const [phoneCountryOpen, setPhoneCountryOpen] = useState(false);
+	const phoneCountryRef = useRef<HTMLDivElement>(null);
+
+	// Phone country patterns
+	const phonePatterns: Record<string, { pattern: RegExp; example: string; message: string; flag: string; name: string; code: string }> = {
+		EG: {
+			pattern: /^01[0-9]{9}$/,
+			example: "01012345678",
+			message: "رقم الهاتف غير صحيح (مثال: 01012345678)",
+			flag: "eg",
+			name: "مصر",
+			code: "+20",
+		},
+		SA: {
+			pattern: /^05[0-9]{8}$/,
+			example: "0512345678",
+			message: "رقم الهاتف غير صحيح (مثال: 0512345678)",
+			flag: "sa",
+			name: "السعودية",
+			code: "+966",
+		},
+		AE: {
+			pattern: /^05[0-9]{8}$/,
+			example: "0512345678",
+			message: "رقم الهاتف غير صحيح (مثال: 0512345678)",
+			flag: "ae",
+			name: "الإمارات",
+			code: "+971",
+		},
+		KW: {
+			pattern: /^[569][0-9]{7}$/,
+			example: "51234567",
+			message: "رقم الهاتف غير صحيح (مثال: 51234567)",
+			flag: "kw",
+			name: "الكويت",
+			code: "+965",
+		},
+		QA: {
+			pattern: /^[3-7][0-9]{7}$/,
+			example: "33123456",
+			message: "رقم الهاتف غير صحيح (مثال: 33123456)",
+			flag: "qa",
+			name: "قطر",
+			code: "+974",
+		},
+		BH: {
+			pattern: /^[3-9][0-9]{7}$/,
+			example: "36123456",
+			message: "رقم الهاتف غير صحيح (مثال: 36123456)",
+			flag: "bh",
+			name: "البحرين",
+			code: "+973",
+		},
+		OM: {
+			pattern: /^[79][0-9]{8}$/,
+			example: "912345678",
+			message: "رقم الهاتف غير صحيح (مثال: 912345678)",
+			flag: "om",
+			name: "عمان",
+			code: "+968",
+		},
+		JO: {
+			pattern: /^07[789][0-9]{7}$/,
+			example: "0791234567",
+			message: "رقم الهاتف غير صحيح (مثال: 0791234567)",
+			flag: "jo",
+			name: "الأردن",
+			code: "+962",
+		},
+		LB: {
+			pattern: /^[0-9]{8}$/,
+			example: "12345678",
+			message: "رقم الهاتف غير صحيح (مثال: 12345678)",
+			flag: "lb",
+			name: "لبنان",
+			code: "+961",
+		},
+		IQ: {
+			pattern: /^07[0-9]{9}$/,
+			example: "07912345678",
+			message: "رقم الهاتف غير صحيح (مثال: 07912345678)",
+			flag: "iq",
+			name: "العراق",
+			code: "+964",
+		},
+		YE: {
+			pattern: /^7[0-9]{8}$/,
+			example: "712345678",
+			message: "رقم الهاتف غير صحيح (مثال: 712345678)",
+			flag: "ye",
+			name: "اليمن",
+			code: "+967",
+		},
+		SY: {
+			pattern: /^9[0-9]{8}$/,
+			example: "912345678",
+			message: "رقم الهاتف غير صحيح (مثال: 912345678)",
+			flag: "sy",
+			name: "سوريا",
+			code: "+963",
+		},
+		PS: {
+			pattern: /^05[0-9]{8}$/,
+			example: "0512345678",
+			message: "رقم الهاتف غير صحيح (مثال: 0512345678)",
+			flag: "ps",
+			name: "فلسطين",
+			code: "+970",
+		},
+		MA: {
+			pattern: /^06[0-9]{8}$/,
+			example: "0612345678",
+			message: "رقم الهاتف غير صحيح (مثال: 0612345678)",
+			flag: "ma",
+			name: "المغرب",
+			code: "+212",
+		},
+		DZ: {
+			pattern: /^05[0-9]{8}$/,
+			example: "0512345678",
+			message: "رقم الهاتف غير صحيح (مثال: 0512345678)",
+			flag: "dz",
+			name: "الجزائر",
+			code: "+213",
+		},
+		TN: {
+			pattern: /^[2-9][0-9]{7}$/,
+			example: "21234567",
+			message: "رقم الهاتف غير صحيح (مثال: 21234567)",
+			flag: "tn",
+			name: "تونس",
+			code: "+216",
+		},
+		LY: {
+			pattern: /^9[0-9]{8}$/,
+			example: "912345678",
+			message: "رقم الهاتف غير صحيح (مثال: 912345678)",
+			flag: "ly",
+			name: "ليبيا",
+			code: "+218",
+		},
+		SD: {
+			pattern: /^9[0-9]{8}$/,
+			example: "912345678",
+			message: "رقم الهاتف غير صحيح (مثال: 912345678)",
+			flag: "sd",
+			name: "السودان",
+			code: "+249",
+		},
+	};
+
+	function cn(...c: (string | false | undefined | null)[]) {
+		return c.filter(Boolean).join(" ");
+	}
+
+	useEffect(() => {
+		function handleClickOutside(event: MouseEvent) {
+			if (phoneCountryRef.current && !phoneCountryRef.current.contains(event.target as Node)) {
+				setPhoneCountryOpen(false);
+			}
+		}
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => document.removeEventListener("mousedown", handleClickOutside);
+	}, []);
 
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
@@ -61,9 +226,16 @@ export default function SignupPage() {
 		else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
 			newErrors.email = "البريد الإلكتروني غير صحيح";
 
-		if (!phone.trim()) newErrors.phone = "رقم الهاتف مطلوب";
-		else if (!/^\d+$/.test(phone)) newErrors.phone = "رقم الهاتف يجب أن يحتوي على أرقام فقط";
-		else if (phone.length !== 11) newErrors.phone = "رقم الهاتف يجب أن يكون 11 رقم";
+		if (!phone.trim()) {
+			newErrors.phone = "رقم الهاتف مطلوب";
+		} else if (phoneCountry && phonePatterns[phoneCountry]) {
+			const pattern = phonePatterns[phoneCountry];
+			if (!pattern.pattern.test(phone)) {
+				newErrors.phone = pattern.message;
+			}
+		} else if (!/^\d+$/.test(phone)) {
+			newErrors.phone = "رقم الهاتف يجب أن يحتوي على أرقام فقط";
+		}
 
 		if (!password.trim()) newErrors.password = "كلمة المرور مطلوبة";
 		else if (password.length < 8) newErrors.password = "كلمة المرور يجب أن تكون 8 أحرف على الأقل";
@@ -249,19 +421,77 @@ export default function SignupPage() {
 							{/* Phone */}
 							<div>
 								<label className="block text-sm font-extrabold text-slate-800 mb-2">رقم الهاتف</label>
-								<div className="relative">
-									<span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
-										<FiPhone />
-									</span>
-									<input
-										value={phone}
-										onChange={(e) => {
-											setPhone(e.target.value);
-											if (errors.phone) setErrors((p) => ({ ...p, phone: "" }));
-										}}
-										placeholder="01xxxxxxxxx"
-										className={[fieldBase, "pr-11", errors.phone ? fieldBad : fieldOk].join(" ")}
-									/>
+								<div className="relative flex" dir="ltr">
+									{/* Country Dropdown - Left side */}
+									<div className="relative flex-shrink-0 w-20 " ref={phoneCountryRef}>
+										{/* Selected Country Button */}
+										<button
+											type="button"
+											onClick={() => setPhoneCountryOpen(!phoneCountryOpen)}
+											className={cn(
+												"w-full rounded-l-2xl h-full border border-slate-200 bg-white px-2 py-3 text-sm font-semibold text-slate-900 outline-none transition border-r-0 cursor-pointer hover:bg-slate-50 focus:border-pro focus:ring-2 focus:ring-pro/20 flex items-center justify-between",
+												errors.phone ? "border-red-400" : ""
+											)}
+										>
+											{phoneCountry && phonePatterns[phoneCountry] ? (
+												<div className="flex items-center gap-1.5">
+													<span className={`fi fi-${phoneCountry.toLowerCase()}`}></span>
+													<span className="text-xs font-semibold text-slate-700">
+														{phonePatterns[phoneCountry].code}
+													</span>
+												</div>
+											) : (
+												<span className="text-xs">اختر</span>
+											)}
+											<FiChevronDown className={`text-slate-400 text-xs transition-transform ${phoneCountryOpen ? "rotate-180" : ""}`} />
+										</button>
+
+										{/* Dropdown Options */}
+										{phoneCountryOpen && (
+											<div className="absolute top-full left-0 mt-1 w-[190px] bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+												{Object.entries(phonePatterns).map(([code, country]) => (
+													<button
+														key={code}
+														type="button"
+														onClick={() => {
+															setPhoneCountry(code);
+															setPhoneCountryOpen(false);
+															if (errors.phone) setErrors((p) => ({ ...p, phone: "" }));
+														}}
+														className={cn(
+															"w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-slate-50 transition-colors",
+															phoneCountry === code ? "bg-pro/10 text-pro font-semibold" : "text-slate-900"
+														)}
+													>
+														<span className={`fi fi-${code.toLowerCase()}`}></span>
+														<span className="flex-1">{country.name}</span>
+														<span className="text-xs text-slate-500">{country.code}</span>
+													</button>
+												))}
+											</div>
+										)}
+									</div>
+									{/* Phone Input - Right side */}
+									<div className="relative flex-1">
+										<input
+											value={phone}
+											onChange={(e) => {
+												setPhone(e.target.value);
+												if (errors.phone) setErrors((p) => ({ ...p, phone: "" }));
+											}}
+											placeholder={
+												phoneCountry && phonePatterns[phoneCountry]
+													? ` ${phonePatterns[phoneCountry].example}`
+													: "أدخل رقم الهاتف"
+											}
+											inputMode="numeric"
+											className={cn(
+												fieldBase,
+												"rounded-l-none rounded-r-2xl",
+												errors.phone ? fieldBad : fieldOk
+											)}
+										/>
+									</div>
 								</div>
 								{errors.phone && <p className="mt-2 text-xs font-bold text-rose-600">{errors.phone}</p>}
 							</div>

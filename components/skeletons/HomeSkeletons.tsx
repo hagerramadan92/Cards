@@ -224,53 +224,112 @@ export function StickerFormSkeleton() {
 
 export default function CategoryPageSkeleton() {
 	return (
-		<section className=" container" dir="rtl">
-			<div className="  py-6">
-				{/* header */}
-				<div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
-					<div className="space-y-2">
-						<Sk className="h-8 w-56" />
-						<Sk className="h-4 w-40" />
+		<section className="" dir="rtl">
+			{/* Full Width Banner */}
+			<div className="relative w-full h-[200px] md:h-[300px] lg:h-[400px] mb-3">
+				<Sk className="absolute inset-0 w-full h-full rounded-none" />
+				<div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent" />
+				
+				{/* Breadcrumb */}
+				<div className="absolute top-2 left-2 right-2 md:top-4 md:left-4 md:right-4 z-10">
+					<div className="container mx-auto px-2">
+						<Sk className="h-4 w-48 bg-white/20 rounded" />
 					</div>
-					<div className="flex gap-2">
-						<Sk className="h-10 w-24" />
-						<Sk className="h-10 w-24" />
-						<Sk className="h-10 w-44" />
+				</div>
+			</div>
+
+			<div className="container px-4 md:px-0 pt-4 md:pt-2 pb-6 md:py-12">
+				{/* Header and Filters */}
+				<div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
+					{/* Header */}
+					<div className="mb-4 md:mb-6">
+						<Sk className="h-6 md:h-8 lg:h-10 w-48 md:w-64 mb-2" />
+						<Sk className="h-4 w-32" />
+					</div>
+
+					{/* Filters and Sort */}
+					<div className="mb-4 md:mb-6">
+						<div className="flex items-center gap-2 md:gap-2 flex-nowrap overflow-x-auto">
+							<Sk className="h-10 w-36 md:w-44 rounded-xl flex-shrink-0" />
+							<Sk className="h-10 w-36 md:w-44 rounded-xl flex-shrink-0" />
+						</div>
 					</div>
 				</div>
 
-				{/* banner */}
-				<Sk className="h-[160px] md:h-[220px] w-full rounded-2xl mb-6" />
-
-				<div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-					{/* filters */}
-					<div className="hidden lg:block lg:col-span-3">
-						<div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3 sticky top-4">
-							<Sk className="h-5 w-24" />
-							<Sk className="h-10 w-full" />
-							<Sk className="h-10 w-full" />
-							<Sk className="h-10 w-full" />
-							<Sk className="h-10 w-full" />
+				{/* Products and Description Row */}
+				<div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
+					{/* Description, Instructions, Terms - 3 columns */}
+					<div className="lg:col-span-3 space-y-3 md:space-y-4 order-1 lg:order-1">
+						{/* Description Accordion */}
+						<div className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
+							<div className="p-3 md:p-4 flex items-center justify-between">
+								<div className="flex items-center gap-2">
+									<Sk className="h-5 w-5 rounded" />
+									<Sk className="h-4 w-16" />
+								</div>
+								<Sk className="h-6 w-6 rounded-lg" />
+							</div>
+							<div className="px-3 md:px-4 pb-3 md:pb-4">
+								<Sk className="h-3 w-full mb-2" />
+								<Sk className="h-3 w-11/12 mb-2" />
+								<Sk className="h-3 w-10/12" />
+							</div>
 						</div>
-					</div>
 
-					{/* products */}
-					<div className="lg:col-span-9">
-						<div className="flex gap-4 overflow-x-auto pb-2 mb-6">
-							{Array.from({ length: 7 }).map((_, i) => (
-								<div key={i} className="min-w-fit flex flex-col items-center gap-2">
-									<Sk className="w-[70px] h-[70px] rounded-full" />
+						{/* Instructions Accordion */}
+						<div className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
+							<div className="p-3 md:p-4 flex items-center justify-between">
+								<div className="flex items-center gap-2">
+									<Sk className="h-5 w-5 rounded" />
 									<Sk className="h-4 w-20" />
 								</div>
-							))}
+								<Sk className="h-6 w-6 rounded-lg" />
+							</div>
+							<div className="px-3 md:px-4 pb-3 md:pb-4">
+								<Sk className="h-3 w-full mb-2" />
+								<Sk className="h-3 w-11/12 mb-2" />
+								<Sk className="h-3 w-10/12" />
+							</div>
 						</div>
 
-						<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+						{/* Terms Accordion */}
+						<div className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
+							<div className="p-3 md:p-4 flex items-center justify-between">
+								<div className="flex items-center gap-2">
+									<Sk className="h-5 w-5 rounded" />
+									<Sk className="h-4 w-24" />
+								</div>
+								<Sk className="h-6 w-6 rounded-lg" />
+							</div>
+							<div className="px-3 md:px-4 pb-3 md:pb-4">
+								<Sk className="h-3 w-full mb-2" />
+								<Sk className="h-3 w-11/12 mb-2" />
+								<Sk className="h-3 w-10/12" />
+							</div>
+						</div>
+					</div>
+					
+					{/* Products Section */}
+					<div className="lg:col-span-9 order-2 lg:order-2">
+						{/* Sub categories row */}
+						<div className="mb-4 md:mb-6">
+							<div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+								{Array.from({ length: 7 }).map((_, i) => (
+									<div key={i} className="min-w-fit flex flex-col items-center gap-2">
+										<Sk className="w-[70px] h-[70px] rounded-full" />
+										<Sk className="h-3 w-20" />
+									</div>
+								))}
+							</div>
+						</div>
+
+						{/* Products Grid */}
+						<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 md:gap-6">
 							{Array.from({ length: 12 }).map((_, i) => (
 								<div key={i} className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-									<Sk className="h-[180px] w-full rounded-none" />
+									<Sk className="h-[160px] md:h-[190px] w-full rounded-none" />
 									<div className="p-3 space-y-2">
-										<Sk className="h-5 w-4/5" />
+										<Sk className="h-4 w-4/5" />
 										<Sk className="h-4 w-2/3" />
 										<Sk className="h-4 w-1/2" />
 									</div>
@@ -278,10 +337,19 @@ export default function CategoryPageSkeleton() {
 							))}
 						</div>
 
-						<div className="mt-10 flex justify-center gap-2">
-							<Sk className="h-10 w-24" />
-							<Sk className="h-10 w-20" />
-							<Sk className="h-10 w-24" />
+						{/* Pagination */}
+						<div className="mt-6 md:mt-10 flex items-center justify-center">
+							<div className="flex items-center gap-1 sm:gap-2 rounded-lg md:rounded-xl border border-slate-200 bg-white px-2 py-1.5 sm:px-3 sm:py-2">
+								<Sk className="h-8 w-8 rounded-lg" />
+								<div className="h-5 w-px bg-slate-200 mx-0.5 sm:mx-1" />
+								<div className="flex items-center gap-0.5 sm:gap-1">
+									<Sk className="h-8 w-8 rounded-lg" />
+									<Sk className="h-8 w-8 rounded-lg" />
+									<Sk className="h-8 w-8 rounded-lg" />
+								</div>
+								<div className="h-5 w-px bg-slate-200 mx-0.5 sm:mx-1" />
+								<Sk className="h-8 w-8 rounded-lg" />
+							</div>
 						</div>
 					</div>
 				</div>

@@ -184,93 +184,102 @@ export default function Footer() {
     <footer className="bg-pro text-white">
       <div className="container max-md:!px-6 px-5">
         {/* top */}
-        <div className=" max-md:w-fit max-md:mx-auto grid grid-cols-2 lg:grid-cols-4 gap-10 py-12">
-         
+        <div className="py-8 sm:py-10 lg:py-12">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-10">
+            {/* Categories - First Section */}
+            <div className="col-span-2 lg:col-span-1 order-1 lg:order-1">
+              <h4 className="text-base sm:text-lg font-extrabold tracking-wide">الأقسام</h4>
+              {/* Small screen: inline-block, Large screen: two columns */}
+              <div className="mt-4">  
+                {categories.length > 0 ? (
+                  <>
+                    {/* Small screen: all categories inline-block */}
+                    <div className="lg:hidden">
+                      {categories.map((category: any) => (
+                        <Link
+                          key={category.id}
+                          href={`/category/${category.id}`}
+                          className="inline-block text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline mr-4 mb-3"
+                        >
+                          {category.name}
+                        </Link>
+                      ))}
+                    </div>
+                    {/* Large screen: two columns */}
+                    <div className="hidden lg:grid lg:grid-cols-2 lg:gap-3">
+                      <div className="flex flex-col gap-3">
+                        {firstSectionCategories.map((category: any) => (
+                          <Link
+                            key={category.id}
+                            href={`/category/${category.id}`}
+                            className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
+                          >
+                            {category.name}
+                          </Link>
+                        ))}
+                      </div>
+                      <div className="flex flex-col gap-3">
+                        {secondSectionCategories.map((category: any) => (
+                          <Link
+                            key={category.id}
+                            href={`/category/${category.id}`}
+                            className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
+                          >
+                            {category.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <span className="text-white/70 text-sm">لا توجد أقسام متاحة</span>
+                )}
+              </div>
+            </div>
 
-          {/* Categories - First Section */}
-          <div className="col-span-2">
-            <h4 className="text-lg font-extrabold tracking-wide">الأقسام</h4>
-            <div className="grid grid-cols-2 gap-3">  
-            <div className="mt-4 flex flex-col gap-3">
-              {firstSectionCategories.length > 0 ? (
-                firstSectionCategories.map((category: any) => (
+            {/* Important */}
+            <div className="order-2 lg:order-2">
+              <h4 className="text-base sm:text-lg font-extrabold tracking-wide">روابط مهمة</h4>
+              <div className="mt-4 flex flex-col gap-3">
+                {importantLinks.map((link, index) => (
                   <Link
-                    key={category.id}
-                    href={`/category/${category.id}`}
-                    className="text-white/50 hover:text-white transition underline-offset-4 hover:underline"
+                    key={index}
+                    href={link.href}
+                    className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
                   >
-                    {category.name}
+                    {link.title}
                   </Link>
-                ))
-              ) : (
-                <span className="text-white/70 text-sm">لا توجد أقسام متاحة</span>
-              )}
+                ))}
+              </div>
             </div>
-            <div className="mt-4 flex flex-col gap-3">
-              {secondSectionCategories.length > 0 ? (
-                secondSectionCategories.map((category: any) => (
+
+            {/* Help / Address */}
+            <div className="space-y-4 order-3 lg:order-3">
+              <h4 className="text-base sm:text-lg font-extrabold tracking-wide">تريد مساعدة؟</h4>
+
+              <div className="flex flex-col gap-3">
+                {helpLinks.map((link, index) => (
                   <Link
-                    key={category.id}
-                    href={`/category/${category.id}`}
-                    className="text-white/50 hover:text-white transition underline-offset-4 hover:underline"
+                    key={index}
+                    href={link.href}
+                    className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
                   >
-                    {category.name}
+                    {link.title}
                   </Link>
-                ))
-              ) : (
-                <span className="text-white/70 text-sm">لا توجد أقسام متاحة</span>
-              )}
+                ))}
+              </div>
+              <div className="flex flex-col gap-3">
+                {helpLinks.map((link, index) => (
+                  <Link
+                    key={index}
+                    href="/FAQ"
+                        className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
+                  >
+                    الاسئلة الشائعة
+                  </Link>
+                ))}
+              </div>
             </div>
-            </div>
-           
-          </div>
-
-    
-
-          {/* Important */}
-          <div>
-            <h4 className="text-lg font-extrabold tracking-wide">روابط مهمة</h4>
-            <div className="mt-4 flex flex-col gap-3">
-              {importantLinks.map((link, index) => (
-                <Link
-                  key={index}
-                  href={link.href}
-                  className="text-white/50 hover:text-white transition underline-offset-4 hover:underline"
-                >
-                  {link.title}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Help / Address */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-extrabold tracking-wide">تريد مساعدة؟</h4>
-
-            <div className="flex flex-col gap-3">
-              {helpLinks.map((link, index) => (
-                <Link
-                  key={index}
-                  href={link.href}
-                  className="text-white/50 hover:text-white transition underline-offset-4 hover:underline"
-                >
-                  {link.title}
-                </Link>
-              ))}
-            </div>
-            <div className="flex flex-col gap-3">
-              {helpLinks.map((link, index) => (
-                <Link
-                  key={index}
-                  href="/FAQ"
-                      className="text-white/50 hover:text-white transition underline-offset-4 hover:underline"
-                >
-                  الاسئلة الشائعة
-                </Link>
-              ))}
-            </div>
-
-          
           </div>
         </div>
 
@@ -278,15 +287,15 @@ export default function Footer() {
         <div className="h-px w-full bg-white/10" />
 
         {/* bottom */}
-        <div className="grid max-md:w-fit max-md:mx-auto grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-10 py-6 sm:py-8">
           {/* payments */}
           <div className="space-y-2 lg:col-span-3">
-            <p className="text-lg font-extrabold">نحن نقبل</p>
+            <p className="text-base sm:text-lg font-extrabold">نحن نقبل</p>
 
             {activePayments.length === 0 ? (
-              <span className="text-white/70 text-sm">طرق الدفع غير متاحة حالياً</span>
+              <span className="text-white/70 text-xs sm:text-sm">طرق الدفع غير متاحة حالياً</span>
             ) : (
-              <div className="flex flex-wrap gap-2 md:gap-3">
+              <div className="flex flex-wrap gap-2 sm:gap-3 mt-2">
                 {/* {activePayments.map((p) => {
                   const PaymentIcon = getPaymentIcon(p.icon, p.name);
                   return (
@@ -303,17 +312,17 @@ export default function Footer() {
                 })} */}
                  <Image
                         src="/images/visa.svg"
-                        alt="p.name"
+                        alt="Visa"
                         width={20}
                         height={20}
-                        className="w-[50px] h-[30px]"
+                        className="w-[45px] sm:w-[50px] h-[27px] sm:h-[30px]"
                       />
                        <Image
                         src="/images/fawry.svg"
-                        alt="p.name"
+                        alt="Fawry"
                         width={20}
                         height={20}
-                         className="w-[50px] h-[30px]"
+                         className="w-[45px] sm:w-[50px] h-[27px] sm:h-[30px]"
                       />
               </div>
             )}
@@ -324,9 +333,9 @@ export default function Footer() {
 
           {/* socials */}
           <div className="space-y-2">
-            <p className="text-lg font-extrabold">تابعنا</p>
+            <p className="text-base sm:text-lg font-extrabold">تابعنا</p>
 
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap mt-2">
               {socialButtons.length === 0 ? (
                 <span className="text-white/70 text-xs">لا توجد روابط اجتماعية حالياً</span>
               ) : (
@@ -346,11 +355,11 @@ export default function Footer() {
                       href={href || "#"}
                       target={target}
                       rel={isExternal ? "noreferrer" : undefined}
-                      className="group relative inline-flex items-center justify-center w-10 h-10 rounded-full bg-white hover:bg-white/90 transition-all duration-200 hover:scale-110 active:scale-95 shadow-md hover:shadow-lg"
+                      className="group relative inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white hover:bg-white/90 transition-all duration-200 hover:scale-110 active:scale-95 shadow-md hover:shadow-lg"
                       aria-label={social.key}
                       title={social.key}
                     >
-                      <Icon className={`${socialColor} group-hover:scale-110 transition-all duration-200`} size={28} />
+                      <Icon className={`${socialColor} group-hover:scale-110 transition-all duration-200`} size={24} />
                     </Link>
                   );
                 })
@@ -360,7 +369,7 @@ export default function Footer() {
         </div>
 
         {/* copyright */}
-        <p className="text-center text-white/70 text-sm pb-10">Ⓒ جميع الحقوق محفوظة {year}</p>
+        <p className="text-center text-white/70 text-xs sm:text-sm pb-6 sm:pb-8 lg:pb-10">Ⓒ جميع الحقوق محفوظة {year}</p>
       </div>
     </footer>
   );

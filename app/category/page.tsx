@@ -34,19 +34,11 @@ function Sk({ className = "" }: { className?: string }) {
 
 function CategoryCardSkeleton() {
 	return (
-		<div className="rounded-3xl border border-slate-200 bg-white overflow-hidden">
-			<div className="relative h-40">
+		<div className="rounded-lg border border-slate-100 bg-white overflow-hidden shadow-sm w-[140px] h-[110px] md:w-[192.83px] md:h-[151px] mx-auto flex flex-col items-center justify-center gap-1 md:gap-2">
+			<div className="relative w-[120px] h-[70px] md:w-[162.83px] md:h-[96px] mt-1.5 md:mt-3">
 				<Sk className="absolute inset-0 rounded-none" />
 			</div>
-			<div className="p-4 space-y-3">
-				<Sk className="h-5 w-2/3" />
-				<Sk className="h-4 w-full" />
-				<Sk className="h-4 w-10/12" />
-				<div className="flex items-center justify-between pt-2">
-					<Sk className="h-6 w-20 rounded-full" />
-					<Sk className="h-6 w-24 rounded-full" />
-				</div>
-			</div>
+			<Sk className="h-4 w-20 md:h-5 md:w-24 rounded" />
 		</div>
 	);
 }
@@ -60,74 +52,29 @@ function CategoryCard({ category }: { category: Category }) {
 			layout
 			whileHover={{ y: -6 }}
 			transition={{ type: "spring", stiffness: 260, damping: 18 }}
-			className="group rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:shadow-md"
+			className="group rounded-lg border border-slate-100 cursor-pointer 
+			bg-white mx-auto overflow-hidden shadow-sm 
+			hover:shadow-md w-[140px] sm:w-[160px]
+			h-[110px] sm:h-[130px] md:w-[192.83px] md:h-[151px]"
 		>
-			<Link href={`/category/${category.id}`} className="block">
+			<Link href={`/category/${category.id}`} className="flex flex-col items-center justify-center gap-1 md:gap-2">
 				{/* Image */}
-				<div className="relative h-44 bg-slate-50">
+				<div className="relative bg-slate-50 mt-1.5 md:mt-3 w-[120px] h-[70px] md:w-[162.83px] md:h-[96px]">
 					<Image
 						src={category.image || "/images/noimg.png"}
 						alt={category.name}
 						fill
 						sizes="(max-width: 768px) 100vw, 25vw"
-						className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+						className="object-cover  transition-transform duration-500 group-hover:scale-[1.04]"
 					/>
-
-					{/* Gradient overlay */}
-					<div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/15 to-transparent opacity-90" />
-
-					{/* Top badge */}
-					<div className="absolute top-3 start-3">
-						<span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-white/90 backdrop-blur border border-slate-200">
-							<HiOutlineFolderOpen className="text-slate-700" />
-							{childrenCount > 0 ? `${childrenCount} أقسام` : "قسم"}
-						</span>
-					</div>
-
-					{/* Title on image */}
-					<div className="absolute bottom-3 start-3 end-3">
-						<h3 className="text-white font-extrabold text-lg line-clamp-1 drop-shadow">
-							{category.name}
-						</h3>
-						{category.description ? (
-							<p className="text-white/85 text-sm line-clamp-1">
-								{category.description}
-							</p>
-						) : null}
-					</div>
+					
 				</div>
-
-				{/* Body */}
-				<div className="p-4 flex flex-col gap-2 ">
-					{/* children chips */}
-					{childrenCount > 0 && (
-						<div className="flex flex-wrap gap-2">
-							{category.children!.slice(0, 4).map((child) => (
-								<span
-									key={child.id}
-									className="text-xs px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-700"
-								>
-									{child.name}
-								</span>
-							))}
-							{childrenCount > 4 && (
-								<span className="text-xs px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-500">
-									+{childrenCount - 4}
-								</span>
-							)}
-						</div>
-					)}
-
-					{/* CTA */}
-					<div className="  flex items-center justify-between">
-						<span className="text-sm font-bold text-slate-700">
-							استعرض المنتجات
-						</span>
-						<span className=" max-md:hidden inline-flex items-center gap-1 text-sm font-bold text-pro">
-							فتح <MdOutlineKeyboardArrowLeft className="text-xl" />
-						</span>
-					</div>
-				</div>
+					
+					<h3 className="text-xs md:text-sm line-clamp-1 drop-shadow text-center px-2">
+						{category.name}
+					</h3>
+								
+				
 			</Link>
 		</motion.div>
 	);
@@ -185,66 +132,20 @@ export default function CategoriesPage() {
 	}, [categories, deferredQ, onlyParents]);
 
 	return (
-		<section dir="rtl" className=" container py-4 md:py-10">
-			{/* Hero */}
-			<div className="rounded-3xl border border-slate-200 bg-white overflow-hidden mb-8">
-				<div className="p-6 md:p-8 bg-slate-50 border-b border-slate-200">
-					<div className="flex items-start md:items-center justify-between gap-4 flex-col md:flex-row">
-						<div>
-							<h1 className="text-3xl md:text-4xl font-extrabold text-slate-900">
-								الأقسام
-							</h1>
-							<p className="mt-2 text-slate-600">
-								ابحث بسرعة أو استعرض الأقسام الرئيسية والفرعية بسهولة.
-							</p>
-						</div>
+		<section className="container py-4 md:py-10">
+			{/* Breadcrumb */}
+			<nav className="flex items-center gap-2 text-sm text-slate-600 mb-4 ps-3">
+				<Link href="/" className="hover:text-pro transition-colors duration-200">
+					الرئيسية
+				</Link>
+				<span className="text-slate-400">›</span>
+				<span className="text-slate-900 font-semibold">الأقسام</span>
+			</nav>
 
-						<div className="flex items-center gap-2">
-							<button
-								type="button"
-								onClick={() => setOnlyParents(false)}
-								className={`px-4 py-2 rounded-full border border-slate-200 text-sm font-bold transition ${!onlyParents ? "bg-pro text-white" : "bg-white text-slate-700 hover:bg-slate-50"
-									}`}
-							>
-								<span className="inline-flex items-center gap-2">
-									<HiOutlineSquares2X2 />
-									الكل
-								</span>
-							</button>
-
-							<button
-								type="button"
-								onClick={() => setOnlyParents(true)}
-								className={`px-4 py-2 rounded-full border border-slate-200 text-sm font-bold transition ${onlyParents ? "bg-pro text-white" : "bg-white text-slate-700 hover:bg-slate-50"
-									}`}
-							>
-								الأقسام الرئيسية فقط
-							</button>
-						</div>
-					</div>
-
-					{/* Search */}
-					<div className="mt-5 relative">
-						<FiSearch className="absolute top-1/2 right-4 -translate-y-1/2 text-slate-400" />
-						<input
-							value={q}
-							onChange={(e) => setQ(e.target.value)}
-							placeholder="ابحث عن قسم أو قسم فرعي..."
-							className="w-full h-12 rounded-2xl border border-slate-200 bg-white pr-11 pl-4 text-slate-800 outline-none focus:ring-2 focus:ring-pro/30"
-						/>
-					</div>
-
-					{/* Counter */}
-					{!loading && (
-						<div className="mt-3 text-sm text-slate-500">
-							عدد النتائج: <span className="font-bold text-slate-800">{filtered.length}</span>
-						</div>
-					)}
-				</div>
-			</div>
+			<h1 className="text-2xl md:text-3xl font-black text-slate-900 mb-6 ps-3">الأقسام</h1>
 
 			{/* Grid */}
-			<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
+			<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-6">
 				{loading
 					? Array.from({ length: 10 }).map((_, i) => <CategoryCardSkeleton key={i} />)
 					: filtered.map((cat) => <CategoryCard key={cat.id} category={cat} />)}
