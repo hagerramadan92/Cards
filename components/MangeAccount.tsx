@@ -72,7 +72,7 @@ export default function MangeAccount() {
 	}, []);
 
 	return (
-		<div dir="rtl" className="space-y-6">
+		<div  className="space-y-6">
 			{/* Account Card */}
 			<section className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
 				<div className="flex items-start gap-3 p-5 md:p-6 bg-gradient-to-b from-slate-50 to-white">

@@ -1,5 +1,10 @@
-import MangeAccount from "@/components/MangeAccount";
+
+import Dashboard from "@/components/my-account/Dashboard";
 
 export default function Page() {
-  return <MangeAccount />;
+  return (
+    <>
+    <Dashboard/>
+    </>
+  );
 }

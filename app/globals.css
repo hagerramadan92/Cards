@@ -5,12 +5,16 @@
   --pro-max: #f48320;
   --dark-gray: #152248bf;
   --dark-gray-pro: #152248  ;
+  --gradient-blue-color: 180deg, #345195 0%, #12234b 100%;
 }
 .text-dark-gray {
   color: var(--dark-gray);
 }
 .text-dark-gray-pro {
   color: var(--dark-gray-pro);
+}
+.gradient-blue-background{
+    background: linear-gradient(var(--gradient-blue-color));
 }
 .text-pro {
   color: var(--pro);

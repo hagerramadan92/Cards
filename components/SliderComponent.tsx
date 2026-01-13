@@ -77,6 +77,8 @@ export default function SliderComponent({ src }: { src: SliderResponse | null })
         slidesPerView={1}
         loop={items.length > 1}
         autoplay={items.length > 1 ? { delay: 2800, disableOnInteraction: false } : false}
+        allowTouchMove={true}
+        grabCursor={true}
         onSwiper={(swiper) => {
           swiperRef.current = swiper;
         }}
