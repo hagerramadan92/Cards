@@ -7,6 +7,7 @@ import ImageComponent from './ImageComponent';
 import Link from 'next/link';
 import { IoMdCart } from 'react-icons/io';
 import { PiDiamondFill } from 'react-icons/pi';
+import { FaFlag } from 'react-icons/fa';
 import { useCart } from '@/src/context/CartContext';
 import BottomSlider from './BottomSlider';
 import { ProductI } from '@/Types/ProductsI';
@@ -193,6 +194,13 @@ export default function ProductCard({
 			>
 				{/* Image */}
 				<div className={`relative w-full h-[150px] md:h-[240px] bg-gray-50`}>
+					{/* Flag - Top Left */}
+					<div className="absolute start-2 md:start-3 top-2 md:top-3 z-30">
+						<div className=" w-7 h-7 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-md border border-slate-200/50 hover:bg-white transition-colors">
+							<Image src="/images/flag.svg" alt="flag" width={20} height={20} className="w-full h-full" />
+						</div>
+					</div>
+
 					{/* VIP Diamond Icon */}
 					<div className="absolute start-2 px-1 bg-white md:start-3 bottom-2 md:bottom-3 z-20 flex items-center rounded-full gap-0 shadow-lg">
 						{/* <PiDiamondFill className="w-4 h-4 md:w-5 md:h-5 text-pro" /> */}
@@ -214,21 +222,48 @@ export default function ProductCard({
 						</div>
 					</Link>
 
-					{/* Top actions */}
-					<div className="absolute top-1 md:top-3 inset-x-1  md:inset-x-3 flex items-center justify-between z-10">
+					{/* Top actions - Right side (Favorite and Add to Cart) */}
+					<div className="absolute top-1 md:top-3 end-1 md:end-3 z-30 flex flex-col items-center gap-2">
+						{/* Favorite */}
 						<HearComponent
 							onToggleLike={() => toggleFavorite(id)}
 							liked={computedIsFavorite}
 							ClassName="text-pro "
 							ClassNameP="!w-9 !h-9"
 						/>
-						{/* Discount */}
-						{showDiscountChip && (
+						{/* Add to Cart */}
+						{inStock && (
+							<motion.button
+								aria-label="add to cart"
+								onClick={(e) => {
+									e.preventDefault();
+									e.stopPropagation();
+									handleAddToCart();
+								}}
+								disabled={isAdding}
+								whileHover={!isAdding ? { scale: 1.06 } : undefined}
+								whileTap={!isAdding ? { scale: 0.92 } : undefined}
+								className="z-20"
+							>
+								<div className="w-9 h-9 rounded-full flex items-center justify-center shadow-lg ring-1 ring-black/5 bg-pro text-white">
+									{isAdding ? (
+										<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+									) : (
+										<IoMdCart className="w-5 h-5" />
+									)}
+								</div>
+							</motion.button>
+						)}
+					</div>
+
+					{/* Discount - Bottom Right */}
+					{showDiscountChip && (
+						<div className="absolute bottom-2 md:bottom-3 end-2 md:end-3 z-20">
 							<span className="px-3 py-1 text-[11px] font-extrabold rounded-lg md:rounded-full bg-red-50 text-red-600 ring-1 ring-red-100">
 								-{discount?.value}%
 							</span>
-						)}
-					</div>
+						</div>
+					)}
 
 					<QuickViewModal
 						open={quickViewOpen}
@@ -242,31 +277,6 @@ export default function ProductCard({
 					<AnimatePresence>
 						{showImage && <ShowImage onClose={() => setShowImage(false)} src={image || '/images/c1.png'} />}
 					</AnimatePresence>
-
-
-					{/* Cart Floating Button (intentional placement) */}
-					{inStock && (
-						<motion.button
-							aria-label="add to cart"
-							onClick={(e) => {
-								e.preventDefault();
-								e.stopPropagation();
-								handleAddToCart();
-							}}
-							disabled={isAdding}
-							whileHover={!isAdding ? { scale: 1.06 } : undefined}
-							whileTap={!isAdding ? { scale: 0.92 } : undefined}
-							className={`absolute start-[6px] md:start-3 top-[64px]  md:top-[72px] -translate-y-1/2 z-20 ${classNameCate}`}
-						>
-							<div className="w-9 h-9 rounded-full flex items-center justify-center shadow-lg ring-1 ring-black/5 bg-pro text-white">
-								{isAdding ? (
-									<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-								) : (
-									<IoMdCart className="w-5 h-5" />
-								)}
-							</div>
-						</motion.button>
-					)}
 				</div>
 
 				{/* Content */}
