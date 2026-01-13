@@ -14,6 +14,11 @@ const handler = NextAuth({
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: "/login",
+    error: "/login",
+  },
+  debug: process.env.NODE_ENV === "development",
   callbacks: {
     async jwt({ token, account }) {
       if (account?.provider === "google" && account?.access_token) {

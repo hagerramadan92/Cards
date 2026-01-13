@@ -7,7 +7,7 @@ import { LanguageProvider } from "@/src/context/LanguageContext";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider>
+    <SessionProvider basePath="/api/auth">
       <LanguageProvider>
         <AuthProvider>
           <CartProvider>

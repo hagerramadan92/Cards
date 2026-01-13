@@ -23,7 +23,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [favoriteProductsLoading, setFavoriteProductsLoading] =
     useState<boolean>(false);
 
-  const { data: session, status } = useSession();
+  const { data: session, status } = useSession({
+    required: false,
+    onUnauthenticated: () => {
+      // Silently handle unauthenticated state
+    },
+  });
 
   /* ---------------------- LOAD LOCAL STORAGE + NEXTAUTH USER ---------------------- */
   useEffect(() => {

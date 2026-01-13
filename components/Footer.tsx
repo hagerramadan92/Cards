@@ -350,7 +350,7 @@ export default function Footer() {
                       aria-label={social.key}
                       title={social.key}
                     >
-                      <Icon className={`${socialColor} group-hover:scale-110 transition-all duration-200`} size={22} />
+                      <Icon className={`${socialColor} group-hover:scale-110 transition-all duration-200`} size={28} />
                     </Link>
                   );
                 })

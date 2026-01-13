@@ -5,6 +5,7 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { AiOutlineClose } from "react-icons/ai";
+import { FiSend } from "react-icons/fi";
 import { createPortal } from "react-dom";
 
 interface Message {
@@ -60,7 +61,9 @@ export default function FloatingChatButton() {
 		},
 	]);
 	const [mounted, setMounted] = useState(false);
+	const [inputMessage, setInputMessage] = useState("");
 	const messagesEndRef = useRef<HTMLDivElement>(null);
+	const inputRef = useRef<HTMLInputElement>(null);
 
 	const isProductPage = useMemo(() => {
 		return /^\/product\/[^\/]+$/.test(pathname || "") || /^\/products\/[^\/]+$/.test(pathname || "");
@@ -103,6 +106,39 @@ export default function FloatingChatButton() {
 			};
 			setMessages((prev) => [...prev, botMessage]);
 		}, 500);
+	};
+
+	const handleSendMessage = () => {
+		if (!inputMessage.trim()) return;
+
+		// Add user message
+		const userMessage: Message = {
+			id: Date.now(),
+			text: inputMessage.trim(),
+			isBot: false,
+			timestamp: new Date(),
+		};
+
+		setMessages((prev) => [...prev, userMessage]);
+		setInputMessage("");
+
+		// Simulate bot response after a short delay
+		setTimeout(() => {
+			const botMessage: Message = {
+				id: Date.now() + 1,
+				text: "شكراً لك على رسالتك! سأقوم بالرد عليك قريباً. في الوقت الحالي، يمكنك اختيار أحد الأسئلة الشائعة أدناه أو التواصل معنا عبر الواتساب.",
+				isBot: true,
+				timestamp: new Date(),
+			};
+			setMessages((prev) => [...prev, botMessage]);
+		}, 800);
+	};
+
+	const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		if (e.key === "Enter" && !e.shiftKey) {
+			e.preventDefault();
+			handleSendMessage();
+		}
 	};
 
 
@@ -181,10 +217,34 @@ export default function FloatingChatButton() {
 							<div ref={messagesEndRef} />
 						</div>
 
+						{/* Input Area */}
+						<div className="p-2 sm:p-3 bg-white border-t border-gray-200">
+							<div className="flex items-center gap-2">
+								<input
+									ref={inputRef}
+									type="text"
+									value={inputMessage}
+									onChange={(e) => setInputMessage(e.target.value)}
+									onKeyPress={handleKeyPress}
+									placeholder="اكتب رسالتك هنا..."
+									className="flex-1 px-3 py-2 text-[12px] sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pro focus:border-transparent"
+									dir="rtl"
+								/>
+								<button
+									onClick={handleSendMessage}
+									disabled={!inputMessage.trim()}
+									className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center bg-pro text-white rounded-lg hover:bg-pro/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+									aria-label="إرسال"
+								>
+									<FiSend size={16} className="sm:w-5 sm:h-5" />
+								</button>
+							</div>
+						</div>
+
 						{/* Questions */}
-						<div className="p-2 sm:p-4 bg-white border-t border-gray-200">
+						<div className="p-2 sm:p-3 bg-white border-t border-gray-200">
 							<p className="text-[10px] sm:text-xs text-gray-500 mb-1.5 sm:mb-2">أسئلة شائعة:</p>
-							<div className="space-y-1 sm:space-y-2 max-h-[80px] sm:max-h-[120px] overflow-y-auto">
+							<div className="space-y-1 sm:space-y-2 max-h-[60px] sm:max-h-[80px] overflow-y-auto">
 								{questions.map((q) => (
 									<button
 										key={q.id}
