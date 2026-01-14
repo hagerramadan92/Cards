@@ -26,7 +26,7 @@ import BankPayment from "@/components/BankPayment";
 import CoBon from "@/components/cobon";
 import InvoiceSection from "@/components/InvoiceSection";
 import OrderSummary from "@/components/OrderSummary";
-import { AddressI } from "@/Types/AddressI";
+// import { AddressI } from "@/Types/AddressI";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { FiPlus } from "react-icons/fi";
 import Button from "@mui/material/Button";
@@ -163,13 +163,13 @@ function SummaryBlock({ summary }: { summary: CheckoutSummaryV1 | null }) {
 
 export default function PaymentPage() {
 	const [openModal, setOpenModal] = useState(false);
-	const [showAddress, setShowAddress] = useState(false);
+	// const [showAddress, setShowAddress] = useState(false);
 	const { paymentMethods } = useAppContext() as any;
 	const [redirecting, setRedirecting] = useState(false);
 	const [redirectMessage, setRedirectMessage] = useState("");
 
-	const [addresses, setAddresses] = useState<AddressI[]>([]);
-	const [selectedAddress, setSelectedAddress] = useState<AddressI | null>(null);
+	// const [addresses, setAddresses] = useState<AddressI[]>([]);
+	// const [selectedAddress, setSelectedAddress] = useState<AddressI | null>(null);
 
 	const [paymentMethod, setPaymentMethod] = useState<string>("");
 	const [notes, setNotes] = useState<string>("");
@@ -177,7 +177,7 @@ export default function PaymentPage() {
 	const [loading, setLoading] = useState(false);
 	const [token, setToken] = useState<string | null>(null);
 
-	const [addrLoading, setAddrLoading] = useState(true);
+	// const [addrLoading, setAddrLoading] = useState(true);
 
 	// ✅ summary from sessionStorage
 	const [checkoutSummary, setCheckoutSummary] = useState<CheckoutSummaryV1 | null>(null);
@@ -259,9 +259,9 @@ export default function PaymentPage() {
 			// ✅ create order payload with requested fields
 			const orderData: any = {
 			
-				customer_name: (selectedAddress as any)?.full_name ? String((selectedAddress as any).full_name) : "",
-				customer_phone: (selectedAddress as any)?.phone ? String((selectedAddress as any).phone) : "",
-				customer_email: (selectedAddress as any)?.email ? String((selectedAddress as any).email) : "",
+				// customer_name: (selectedAddress as any)?.full_name ? String((selectedAddress as any).full_name) : "",
+				// customer_phone: (selectedAddress as any)?.phone ? String((selectedAddress as any).phone) : "",
+				// customer_email: (selectedAddress as any)?.email ? String((selectedAddress as any).email) : "",
 
 				payment_method: paymentMethod,
 				notes: notes?.trim() || `تم اختيار ${paymentLabel}`,
@@ -274,9 +274,9 @@ export default function PaymentPage() {
 			};
 
 			// keep compatibility with existing backend that uses address_id
-			if (selectedAddress?.id) {
-				orderData.address_id = selectedAddress.id;
-			}
+			// if (selectedAddress?.id) {
+			// 	orderData.address_id = selectedAddress.id;
+			// }
 
 			const response = await fetch(`${base_url}/order`, {
 				method: "POST",

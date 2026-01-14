@@ -277,8 +277,8 @@ export default function FloatingChatButton() {
 				whileTap={{ scale: 0.95 }}
 				className={[
 					"fixed right-4 sm:right-5 z-[9997] w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl",
-					"bottom-4 sm:bottom-5",
-					isProductPage ? "max-sm:bottom-[200px] !right-3" : "",
+					"bottom-[15px] sm:bottom-5",
+					isProductPage ? "max-sm:bottom-[15px] !right-3" : "",
 				].join(" ")}
 			>
 				<Image

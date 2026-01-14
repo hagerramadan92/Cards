@@ -91,52 +91,52 @@ function pickBasePrice(p: any) {
  * - BUT "خدمة تصميم" if NOT "لدى تصميم" => one-time fee (not multiplied)
  */
 function computeExtrasFromSelectedOptions(item: any, p: any) {
-	const selectedOptions = safeParseSelectedOptions(item.selected_options);
+	// const selectedOptions = safeParseSelectedOptions(item.selected_options);
 
 	let extrasPerUnit = 0;
 	let oneTimeExtras = 0;
 	let hasAnyAdditional = false;
 
-	for (const opt of selectedOptions) {
-		if (typeof opt?.additional_price !== "undefined") {
-			const add = n(opt.additional_price);
-			const name = String(opt.option_name || "").trim();
-			const val = String(opt.option_value || "").trim();
+	// for (const opt of selectedOptions) {
+	// 	if (typeof opt?.additional_price !== "undefined") {
+	// 		const add = n(opt.additional_price);
+	// 		const name = String(opt.option_name || "").trim();
+	// 		const val = String(opt.option_value || "").trim();
 
-			// ✅ one-time for design service (any option except "لدى تصميم")
-			if (name === "خدمة تصميم" && val && !val.includes("لدى تصميم") && add > 0) {
-				oneTimeExtras += add;
-			} else {
-				extrasPerUnit += add;
-			}
-			hasAnyAdditional = true;
-		}
-	}
+	// 		// ✅ one-time for design service (any option except "لدى تصميم")
+	// 		if (name === "خدمة تصميم" && val && !val.includes("لدى تصميم") && add > 0) {
+	// 			oneTimeExtras += add;
+	// 		} else {
+	// 			extrasPerUnit += add;
+	// 		}
+	// 		hasAnyAdditional = true;
+	// 	}
+	// }
 
 	if (hasAnyAdditional) return { extrasPerUnit, oneTimeExtras };
 
 	// fallback: lookup product options
 	const productOptions = Array.isArray(p?.options) ? p.options : [];
-	for (const sel of selectedOptions) {
-		const match = productOptions.find(
-			(x: any) =>
-				String(x.option_name).trim() === String(sel.option_name).trim() &&
-				String(x.option_value).trim() === String(sel.option_value).trim()
-		);
+	// for (const sel of selectedOptions) {
+	// 	const match = productOptions.find(
+	// 		(x: any) =>
+	// 			String(x.option_name).trim() === String(sel.option_name).trim() &&
+	// 			String(x.option_value).trim() === String(sel.option_value).trim()
+	// 	);
 
-		if (match) {
-			const add = n(match.additional_price);
-			const name = String(sel.option_name || "").trim();
-			const val = String(sel.option_value || "").trim();
+	// 	if (match) {
+	// 		const add = n(match.additional_price);
+	// 		const name = String(sel.option_name || "").trim();
+	// 		const val = String(sel.option_value || "").trim();
 
-			// ✅ one-time for design service (any option except "لدى تصميم")
-			if (name === "خدمة تصميم" && val && !val.includes("لدى تصميم") && add > 0) {
-				oneTimeExtras += add;
-			} else {
-				extrasPerUnit += add;
-			}
-		}
-	}
+	// 		// ✅ one-time for design service (any option except "لدى تصميم")
+	// 		if (name === "خدمة تصميم" && val && !val.includes("لدى تصميم") && add > 0) {
+	// 			oneTimeExtras += add;
+	// 		} else {
+	// 			extrasPerUnit += add;
+	// 		}
+	// 	}
+	// }
 
 	return { extrasPerUnit, oneTimeExtras };
 }
@@ -204,7 +204,7 @@ function computePricingWithDraft(item: any, draft: any) {
 	const groups = draft?.optionGroups || {};
 	for (const [groupName, val] of Object.entries(groups)) {
 		const v = String(val || "").trim();
-		if (!v || v === "اختر") continue;
+		// if (!v || v === "اختر") continue;
 
 		const row = productOptions.find(
 			(o: any) =>
@@ -216,44 +216,44 @@ function computePricingWithDraft(item: any, draft: any) {
 			const add = n(row.additional_price);
 
 			// ✅ one-time for design service (any option except "لدى تصميم")
-			if (String(groupName).trim() === "خدمة تصميم" && v && !v.includes("لدى تصميم") && add > 0) {
-				oneTimeExtras += add;
-			} else {
-				extrasPerUnit += add;
-			}
+			// if (String(groupName).trim() === "خدمة تصميم" && v && !v.includes("لدى تصميم") && add > 0) {
+			// 	oneTimeExtras += add;
+			// } else {
+			// 	extrasPerUnit += add;
+			// }
 		}
 	}
 
 	// material additional
 	const materials = Array.isArray(p?.materials) ? p.materials : [];
 	const matName = String(draft?.material || "").trim();
-	if (matName && matName !== "اختر") {
-		const m = materials.find((x: any) => String(x.name).trim() === matName);
-		if (m) extrasPerUnit += n(m.additional_price);
-	}
+	// if (matName && matName !== "اختر") {
+	// 	const m = materials.find((x: any) => String(x.name).trim() === matName);
+	// 	if (m) extrasPerUnit += n(m.additional_price);
+	// }
 
 	// color additional
 	const colors = Array.isArray(p?.colors) ? p.colors : [];
 	const colorName = String(draft?.color || "").trim();
-	if (colorName && colorName !== "اختر") {
-		const c = colors.find((x: any) => String(x.name).trim() === colorName);
-		if (c) extrasPerUnit += n(c.additional_price);
-	}
+	// if (colorName && colorName !== "اختر") {
+	// 	const c = colors.find((x: any) => String(x.name).trim() === colorName);
+	// 	if (c) extrasPerUnit += n(c.additional_price);
+	// }
 
 	// printing method additional
 	const printingMethods = Array.isArray(p?.printing_methods) ? p.printing_methods : [];
 	const pmName = String(draft?.printing_method || "").trim();
-	if (pmName && pmName !== "اختر") {
-		const pm = printingMethods.find((x: any) => String(x.name).trim() === pmName);
-		if (pm) extrasPerUnit += n(pm.pivot_price ?? pm.base_price);
-	}
+	// if (pmName && pmName !== "اختر") {
+	// 	const pm = printingMethods.find((x: any) => String(x.name).trim() === pmName);
+	// 	if (pm) extrasPerUnit += n(pm.pivot_price ?? pm.base_price);
+	// }
 
 	// print locations additional
 	const printLocations = Array.isArray(p?.print_locations) ? p.print_locations : [];
 	const selectedLocNames: string[] = Array.isArray(draft?.print_locations) ? draft.print_locations : [];
 	for (const locName of selectedLocNames) {
-		const loc = printLocations.find((x: any) => String(x.name).trim() === String(locName).trim());
-		if (loc) extrasPerUnit += n(loc.pivot_price ?? loc.additional_price);
+		// const loc = printLocations.find((x: any) => String(x.name).trim() === String(locName).trim());
+		// if (loc) extrasPerUnit += n(loc.pivot_price ?? loc.additional_price);
 	}
 
 	const line = baseLine + extrasPerUnit * qty + oneTimeExtras;
@@ -293,37 +293,37 @@ function productNeedsSelection(p: any) {
 
 function missingRequiredFields(item: any) {
 	const p = item.product || {};
-	const selected = safeParseSelectedOptions(item.selected_options);
+	// const selected = safeParseSelectedOptions(item.selected_options);
 
-	const hasSize = (p?.sizes?.length ?? 0) > 0;
-	const hasColors = (p?.colors?.length ?? 0) > 0;
-	const hasMaterials = (p?.materials?.length ?? 0) > 0;
+	// const hasSize = (p?.sizes?.length ?? 0) > 0;
+	// const hasColors = (p?.colors?.length ?? 0) > 0;
+	// const hasMaterials = (p?.materials?.length ?? 0) > 0;
 
-	const requiredOpts = (Array.isArray(p?.options) ? p.options : []).filter((o: any) => o.is_required);
+	// const requiredOpts = (Array.isArray(p?.options) ? p.options : []).filter((o: any) => o.is_required);
 	const miss: any[] = [];
 
-	if (hasSize && !String(item?.size || "").trim() && !selected.some((o) => o.option_name?.includes("المقاس"))) miss.push("المقاس");
-	if (hasColors && !String(item?.color?.name || item?.color || "").trim() && !selected.some((o) => o.option_name?.includes("اللون"))) miss.push("اللون");
-	if (hasMaterials && !String(item?.material || "").trim() && !selected.some((o) => o.option_name?.includes("الخامة"))) miss.push("الخامة");
+	// if (hasSize && !String(item?.size || "").trim() && !selected.some((o) => o.option_name?.includes("المقاس"))) miss.push("المقاس");
+	// if (hasColors && !String(item?.color?.name || item?.color || "").trim() && !selected.some((o) => o.option_name?.includes("اللون"))) miss.push("اللون");
+	// if (hasMaterials && !String(item?.material || "").trim() && !selected.some((o) => o.option_name?.includes("الخامة"))) miss.push("الخامة");
 
-	const requiredNames = Array.from(new Set(requiredOpts.map((o: any) => String(o.option_name).trim())));
-	for (const name of requiredNames) {
-		const ok = selected.some((s) => String(s.option_name).trim() === name && String(s.option_value).trim());
-		if (!ok) miss.push(name);
-	}
+	// const requiredNames = Array.from(new Set(requiredOpts.map((o: any) => String(o.option_name).trim())));
+	// for (const name of requiredNames) {
+	// 	const ok = selected.some((s) => String(s.option_name).trim() === name && String(s.option_value).trim());
+	// 	if (!ok) miss.push(name);
+	// }
 
-	if ((p?.printing_methods?.length ?? 0) > 0 && !String(item?.printing_method || "").trim() && !selected.some((o) => o.option_name?.includes("طريقة الطباعة")))
-		miss.push("طريقة الطباعة");
+	// if ((p?.printing_methods?.length ?? 0) > 0 && !String(item?.printing_method || "").trim() && !selected.some((o) => o.option_name?.includes("طريقة الطباعة")))
+	// 	miss.push("طريقة الطباعة");
 
-	const locIds = safeParseIds(item?.print_locations);
-	if ((p?.print_locations?.length ?? 0) > 0 && locIds.length === 0 && !selected.some((o) => o.option_name?.includes("مكان الطباعة")))
-		miss.push("مكان الطباعة");
+	// const locIds = safeParseIds(item?.print_locations);
+	// if ((p?.print_locations?.length ?? 0) > 0 && locIds.length === 0 && !selected.some((o) => o.option_name?.includes("مكان الطباعة")))
+	// 	miss.push("مكان الطباعة");
 
-	const sizeName = String(item?.size || "").trim() || selected.find((o) => o.option_name?.includes("المقاس"))?.option_value;
-	const sizeObj = sizeName ? (p?.sizes || []).find((s: any) => String(s.name).trim() === String(sizeName).trim()) : null;
-	if (sizeObj?.tiers?.length) {
-		if (n(item?.quantity) <= 0) miss.push("كمية المقاس");
-	}
+	// const sizeName = String(item?.size || "").trim() || selected.find((o) => o.option_name?.includes("المقاس"))?.option_value;
+	// const sizeObj = sizeName ? (p?.sizes || []).find((s: any) => String(s.name).trim() === String(sizeName).trim()) : null;
+	// if (sizeObj?.tiers?.length) {
+	// 	if (n(item?.quantity) <= 0) miss.push("كمية المقاس");
+	// }
 
 	return miss;
 }
@@ -458,7 +458,7 @@ ${errors.join("\n")}
 
 	if (!cart || cart.length === 0) {
 		return (
-			<div className="p-10 text-center flex flex-col items-center justify-center min-h-[60vh]" dir="rtl">
+			<div className="p-10 text-center flex flex-col items-center justify-center min-h-[60vh]" >
 				<Image src="/images/cart2.webp" alt="empty cart" width={300} height={250} />
 				<h2 className="text-2xl font-bold mb-6 text-gray-700">العربة فارغة</h2>
 				<Link href="/" className="bg-pro text-white py-3 px-8 rounded-2xl hover:bg-pro-max transition text-lg font-bold">
@@ -469,7 +469,7 @@ ${errors.join("\n")}
 	}
 
 	return (
-		<div className="container pb-8 !pt-5" dir="rtl">
+		<div className="container pb-8 !pt-5">
 			<div className="flex items-center gap-2 text-sm mb-2">
 				<Link href="/" aria-label="go to home" className="text-pro-max font-bold">
 					الرئيسيه
@@ -521,7 +521,7 @@ ${errors.join("\n")}
 
 														<div className="mt-2 flex flex-wrap items-center gap-2">
 															<span className="text-sm font-extrabold text-slate-900">
-																{money(n(item._unit))} <span className="text-xs">]</span>
+																{money(n(item._unit))} <span className="text-xs">جنية</span>
 															</span>
 
 															{item._real?.discount && n(item._real?.original_unit_after_options) > n(item._unit) && (
