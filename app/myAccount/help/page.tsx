@@ -9,6 +9,8 @@ import { TiMessages } from "react-icons/ti";
 import { FiSearch } from "react-icons/fi";
 import { MdOutlineKeyboardArrowLeft } from "react-icons/md";
 import { BsShieldCheck, BsArrowReturnLeft } from "react-icons/bs";
+import { FaTicketAlt } from "react-icons/fa";
+import { FaPlayCircle } from "react-icons/fa";
 
 type HelpItem = {
 	href: string;
@@ -120,98 +122,47 @@ export default function Page() {
 	}, [q]);
 
 	return (
-		<div dir="rtl" className="space-y-5">
-			{/* Hero */}
-			<div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-				<div className="absolute inset-0 bg-gradient-to-l from-pro/10 via-transparent to-transparent" />
+		<div className="space-y-3">
+		
 
-				<div className="relative p-5 md:p-7">
-					<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-						<div>
-							<h4 className="text-2xl md:text-3xl font-extrabold text-slate-900">
-								مركز المساعدة
-							</h4>
-							<p className="mt-2 text-sm md:text-base text-slate-600">
-								ابحث عن إجابات سريعة أو تصفّح المقالات الشائعة.
-							</p>
-							<div className="mt-3">
-								<UserNameWelcome />
-							</div>
-						</div>
-
-						{/* Search */}
-						<div className="w-full md:w-[420px]">
-							<div className="relative">
-								<FiSearch className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-400" />
-								<input
-									value={q}
-									onChange={(e) => setQ(e.target.value)}
-									placeholder="ابحث: استرجاع، ضمان، خصوصية..."
-									className="
-                    w-full rounded-2xl border border-slate-200 bg-white
-                    pl-10 pr-4 py-3 text-sm font-semibold text-slate-900
-                    placeholder:text-slate-400 outline-none transition
-                    focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200 
-                  "
-								/>
-							</div>
-
-							{/* Quick tips */}
-							<div className="mt-3 flex flex-wrap gap-2">
-								{["استرجاع", "ضمان", "شحن", "خصوصية"].map((t) => (
-									<button
-										key={t}
-										type="button"
-										onClick={() => setQ(t)}
-										className="rounded-full bg-slate-50 px-3 py-1.5 text-xs font-extrabold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100 transition"
-									>
-										{t}
-									</button>
-								))}
-							</div>
-						</div>
-					</div>
+		{/* Support Tickets Section */}
+		<div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+			<div className="flex gap-1">
+				<div className="w-8 h-8 rounded-lg bg-pro/10 flex items-center justify-center">
+					<FaTicketAlt className="text-pro-max" size={28} />
 				</div>
-			</div>
-
-			{/* Popular Articles */}
-			<div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-5 md:p-7">
-				<div className="flex items-center justify-between gap-3 mb-5">
-					<div>
-						<h4 className="text-xl md:text-2xl font-extrabold text-slate-900">
-							المقالات الشائعة
-						</h4>
-						<p className="mt-1 text-sm text-slate-600">
-							اختر مقالاً لعرض التفاصيل.
-						</p>
-					</div>
-
-					<span className="rounded-full bg-slate-50 px-3 py-1.5 text-xs font-extrabold text-slate-700 ring-1 ring-slate-200">
-						{filtered.length} نتيجة
-					</span>
+				<div className="flex flex-col gap-1">
+				<h3 className="text-lg font-semibold text-slate-900">تذاكر الدعم</h3>
+				<p className="text-slate-500 text-sm">لا توجد تذاكر للعرض</p>
 				</div>
 
-				{filtered.length === 0 ? (
-					<div className="rounded-2xl border border-slate-200 bg-slate-50 p-6 text-center">
-						<p className="font-extrabold text-slate-900">لا توجد نتائج</p>
-						<p className="mt-2 text-sm text-slate-600">
-							جرّب كلمات أخرى مثل: استرجاع، ضمان، شحن.
-						</p>
-						<button
-							onClick={() => setQ("")}
-							className="mt-4 rounded-xl bg-pro px-5 py-3 text-sm font-extrabold text-white hover:opacity-95 transition"
-						>
-							مسح البحث
-						</button>
-					</div>
-				) : (
-					<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-						{filtered.map((item) => (
-							<Card key={item.href} item={item} />
-						))}
-					</div>
-				)}
 			</div>
+			
+			<button className="px-3 py-1.5 hover:bg-orange-200 rounded-lg text-pro-max bg-orange-100 w-full text-center mt-2 text-white text-sm font-semibold hover:bg-pro-max/90 transition-colors">
+				عرض جميع التذاكر
+			</button>
+		</div>
+
+		{/* Watch Tutorials Section */}
+		<div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+			<div className="flex gap-1 mb-2">
+				<div className="w-8 h-8 rounded-lg bg-pro/10 flex items-center justify-center">
+					<FaPlayCircle className="text-pro-max" size={28} />
+				</div>
+				  <div className="flex flex-col gap-1">
+				  <h3 className="text-lg font-semibold text-slate-900">مشاهدة الدروس التعليمية</h3>
+				<p className="text-sm text-slate-500 mb-3">
+				تحقق من دروسنا التعليمية المصورة التي ترشدك عبر تطبيقات لايك كارد.
+			</p>
+				  </div>
+			</div>
+			
+			<button className="px-3 py-1.5 hover:bg-orange-200 rounded-lg text-pro-max bg-orange-100 w-full text-center mt-2 text-white text-sm font-semibold hover:bg-pro-max/90 transition-colors">
+				مشاهدة فيديوهات الدروس التعليمية
+			</button>
+		</div>
+
+			
 		</div>
 	);
 }

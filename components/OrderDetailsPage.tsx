@@ -74,6 +74,10 @@ interface OrderData {
 
   created_at: string;
   payment_method_label: string;
+  payment_reference?: string;
+  management_fees?: string;
+  total_rewards?: number;
+  order_rating?: number;
 
   full_address: ApiFullAddress | null;
 
@@ -186,6 +190,64 @@ function buildFullAddress(a: ApiFullAddress | null, fallback: string | null) {
   return parts.length ? parts.join(" • ") : fallback;
 }
 
+function OrderDetailsSkeleton() {
+  return (
+    <div className="mb-16 w-full space-y-6" dir="rtl">
+      {/* Header Card Skeleton */}
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-start justify-between mb-6">
+          <div className="space-y-2">
+            <div className="h-7 w-48 bg-slate-200 rounded animate-pulse"></div>
+            <div className="h-4 w-56 bg-slate-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+
+        {/* Order Info Grid Skeleton */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-slate-200">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="space-y-2">
+              <div className="h-3 w-24 bg-slate-200 rounded animate-pulse"></div>
+              <div className="h-4 w-32 bg-slate-200 rounded animate-pulse"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Items Card Skeleton */}
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="h-6 w-32 bg-slate-200 rounded animate-pulse mb-4"></div>
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex gap-4 p-4 rounded-lg border border-slate-100">
+              <div className="w-20 h-20 rounded-lg bg-slate-200 animate-pulse"></div>
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-3/4 bg-slate-200 rounded animate-pulse"></div>
+                <div className="h-3 w-1/2 bg-slate-200 rounded animate-pulse"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Summary Skeleton */}
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="h-6 w-32 bg-slate-200 rounded animate-pulse mb-4"></div>
+        <div className="space-y-3">
+          <div className="flex justify-between">
+            <div className="h-4 w-20 bg-slate-200 rounded animate-pulse"></div>
+            <div className="h-4 w-24 bg-slate-200 rounded animate-pulse"></div>
+          </div>
+          <div className="h-px bg-slate-200"></div>
+          <div className="flex justify-between">
+            <div className="h-5 w-32 bg-slate-200 rounded animate-pulse"></div>
+            <div className="h-5 w-28 bg-slate-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function OrderDetailsPage({ orderId }: Props) {
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -256,7 +318,7 @@ export default function OrderDetailsPage({ orderId }: Props) {
   const status = useMemo(() => statusUi(order?.status || ""), [order?.status]);
   const pay = useMemo(() => paymentUi(order?.status_payment || ""), [order?.status_payment]);
 
-  if (loading) return <Loading />;
+  if (loading) return <OrderDetailsSkeleton />;
 
   if (!order) {
     return (
@@ -278,249 +340,158 @@ export default function OrderDetailsPage({ orderId }: Props) {
 
   const addressText = buildFullAddress(order.full_address, order.shipping_address);
 
+  // Format date
+  const formatDate = (dateString: string) => {
+    try {
+      if (!dateString) return order.created_at || "—";
+      const date = new Date(dateString);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return order.created_at || dateString;
+      }
+      
+      const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+      const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+      
+      const dayIndex = date.getDay();
+      const monthIndex = date.getMonth();
+      const day = date.getDate();
+      const year = date.getFullYear();
+      
+      // Validate indices
+      if (dayIndex < 0 || dayIndex >= days.length || monthIndex < 0 || monthIndex >= months.length) {
+        return order.created_at || dateString;
+      }
+      
+      const dayName = days[dayIndex];
+      const month = months[monthIndex];
+      
+      return `${dayName}، ${day} ${month} ${year}`;
+    } catch (error) {
+      return order.created_at || dateString || "—";
+    }
+  };
+
   return (
-    <div className="mb-16 w-full" dir="rtl">
-      {/* Header */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h3 className="text-slate-900 text-2xl font-extrabold">تفاصيل الطلب</h3>
-
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Chip>
-                رقم الطلب: <span className="ms-1 text-slate-900">{order.order_number}</span>
-              </Chip>
-
-              <Chip>
-                تاريخ الطلب: <span className="ms-1 text-slate-900">{order.created_at}</span>
-              </Chip>
-
-              <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[12px] font-extrabold ${status.badge}`}>
-                {status.icon}
-                {order.status_label && order.status_label !== "order.status.pending"
-                  ? order.status_label
-                  : status.label}
-              </span>
-
-              <span className={`inline-flex items-center rounded-full border px-3 py-1 text-[12px] font-extrabold ${pay.cls}`}>
-                {pay.label}
-              </span>
-            </div>
+    <div className="mb-16 w-full space-y-6" dir="rtl">
+      {/* Header Card */}
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h3 className="text-2xl font-bold text-slate-900 mb-1">
+              Order #{order.order_number}
+            </h3>
+            <p className="text-sm text-slate-500">
+              {formatDate(order.created_at)}
+            </p>
           </div>
- 
+        
         </div>
 
-        {/* Notes */}
-        {order.notes && (
-          <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <p className="text-slate-700 font-extrabold text-sm">ملاحظة:</p>
-            <p className="text-slate-700 font-bold mt-1">{order.notes}</p>
+        {/* Order Info Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-slate-200">
+          <div>
+            <p className="text-xs text-slate-500 mb-1">Order Number</p>
+            <p className="text-sm font-semibold text-slate-900">{order.order_number}</p>
           </div>
-        )}
+          <div>
+            <p className="text-xs text-slate-500 mb-1">Payment Method</p>
+            <p className="text-sm font-semibold text-slate-900">{order.payment_method_label || "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500 mb-1">Total Rewards</p>
+            <p className="text-sm font-semibold text-slate-900">
+              {order.total_rewards ? `${order.total_rewards} Points` : "—"}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500 mb-1">Status</p>
+            <span className={`inline-flex items-center rounded-lg border px-3 py-1 text-xs font-semibold ${pay.cls}`}>
+              {pay.label}
+            </span>
+          </div>
+          {order.management_fees && (
+            <div>
+              <p className="text-xs text-slate-500 mb-1">Management Fees</p>
+              <p className="text-sm font-semibold text-slate-900">{order.management_fees} EGP</p>
+            </div>
+          )}
+          <div>
+            <p className="text-xs text-slate-500 mb-1">Total Paid</p>
+            <p className="text-sm font-bold text-pro-max">{order.formatted_total}</p>
+          </div>
+          {order.order_rating && (
+            <div>
+              <p className="text-xs text-slate-500 mb-1">Order Rating</p>
+              <p className="text-sm font-semibold text-slate-900">{order.order_rating}/5</p>
+            </div>
+          )}
+          {order.payment_method_label?.toLowerCase().includes('fawry') && order.payment_reference && (
+            <div>
+              <p className="text-xs text-slate-500 mb-1">Fawry Reference</p>
+              <p className="text-sm font-semibold text-slate-900">{order.payment_reference}</p>
+            </div>
+          )}
+        </div>
 
         {/* Cancel banner */}
         {order.status === "cancelled" && (
-          <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3">
-            <p className="font-extrabold text-rose-800">تم إلغاء هذا الطلب</p>
+          <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3">
+            <p className="text-sm font-semibold text-rose-800">تم إلغاء هذا الطلب</p>
           </div>
         )}
       </div>
 
-      <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Items + progress */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* Items Card */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <p className="text-slate-900 font-extrabold text-lg">محتويات الطلب</p>
-              <Chip>{order.items?.length ?? 0} منتج</Chip>
-            </div>
-
-            <div className="mt-4 space-y-3">
-              {order.items.map((item, index) => {
-                const subtotal = calcItemSubtotal(item.price, item.quantity);
-                const opts: ParsedOption[] = Array.isArray(item.options) ? item.options : [];
-
-                // best image
-                const img =
-                  item?.product?.image ||
-                  (item?.product as any)?.images?.find?.((x: any) => x?.path)?.path ||
-                  "/images/not.jpg";
-
-                return (
-                  <div key={index} className="rounded-2xl border border-slate-200 p-4">
-                    <div className="flex gap-4">
-                      <div className="relative w-[92px] h-[92px] rounded-2xl overflow-hidden bg-slate-100 ring-1 ring-slate-200 shrink-0">
-                        <Image src={img} alt={item.product_name} fill className="object-cover" />
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <p className="text-slate-900 font-extrabold line-clamp-2">{item.product_name}</p>
-
-                        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-                          <Chip>
-                            الكمية: <span className="ms-1 text-slate-900">{item.quantity}</span>
-                          </Chip>
-                          <Chip>
-                            سعر الوحدة: <span className="ms-1 text-slate-900">{item.price}</span>
-                          </Chip>
-                          {subtotal !== null && (
-                            <Chip>
-                              الإجمالي: <span className="ms-1 text-slate-900">{subtotal.toFixed(2)}</span>
-                            </Chip>
-                          )}
-                        </div>
-
-                        {/* Options */}
-                        {opts.length > 0 && (
-                          <div className="mt-3">
-                            <p className="text-xs font-extrabold text-slate-500 mb-2">الخيارات:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {opts.map((o, i) => {
-                                if (typeof o === "string") return <Chip key={i}>{o}</Chip>;
-
-                                const name = (o as any).option_name ?? (o as any).name ?? "";
-                                const value = (o as any).option_value ?? (o as any).value ?? "";
-                                const label = [name, value].filter(Boolean).join(": ");
-                                return <Chip key={i}>{label || "—"}</Chip>;
-                              })}
-                            </div>
-                          </div>
-                        )}
-                      </div>
+      {/* Items Card */}
+      {order.items && order.items.length > 0 && (
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h4 className="text-lg font-semibold text-slate-900 mb-4">محتويات الطلب</h4>
+          <div className="space-y-3">
+            {order.items.map((item, index) => {
+              const subtotal = calcItemSubtotal(item.price, item.quantity);
+              const img = item?.product?.image || "/images/noimg.png";
+              
+              return (
+                <div key={index} className="flex gap-4 p-4 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors">
+                  <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
+                    <Image src={img} alt={item.product_name} fill className="object-cover" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-slate-900 mb-1 line-clamp-2">{item.product_name}</p>
+                    <div className="flex items-center gap-3 text-xs text-slate-600">
+                      <span>الكمية: {item.quantity}</span>
+                      {subtotal !== null && (
+                        <span>الإجمالي: {subtotal.toFixed(2)}</span>
+                      )}
                     </div>
                   </div>
-                );
-              })}
-            </div>
-
-            {/* Address line */}
-            {addressText && (
-              <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 flex items-center gap-2">
-                <SlLocationPin className="text-slate-700" />
-                <p className="text-slate-700 font-extrabold text-sm">
-                  عنوان التوصيل: <span className="mx-1 text-slate-900">{addressText}</span>
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Progress Card */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-slate-900 font-extrabold text-lg mb-4">تتبع الطلب</p>
-
-            {order.status === "cancelled" ? (
-              <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3">
-                <p className="font-extrabold text-rose-800">لا يمكن متابعة التقدم لأن الطلب ملغي.</p>
-              </div>
-            ) : (
-              <OrderProgress steps={steps} currentStep={currentStep} />
-            )}
+                </div>
+              );
+            })}
           </div>
         </div>
+      )}
 
-        {/* Summary column */}
-        <div className="space-y-4">
-          {/* Summary */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-3 pb-4 border-b border-slate-200">
-              <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-900 flex items-center justify-center">
-                <GoChecklist className="w-6 h-6" />
-              </div>
-              <p className="text-slate-900 font-extrabold text-lg">ملخص الطلب</p>
-            </div>
-
-            <div className="mt-4 space-y-3 text-slate-700 font-extrabold">
-              <div className="flex items-center justify-between">
-                <p className="text-slate-500">المجموع</p>
-                <p className="text-slate-900">{order.total_amount}</p>
-              </div>
-
-              <div className="h-px bg-slate-200" />
-
-              <div className="flex items-center justify-between">
-                <p className="text-slate-500">الإجمالي النهائي</p>
-                {/* formatted_total already has currency */}
-                <p className="text-slate-900 text-lg">{order.formatted_total}</p>
-              </div>
-            </div>
+      {/* Summary */}
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h4 className="text-lg font-semibold text-slate-900 mb-4">ملخص الطلب</h4>
+        <div className="space-y-3">
+          <div className="flex justify-between text-sm">
+            <span className="text-slate-600">المجموع</span>
+            <span className="font-semibold text-slate-900">{order.total_amount}</span>
           </div>
-
-          {/* Payment */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-900 flex items-center justify-center">
-                <IoWalletOutline className="w-6 h-6" />
-              </div>
-
-              <div className="min-w-0">
-                <p className="text-slate-900 font-extrabold">طريقة الدفع</p>
-                <p className="text-slate-600 font-bold mt-1">{order.payment_method_label}</p>
-
-                <div className="mt-2">
-                  <span className={`inline-flex items-center rounded-full border px-3 py-1 text-[12px] font-extrabold ${pay.cls}`}>
-                    {pay.label}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Full address card */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-900 flex items-center justify-center">
-                <SlLocationPin className="w-6 h-6" />
-              </div>
-
-              <div className="min-w-0">
-                <p className="text-slate-900 font-extrabold">عنوان الشحن</p>
-
-                {order.full_address ? (
-                  <div className="mt-2 space-y-1 text-sm font-bold text-slate-700">
-                    <div className="flex justify-between gap-3">
-                      <span className="text-slate-500">الاسم</span>
-                      <span className="text-slate-900">{order.full_address.full_name || "—"}</span>
-                    </div>
-                    <div className="flex justify-between gap-3">
-                      <span className="text-slate-500">الهاتف</span>
-                      <span className="text-slate-900">{order.full_address.phone || "—"}</span>
-                    </div>
-                    <div className="flex justify-between gap-3">
-                      <span className="text-slate-500">النوع</span>
-                      <span className="text-slate-900">{order.full_address.type || "—"}</span>
-                    </div>
-
-                    <div className="h-px bg-slate-200 my-2" />
-
-                    <p className="text-slate-600 font-bold leading-relaxed">
-                      {buildFullAddress(order.full_address, order.shipping_address) || "لا يوجد عنوان"}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-slate-600 font-bold mt-2">
-                    {order.shipping_address || "لا يوجد عنوان"}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* User (mobile) */}
-          {order.user && (
-            <div className="sm:hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p className="text-slate-900 font-extrabold mb-3">بيانات المستخدم</p>
-              <div className="flex items-center gap-3">
-                <div className="relative w-12 h-12 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
-                  <Image src={order.user.image || "/images/not.jpg"} alt={order.user.name} fill className="object-cover" />
-                </div>
-                <div>
-                  <p className="font-extrabold text-slate-900">{order.user.name}</p>
-                  <p className="text-sm font-bold text-slate-600">{order.user.email}</p>
-                </div>
-              </div>
+          {order.management_fees && (
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-600">رسوم الإدارة</span>
+              <span className="font-semibold text-slate-900">{order.management_fees} EGP</span>
             </div>
           )}
+          <div className="h-px bg-slate-200"></div>
+          <div className="flex justify-between">
+            <span className="text-base font-semibold text-slate-900">الإجمالي النهائي</span>
+            <span className="text-lg font-bold text-pro-max">{order.formatted_total}</span>
+          </div>
         </div>
       </div>
     </div>

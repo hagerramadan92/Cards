@@ -186,7 +186,7 @@ export default function Footer() {
         {/* top */}
         <div className="py-8 sm:py-10 lg:py-12">
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-10">
-            {/* Categories - First Section */}
+          {/* Categories - First Section */}
             <div className="col-span-2 lg:col-span-1 order-1 lg:order-1">
               <h4 className="text-base sm:text-lg font-extrabold tracking-wide">الأقسام</h4>
               {/* Small screen: inline-block, Large screen: two columns */}
@@ -209,76 +209,76 @@ export default function Footer() {
                     <div className="hidden lg:grid lg:grid-cols-2 lg:gap-3">
                       <div className="flex flex-col gap-3">
                         {firstSectionCategories.map((category: any) => (
-                          <Link
-                            key={category.id}
-                            href={`/category/${category.id}`}
+                  <Link
+                    key={category.id}
+                    href={`/category/${category.id}`}
                             className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
-                          >
-                            {category.name}
-                          </Link>
+                  >
+                    {category.name}
+                  </Link>
                         ))}
-                      </div>
+            </div>
                       <div className="flex flex-col gap-3">
                         {secondSectionCategories.map((category: any) => (
-                          <Link
-                            key={category.id}
-                            href={`/category/${category.id}`}
+                  <Link
+                    key={category.id}
+                    href={`/category/${category.id}`}
                             className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
-                          >
-                            {category.name}
-                          </Link>
+                  >
+                    {category.name}
+                  </Link>
                         ))}
                       </div>
                     </div>
                   </>
-                ) : (
-                  <span className="text-white/70 text-sm">لا توجد أقسام متاحة</span>
-                )}
-              </div>
+              ) : (
+                <span className="text-white/70 text-sm">لا توجد أقسام متاحة</span>
+              )}
+            </div>
             </div>
 
-            {/* Important */}
+          {/* Important */}
             <div className="order-2 lg:order-2">
               <h4 className="text-base sm:text-lg font-extrabold tracking-wide">روابط مهمة</h4>
-              <div className="mt-4 flex flex-col gap-3">
-                {importantLinks.map((link, index) => (
-                  <Link
-                    key={index}
-                    href={link.href}
+            <div className="mt-4 flex flex-col gap-3">
+              {importantLinks.map((link, index) => (
+                <Link
+                  key={index}
+                  href={link.href}
                     className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
-                  >
-                    {link.title}
-                  </Link>
-                ))}
-              </div>
+                >
+                  {link.title}
+                </Link>
+              ))}
             </div>
+          </div>
 
-            {/* Help / Address */}
+          {/* Help / Address */}
             <div className="space-y-4 order-3 lg:order-3">
               <h4 className="text-base sm:text-lg font-extrabold tracking-wide">تريد مساعدة؟</h4>
 
-              <div className="flex flex-col gap-3">
-                {helpLinks.map((link, index) => (
-                  <Link
-                    key={index}
-                    href={link.href}
+            <div className="flex flex-col gap-3">
+              {helpLinks.map((link, index) => (
+                <Link
+                  key={index}
+                  href={link.href}
                     className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
-                  >
-                    {link.title}
-                  </Link>
-                ))}
-              </div>
-              <div className="flex flex-col gap-3">
-                {helpLinks.map((link, index) => (
-                  <Link
-                    key={index}
-                    href="/FAQ"
+                >
+                  {link.title}
+                </Link>
+              ))}
+            </div>
+            <div className="flex flex-col gap-3">
+              {helpLinks.map((link, index) => (
+                <Link
+                  key={index}
+                  href="/FAQ"
                         className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
-                  >
-                    الاسئلة الشائعة
-                  </Link>
-                ))}
-              </div>
+                >
+                  الاسئلة الشائعة
+                </Link>
+              ))}
+            </div>
             </div>
           </div>
         </div>

@@ -14,6 +14,7 @@ interface Order {
 	id: number;
 	order_number: string;
 	status: string;
+	payment_status?: string;
 	formatted_total: string;
 	items_count: number;
 	created_at: string;
@@ -39,15 +40,27 @@ function OrdersSkeleton({ count = 4 }: { count?: number }) {
 	return (
 		<div dir="rtl" className="space-y-5">
 			{/* Header skeleton */}
-			<div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 md:p-5">
-				<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-					<div className="space-y-2">
-						<Sk className="h-6 w-28" />
-						<Sk className="h-4 w-48" />
+			<div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4 md:p-5">
+				<div className="flex flex-col gap-4">
+					<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+						<div className="space-y-2">
+							<Sk className="h-6 w-28" />
+							<Sk className="h-4 w-48" />
+						</div>
+						<div className="flex flex-row gap-3 w-full md:w-auto">
+							<div className="w-full md:w-[420px]">
+								<Sk className="h-11 w-full rounded-xl" />
+							</div>
+							<Sk className="h-11 w-20 rounded-xl" />
+						</div>
 					</div>
-
-					<div className="w-full md:w-[420px]">
-						<Sk className="h-11 w-full rounded-xl" />
+					{/* Filters skeleton */}
+					<div className="flex flex-wrap gap-2 pt-2 border-t border-slate-200">
+						<Sk className="h-9 w-24 rounded-lg" />
+						<Sk className="h-9 w-28 rounded-lg" />
+						<Sk className="h-9 w-32 rounded-lg" />
+						<Sk className="h-9 w-20 rounded-lg" />
+						<Sk className="h-9 w-24 rounded-lg" />
 					</div>
 				</div>
 			</div>
@@ -57,31 +70,20 @@ function OrdersSkeleton({ count = 4 }: { count?: number }) {
 				{Array.from({ length: count }).map((_, i) => (
 					<div
 						key={i}
-						className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden"
+						className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden"
 					>
-						<div className="bg-slate-50 p-4 flex items-center justify-between">
-							<div className="space-y-2">
-								<Sk className="h-4 w-44" />
-								<Sk className="h-4 w-36" />
-							</div>
-							<div className="space-y-2 text-left">
-								<Sk className="h-4 w-28" />
-								<Sk className="h-4 w-24" />
-							</div>
-						</div>
-
-						<div className="p-4">
-							<div className="flex gap-4">
-								<Sk className="h-[90px] w-[90px] rounded-2xl" />
-								<div className="flex-1 space-y-2">
-									<Sk className="h-4 w-2/3" />
-									<Sk className="h-4 w-1/2" />
-									<Sk className="h-4 w-1/3" />
+						<div className="p-4 flex items-center gap-4">
+							{/* Image skeleton */}
+							<Sk className="h-[100px] w-[100px] rounded-xl flex-shrink-0" />
+							
+							{/* Order Info skeleton */}
+							<div className="flex-1 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+								<div className="space-y-2">
+									<Sk className="h-5 w-40" />
+									<Sk className="h-4 w-32" />
 								</div>
-							</div>
-
-							<div className="mt-4">
-								<Sk className="h-7 w-28 rounded-full" />
+								{/* Status skeleton */}
+								<Sk className="h-8 w-24 rounded-lg" />
 							</div>
 						</div>
 					</div>
@@ -95,20 +97,35 @@ function OrdersSkeleton({ count = 4 }: { count?: number }) {
 
 function statusUI(status: string) {
 	if (status === "pending")
-		return { label: "جاري التنفيذ", cls: "bg-amber-50 text-amber-700 ring-1 ring-amber-100" };
+		return { label: "قيد الانتظار", cls: "bg-amber-50 text-amber-700 ring-1 ring-amber-100" };
+	if (status === "waiting" || status === "processing")
+		return { label: "جاري التنفيذ", cls: "bg-blue-50 text-blue-700 ring-1 ring-blue-100" };
 	if (status === "completed")
-		return { label: "تم التنفيذ", cls: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100" };
-	if (status === "cancelled")
-		return { label: "ملغى", cls: "bg-rose-50 text-rose-700 ring-1 ring-rose-100" };
+		return { label: "مكتمل", cls: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100" };
+	if (status === "rejected" || status === "cancelled")
+		return { label: "مرفوض", cls: "bg-rose-50 text-rose-700 ring-1 ring-rose-100" };
 	return { label: status, cls: "bg-slate-50 text-slate-700 ring-1 ring-slate-200" };
 }
 
+function paymentStatusUI(status: string) {
+	if (status === "paid")
+		return { label: "مدفوع", cls: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100" };
+	if (status === "pending")
+		return { label: "قيد الدفع", cls: "bg-amber-50 text-amber-700 ring-1 ring-amber-100" };
+	if (status === "failed")
+		return { label: "فشل الدفع", cls: "bg-rose-50 text-rose-700 ring-1 ring-rose-100" };
+	return { label: "غير محدد", cls: "bg-slate-50 text-slate-700 ring-1 ring-slate-200" };
+}
+
 /* ---------------- Component ---------------- */
+
+type FilterType = "all" | "pending" | "waiting" | "completed" | "rejected";
 
 export default function Orders() {
 	const [search, setSearch] = useState<string>("");
 	const [orders, setOrders] = useState<Order[]>([]);
 	const [loading, setLoading] = useState<boolean>(true);
+	const [filter, setFilter] = useState<FilterType>("all");
 
 	const [page, setPage] = useState<number>(1);
 	const [lastPage, setLastPage] = useState<number>(1);
@@ -163,12 +180,34 @@ export default function Orders() {
 		setPage(1);
 	};
 
+	const handleFilterChange = (newFilter: FilterType) => {
+		setFilter(newFilter);
+		setPage(1);
+	};
+
 	// ✅ useMemo to avoid filtering on every render
 	const filteredOrders = useMemo(() => {
+		let result = orders;
+
+		// Apply status filter
+		if (filter !== "all") {
+			if (filter === "waiting") {
+				result = result.filter((order) => order.status === "waiting" || order.status === "processing");
+			} else if (filter === "rejected") {
+				result = result.filter((order) => order.status === "rejected" || order.status === "cancelled");
+			} else {
+				result = result.filter((order) => order.status === filter);
+			}
+		}
+
+		// Apply search filter
 		const q = search.trim();
-		if (!q) return orders;
-		return orders.filter((order) => order.order_number.includes(q));
-	}, [orders, search]);
+		if (q) {
+			result = result.filter((order) => order.order_number.includes(q));
+		}
+
+		return result;
+	}, [orders, search, filter]);
 
 	if (loading) return <OrdersSkeleton count={4} />;
 
@@ -184,17 +223,16 @@ export default function Orders() {
 				<>
 					{/* Header */}
 					<div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 md:p-5">
-						<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-							<div>
-								<h2 className="text-xl font-extrabold text-slate-900">طلباتي</h2>
-								<p className="mt-1 text-sm text-slate-500">
-									يمكنك البحث برقم الطلب ومراجعة تفاصيل كل طلب.
-								</p>
-							</div>
+						<div className="flex flex-col gap-4">
+							<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+								<div>
+									<h2 className="text-xl font-extrabold text-slate-900">طلباتي</h2>
+									
+								</div>
 
-							<div className="flex  flex-row gap-3 w-full md:w-auto">
-								<div className="relative w-full md:w-[420px]">
-									<FiSearch className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-400" />
+								<div className="flex flex-row gap-3 w-full md:w-auto">
+									<div className="relative w-full md:w-[420px]">
+										<FiSearch className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-400" />
 									<input
 										type="text"
 										placeholder="ابحث برقم الطلب"
@@ -202,13 +240,68 @@ export default function Orders() {
 										onChange={handleSearchChange}
 										className="w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 py-3 text-sm font-semibold text-slate-900
                                placeholder:text-slate-400 outline-none transition
-                               focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
+                               focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20  duration-200"
 									/>
-								</div>
+									</div>
 
-								<div className=" text-nowrap max-md:text-xs inline-flex items-center justify-center rounded-xl bg-slate-50 max-md:p-2 px-4 py-3 text-sm font-extrabold text-slate-700 ring-1 ring-slate-200">
-									{filteredOrders.length} طلب
+									<div className="text-nowrap max-md:text-xs inline-flex items-center justify-center rounded-xl bg-slate-50 max-md:p-2 px-4 py-3 text-sm font-extrabold text-slate-700 ring-1 ring-slate-200">
+										{filteredOrders.length} طلب
+									</div>
 								</div>
+							</div>
+
+							{/* Filters */}
+							<div className="flex flex-wrap gap-2 justify-center pt-2 border-t border-slate-200">
+								<button
+									onClick={() => handleFilterChange("all")}
+									className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+										filter === "all"
+											? "bg-pro-max text-white"
+											: "bg-slate-100 text-slate-700 hover:bg-slate-200"
+									}`}
+								>
+									جميع الطلبات
+								</button>
+								<button
+									onClick={() => handleFilterChange("pending")}
+									className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+										filter === "pending"
+											? "bg-pro-max text-white"
+											: "bg-slate-100 text-slate-700 hover:bg-slate-200"
+									}`}
+								>
+									قيد الانتظار
+								</button>
+								<button
+									onClick={() => handleFilterChange("waiting")}
+									className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+										filter === "waiting"
+											? "bg-pro-max text-white"
+											: "bg-slate-100 text-slate-700 hover:bg-slate-200"
+									}`}
+								>
+									جاري التنفيذ
+								</button>
+								<button
+									onClick={() => handleFilterChange("completed")}
+									className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+										filter === "completed"
+											? "bg-pro-max text-white"
+											: "bg-slate-100 text-slate-700 hover:bg-slate-200"
+									}`}
+								>
+									مكتمل
+								</button>
+								<button
+									onClick={() => handleFilterChange("rejected")}
+									className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+										filter === "rejected"
+											? "bg-pro-max text-white"
+											: "bg-slate-100 text-slate-700 hover:bg-slate-200"
+									}`}
+								>
+									مرفوض
+								</button>
 							</div>
 						</div>
 					</div>
@@ -221,79 +314,46 @@ export default function Orders() {
 							{filteredOrders.map((order) => {
 								const item = order.items?.[0];
 								const img = item?.product?.image || "/images/noimg.png";
-								const productName = item?.product?.name || "اسم المنتج";
-								const productPrice = item?.product?.final_price || item?.price_per_unit || 0;
 								const status = statusUI(order.status);
 
 								return (
-									<div
+									<Link
 										key={order.id}
-										className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden"
+										href={`/myAccount/${order.id}`}
+										className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden hover:shadow-md hover:border-pro transition-all duration-200 cursor-pointer"
 									>
-										{/* top bar */}
-										<div className="bg-gradient-to-b from-slate-50 to-white p-4 flex items-center justify-between gap-3">
-											<div className="space-y-1">
-												<p className="text-slate-700 font-semibold">
-													رقم الطلب: <span className="font-extrabold">{order.order_number}</span>
-												</p>
-												<p className="text-slate-700 font-semibold">
-													الإجمالي: <span className="font-extrabold">{order.formatted_total}</span>
-												</p>
-											</div>
-
-											<div className="flex flex-col items-end gap-2">
-												<Link
-													href={`/myAccount/${order.id}`}
-													className=" text-nowrap inline-flex items-center gap-1 rounded-xl bg-pro/10 max-md:p-2 px-3 py-2 text-sm font-extrabold text-pro ring-1 ring-pro/15 hover:bg-pro/15 transition"
-												>
-													عرض التفاصيل
-													<MdOutlineKeyboardArrowLeft className="text-pro" />
-												</Link>
-
-												<span className="text-xs font-bold text-slate-500">
-													{order.created_at}
-												</span>
-											</div>
-										</div>
-
-										{/* body */}
-										<div className="p-4">
-											<div className="relative flex gap-4">
+										<div className="p-4 flex items-center gap-4">
+											{/* Image */}
+											<div className="flex-shrink-0">
 												<Image
 													src={img}
-													alt={productName}
-													width={92}
-													height={92}
-													className="rounded-2xl object-cover ring-1 ring-black/5 bg-slate-50"
+													alt="Order"
+													width={100}
+													height={100}
+													className="rounded-xl object-cover ring-1 ring-black/5 bg-slate-50"
 												/>
+											</div>
 
-												<span className="absolute -top-2 start-[74px] rounded-full min-w-[28px] h-7 px-2 text-white bg-pro text-center text-xs font-extrabold grid place-items-center ring-2 ring-white">
-													{order.items_count}
-												</span>
-
-												<div className="flex flex-col gap-1 min-w-0">
-													<p className="text-slate-900 font-extrabold line-clamp-1">
-														{productName}
+											{/* Order Info */}
+											<div className="flex-1 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+												<div className="space-y-2">
+													<p className="text-slate-900 font-bold text-base">
+														رقم الطلب: <span className="font-extrabold">{order.order_number}</span>
 													</p>
-
-													<p className="text-slate-600 text-sm font-semibold">
-														سعر المنتج: <span className="font-extrabold">{productPrice}</span> ريال
+													<p className="text-slate-700 font-semibold text-sm">
+														الإجمالي المدفوع: <span className="font-extrabold text-pro-max">{order.formatted_total}</span>
 													</p>
+												</div>
 
-													<p className="text-slate-600 text-sm font-semibold">
-														رقم المنتج:{" "}
-														<span className="font-extrabold">#{item?.product?.id ?? "—"}</span>
-													</p>
-
-													<div className="mt-2">
-														<span className={`inline-flex px-3 py-1 rounded-full text-sm font-extrabold ${status.cls}`}>
-															{status.label}
-														</span>
-													</div>
+												{/* Status */}
+												<div className="flex-shrink-0">
+													<span className={`inline-flex px-4 py-2 rounded-lg text-sm font-bold ${status.cls}`}>
+														{status.label}
+													</span>
 												</div>
 											</div>
 										</div>
-									</div>
+									</Link>
 								);
 							})}
 						</div>
