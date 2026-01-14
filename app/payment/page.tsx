@@ -116,27 +116,18 @@ function SummaryBlock({ summary }: { summary: CheckoutSummaryV1 | null }) {
 				<p className="font-semibold">المجموع ({n(summary?.items_length)} عناصر)</p>
 				<p>
 					{money(summary?.subtotal)}
-					<span className="text-sm ms-1">ريال</span>
+					<span className="text-sm ms-1">جنية</span>
 				</p>
 			</div>
 
-			<div className="flex items-center justify-between">
-				<p className="text-sm">إجمالي رسوم الشحن</p>
-				{shippingFree ? (
-					<p className="font-semibold text-green-600">مجانا</p>
-				) : (
-					<p className="text-md">
-						{money(shippingFee)} <span className="text-sm ms-1">ريال</span>
-					</p>
-				)}
-			</div>
+		
 
 			{hasCoupon && (
 				<div className="flex items-center justify-between text-sm">
 					<p className="text-emerald-800 font-semibold">خصم الكوبون</p>
 					<p className="font-extrabold text-emerald-700">
 						- {money(summary?.coupon_discount)}
-						<span className="text-sm ms-1">ريال</span>
+						<span className="text-sm ms-1">جنية</span>
 					</p>
 				</div>
 			)}
@@ -145,7 +136,7 @@ function SummaryBlock({ summary }: { summary: CheckoutSummaryV1 | null }) {
 				<p>ضريبة القيمة المضافة ({Math.round(n(summary?.tax_rate) * 100) || 15}%)</p>
 				<p className="font-semibold">
 					{money(summary?.tax_amount)}
-					<span className="text-sm ms-1">ريال</span>
+					<span className="text-sm ms-1">جنية</span>
 				</p>
 			</div>
 
@@ -153,7 +144,7 @@ function SummaryBlock({ summary }: { summary: CheckoutSummaryV1 | null }) {
 				<p>الإجمالي بدون الضريبة</p>
 				<p className="font-semibold">
 					{money(summary?.total_without_tax)}
-					<span className="text-sm ms-1">ريال</span>
+					<span className="text-sm ms-1">جنية</span>
 				</p>
 			</div>
 
@@ -163,7 +154,7 @@ function SummaryBlock({ summary }: { summary: CheckoutSummaryV1 | null }) {
 				</div>
 				<p className="text-[15px] text-pro font-bold">
 					{money(summary?.total_with_shipping)}
-					<span> ريال</span>
+					<span> جنية</span>
 				</p>
 			</div>
 		</div>
@@ -227,61 +218,10 @@ export default function PaymentPage() {
 		}
 	}, [router]);
 
-	useEffect(() => {
-		if (!token) return;
+	
 
-		const fetchAddresses = async () => {
-			setAddrLoading(true);
-			try {
-				const res = await fetch(`${base_url}/addresses`, {
-					headers: {
-						Accept: "application/json",
-						Authorization: `Bearer ${token}`,
-					},
-					cache: "no-store",
-				});
 
-				const result = await res.json().catch(() => null);
-
-				if (res.ok && result?.status && Array.isArray(result?.data)) {
-					setAddresses(result.data);
-					setSelectedAddress(result.data[0] || null);
-				}
-			} catch (err) {
-				console.error("Error fetching addresses:", err);
-			} finally {
-				setAddrLoading(false);
-			}
-		};
-
-		fetchAddresses();
-	}, [token, base_url]);
-
-	const handleNewAddress = (newAddress: AddressI) => {
-		setAddresses((prev) => [newAddress, ...prev]);
-		setSelectedAddress(newAddress);
-		setOpenModal(false);
-		setShowAddress(false);
-	};
-
-	const handleAddressChange = () => {
-		if (addresses.length > 0) setShowAddress((v) => !v);
-		else setOpenModal(true);
-	};
-
-	const handleSelectAddress = (address: AddressI) => {
-		setSelectedAddress(address);
-		setShowAddress(false);
-	};
-
-	const buildShippingAddressString = useCallback((addr: AddressI | null) => {
-		if (!addr) return "";
-		// best-effort based on typical fields
-		const city = (addr as any)?.city ? String((addr as any).city) : "";
-		const area = (addr as any)?.area ? String((addr as any).area) : "";
-		const details = (addr as any)?.details ? String((addr as any).details) : "";
-		return [city, area, details].filter(Boolean).join(" - ").trim();
-	}, []);
+	
 
 	const handleCompletePurchase = async () => {
 		if (loading) return;
@@ -318,7 +258,7 @@ export default function PaymentPage() {
 
 			// ✅ create order payload with requested fields
 			const orderData: any = {
-				shipping_address: buildShippingAddressString(selectedAddress),
+			
 				customer_name: (selectedAddress as any)?.full_name ? String((selectedAddress as any).full_name) : "",
 				customer_phone: (selectedAddress as any)?.phone ? String((selectedAddress as any).phone) : "",
 				customer_email: (selectedAddress as any)?.email ? String((selectedAddress as any).email) : "",
@@ -395,115 +335,7 @@ export default function PaymentPage() {
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 				{/* Left */}
 				<div className="col-span-1 lg:col-span-2 space-y-4">
-					{/* Shipping */}
-					<div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
-						<div className="p-5 border-b border-slate-200 flex items-center justify-between">
-							<div>
-								<h2 className="text-xl font-extrabold text-slate-900">عنوان الشحن</h2>
-								<p className="text-sm text-slate-500 mt-1">اختر العنوان المناسب أو أضف عنوان جديد.</p>
-							</div>
-
-							<button
-								onClick={() => setOpenModal(true)}
-								className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 font-extrabold text-slate-700 hover:bg-slate-100"
-							>
-								<FiPlus />
-								أضف عنوان
-							</button>
-
-							<AddressForm open={openModal} onClose={() => setOpenModal(false)} onSuccess={handleNewAddress} />
-						</div>
-
-						<div className="p-5">
-							{addrLoading ? (
-								<BlockSkeleton />
-							) : (
-								<>
-									{/* Selected summary */}
-									<div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-										<p className="text-slate-700 font-extrabold">
-											التوصيل إلى:{" "}
-											<span className="text-slate-900">
-												{selectedAddress ? `${(selectedAddress as any).city} - ${(selectedAddress as any).area}` : "لم يتم اختيار عنوان"}
-											</span>
-										</p>
-
-										{selectedAddress && (
-											<div className="mt-2 text-sm text-slate-600 space-y-1">
-												<p>{(selectedAddress as any).details}</p>
-												<p className="font-semibold">
-													{(selectedAddress as any).full_name} {(selectedAddress as any).phone ? `- ${(selectedAddress as any).phone}` : ""}
-												</p>
-											</div>
-										)}
-
-										<div className="mt-3 flex items-center justify-between">
-											<button
-												onClick={handleAddressChange}
-												className="text-pro-max font-extrabold underline underline-offset-4"
-											>
-												{showAddress ? "إخفاء العناوين" : "تغيير العنوان"}
-											</button>
-
-											{selectedAddress && (
-												<span className="text-xs font-extrabold rounded-full bg-white border border-slate-200 px-3 py-1 text-slate-600">
-													عنوان محدد
-												</span>
-											)}
-										</div>
-									</div>
-
-									{/* Address list */}
-									{showAddress && addresses.length > 0 && (
-										<div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-											{addresses.map((address) => {
-												const active = selectedAddress?.id === address.id;
-												return (
-													<button
-														key={address.id}
-														onClick={() => handleSelectAddress(address)}
-														className={`text-right rounded-3xl border p-4 transition ${
-															active ? "border-pro-max bg-blue-50" : "border-slate-200 bg-white hover:bg-slate-50"
-														}`}
-													>
-														<div className="flex items-start justify-between gap-2">
-															<div>
-																<p className="font-extrabold text-slate-900">{(address as any).full_name}</p>
-																<p className="text-sm text-slate-600 mt-1">
-																	{(address as any).city} - {(address as any).area}
-																</p>
-															</div>
-															<span
-																className={`text-xs font-extrabold rounded-full px-3 py-1 border ${
-																	active ? "bg-white border-pro-max text-pro-max" : "bg-slate-50 border-slate-200 text-slate-600"
-																}`}
-															>
-																{active ? "محدد" : "اختر"}
-															</span>
-														</div>
-														<p className="text-sm text-slate-600 mt-2">{(address as any).details}</p>
-														{(address as any).phone && <p className="text-xs text-slate-500 mt-2">{(address as any).phone}</p>}
-													</button>
-												);
-											})}
-										</div>
-									)}
-
-									{/* Notes */}
-									<div className="mt-5">
-										<label className="text-sm font-extrabold text-slate-700">ملاحظات (اختياري)</label>
-										<textarea
-											value={notes}
-											onChange={(e) => setNotes(e.target.value)}
-											placeholder="مثال: الرجاء الاتصال قبل التوصيل..."
-											className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 font-semibold outline-none focus:border-pro-max"
-											rows={3}
-										/>
-									</div>
-								</>
-							)}
-						</div>
-					</div>
+					
 
 					{/* Payment */}
 					<div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
@@ -521,9 +353,6 @@ export default function PaymentPage() {
 				<div className="col-span-1 space-y-4 lg:sticky lg:top-[150px] h-fit">
 					 
 
-					<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-5">
-						<InvoiceSection />
-					</div>
 
 					<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-5">
 						{/* <OrderSummary /> */}

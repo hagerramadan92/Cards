@@ -521,13 +521,13 @@ ${errors.join("\n")}
 
 														<div className="mt-2 flex flex-wrap items-center gap-2">
 															<span className="text-sm font-extrabold text-slate-900">
-																{money(n(item._unit))} <span className="text-xs">ريال</span>
+																{money(n(item._unit))} <span className="text-xs">]</span>
 															</span>
 
 															{item._real?.discount && n(item._real?.original_unit_after_options) > n(item._unit) && (
 																<>
 																	<span className="text-xs font-extrabold text-slate-500 line-through">
-																		{money(n(item._real?.original_unit_after_options))} ريال
+																		{money(n(item._real?.original_unit_after_options))} جنية
 																	</span>
 																	<span className="text-[11px] font-extrabold px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
 																		خصم
@@ -597,28 +597,9 @@ ${errors.join("\n")}
 										</div>
 									</div>
 
-									{hasVariants && miss.length > 0 && (
-										<div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
-											<p className="font-extrabold text-amber-800">
-												لازم تختار: <span className="text-amber-900">{miss.join("، ")}</span>
-											</p>
-											<p className="text-xs font-bold text-amber-700 mt-1">
-												السعر بيتغير حسب الاختيارات — اختياراتك هنا هتنعكس فورًا على السعر.
-											</p>
-										</div>
-									)}
+								
 
-									{hasVariants && (
-										<div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-											<StickerForm
-												cartItemId={item.cart_item_id}
-												productId={item.product.id}
-												productData={item.product}
-												cartItem={item}
-												onOptionsChange={handleOptionsChange}
-											/>
-										</div>
-									)}
+								
 								</div>
 							);
 						})}
@@ -1441,74 +1422,14 @@ const StickerForm = forwardRef(function StickerForm(
 								{fieldError && <FormHelperText className="text-red-500 text-xs">يجب اختيار {groupName}</FormHelperText>}
 							</FormControl>
 
-							{/* ✅ Design section (Preview only) */}
-							{groupName === "خدمة تصميم" && showDesignSection && (
-								<div className="mt-3 rounded-2xl border border-slate-200 bg-white p-3">
-									<p className="text-sm font-extrabold text-slate-800 mb-2">التصميم</p>
-
-									<div className="flex flex-col gap-2">
-										{designPreview || existingDesignUrl ? (
-											<div className="w-full max-w-[280px] rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
-												{/* eslint-disable-next-line @next/next/no-img-element */}
-												<img src={(designPreview as string) || (existingDesignUrl as string)} alt="design" className="w-full h-auto object-cover" />
-											</div>
-										) : null}
-									</div>
-								</div>
-							)}
+						
 						</Box>
 					);
 				})}
 
-				{needPrintingMethod && (
-					<Box>
-						<FormControl fullWidth size="small" required error={showValidation && printingMethod === "اختر"}>
-							<InputLabel>طريقة الطباعة</InputLabel>
-							<Select value={printingMethod} onChange={(e) => handleOptionChange(setPrintingMethod, e.target.value as string)} label="طريقة الطباعة" className="bg-white">
-								<MenuItem value="اختر" disabled>
-									<em className="text-gray-400">اختر</em>
-								</MenuItem>
-								{apiData.printing_methods.map((p: any) => (
-									<MenuItem key={p.id} value={p.name}>
-										<div className="flex items-center justify-between gap-3 w-full">
-											<span>{p.name}</span>
-											<span className="text-xs font-black text-amber-700">{p.base_price}</span>
-										</div>
-									</MenuItem>
-								))}
-							</Select>
+			
 
-							{showValidation && printingMethod === "اختر" && <FormHelperText className="text-red-500 text-xs">يجب اختيار طريقة الطباعة</FormHelperText>}
-						</FormControl>
-					</Box>
-				)}
-
-				{needPrintLocation && (
-					<Box>
-						<FormControl fullWidth size="small" required error={showValidation && (!printLocations || printLocations.length === 0)}>
-							<InputLabel>مكان الطباعة</InputLabel>
-							<Select
-								multiple
-								value={printLocations}
-								onChange={(e) => handlePrintLocationsChange(e.target.value as string[])}
-								label="مكان الطباعة"
-								className="bg-white"
-								renderValue={(selected) => (Array.isArray(selected) ? selected.join("، ") : "")}
-							>
-								{apiData.print_locations.map((p: any) => (
-									<MenuItem key={p.id} value={p.name}>
-										<div className="flex items-center justify-between gap-3 w-full">
-											<span>{p.name}</span>
-											<span className="text-xs font-black text-slate-500">{p.type}</span>
-										</div>
-									</MenuItem>
-								))}
-							</Select>
-
-							{showValidation && (!printLocations || printLocations.length === 0) && <FormHelperText className="text-red-500 text-xs">يجب اختيار مكان الطباعة</FormHelperText>}
-						</FormControl>
-					</Box>
-				)}
+			
 			</div>
 
 			{apiData?.options_note && (
@@ -1564,27 +1485,17 @@ function TotalOrder({
 				<p className="font-semibold">المجموع ({items?.length} عناصر)</p>
 				<p>
 					{formattedSubtotal}
-					<span className="text-sm ms-1">ريال</span>
+					<span className="text-sm ms-1">جنية</span>
 				</p>
 			</div>
 
-			<div className="flex items-center justify-between">
-				<p className="text-sm">إجمالي رسوم الشحن</p>
-				{shippingFree ? (
-					<p className="font-semibold text-green-600">مجانا</p>
-				) : (
-					<p className="text-md">
-						{shippingFee} <span className="text-sm ms-1">ريال</span>
-					</p>
-				)}
-			</div>
 
 			{(n(couponDiscount) > 0 || (couponNewTotal !== null && couponNewTotal !== undefined)) && (
 				<div className="flex items-center justify-between text-sm">
 					<p className="text-emerald-800 font-semibold">خصم الكوبون</p>
 					<p className="font-extrabold text-emerald-700">
 						- {formattedCoupon}
-						<span className="text-sm ms-1">ريال</span>
+							<span className="text-sm ms-1">جنية</span>
 					</p>
 				</div>
 			)}
@@ -1593,7 +1504,7 @@ function TotalOrder({
 				<p>ضريبة القيمة المضافة (15%)</p>
 				<p className="font-semibold">
 					{formattedTax}
-					<span className="text-sm ms-1">ريال</span>
+					<span className="text-sm ms-1">جنية</span>
 				</p>
 			</div>
 
@@ -1601,7 +1512,7 @@ function TotalOrder({
 				<p>الإجمالي بدون الضريبة</p>
 				<p className="font-semibold">
 					{formattedTotalWithoutTax}
-					<span className="text-sm ms-1">ريال</span>
+					<span className="text-sm ms-1">جنية</span>
 				</p>
 			</div>
 
@@ -1611,7 +1522,7 @@ function TotalOrder({
 				</div>
 				<p className="text-[15px] text-pro font-bold">
 					{formattedGrandTotal}
-					<span> ريال</span>
+					<span> جنية</span>
 				</p>
 			</div>
 		</div>
