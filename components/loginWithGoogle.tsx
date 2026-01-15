@@ -39,7 +39,7 @@ export default function LoginWithGoogle() {
 
     if (!res.ok || data?.status === false) {
       if (res.status === 409) {
-        toast.error("الحساب مرتبط بحساب اجتماعي آخر");
+        toast.error("الحساب مسجل بالفعل بطريقة أخرى (البريد الإلكتروني/كلمة المرور). رجاءً سجل الدخول بالطريقة المعتادة.");
         return;
       }
       toast.error(data?.message || "حدث خطأ غير متوقع");
@@ -79,11 +79,14 @@ export default function LoginWithGoogle() {
 
       // errors common
       if (error?.code === "auth/unauthorized-domain") {
-        toast.error("ضيف الدومين في Firebase Authorized domains");
+        toast.error("خطأ: الدومين غير مصرح به في Firebase. يرجى إضافته في Authentication > Settings > Authorized Domains");
+        console.error("Add this domain to Firebase Console: ", window.location.hostname);
       } else if (error?.code === "auth/popup-blocked") {
-        toast.error("Popup blocked — افتح السماح للـ popups");
+        toast.error("تم حظر النافذة المنبثقة. يرجى السماح بالنوافذ المنبثقة لهذا الموقع.");
+      } else if (error?.code === "auth/account-exists-with-different-credential") {
+        toast.error("البريد الإلكتروني مستخدم بالفعل بحساب مختلف. يرجى تسجيل الدخول بالطريقة الأصلية.");
       } else {
-        toast.error("فشل تسجيل الدخول بجوجل");
+        toast.error("فشل تسجيل الدخول بجوجل. " + (error?.message || ""));
       }
     } finally {
       setLoading(false);
