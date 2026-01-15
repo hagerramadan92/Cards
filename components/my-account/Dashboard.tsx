@@ -391,7 +391,7 @@ export default function Dashboard() {
 						className='flex items-center md:gap-0.5 hover:opacity-80 transition-opacity cursor-pointer'
 					>
 						<p className='text-xs md:text-sm font-bold whitespace-nowrap'>المستوى الفضي</p>
-						<MdKeyboardArrowLeft size={20} />
+						<MdKeyboardArrowLeft size={20} className='hidden sm:block'/>
 					</button>
 				</div>
 
@@ -425,7 +425,7 @@ export default function Dashboard() {
 							className='text-sm font-medium text-pro-max hover:text-pro-max transition-colors flex items-center gap-1.5'
 						>
 							عرض المعاملات
-							<MdKeyboardArrowLeft size={18} />
+							<MdKeyboardArrowLeft size={18} className='hidden sm:block'/>
 						</Link>
 					</div>
 					{/* Current Balance */}

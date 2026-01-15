@@ -34,7 +34,7 @@ export default function FinancePage() {
 				</div>
 
 				{/* Three Sections */}
-				<div className='grid grid-cols-1 sm:grid-cols-3 gap-px bg-slate-100'>
+				<div className='grid grid-cols-3 gap-px bg-slate-100'>
 					<Link 
 						href="/myAccount/finance/categories"
 						className='p-5 flex flex-col items-center gap-3 bg-white hover:bg-slate-50 transition-all duration-200 group'
