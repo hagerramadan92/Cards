@@ -15,7 +15,6 @@ export default function LoginWithGoogle() {
   const { login: loginContext } = useAuth();
 
   const sendUserDataToBackend = async (user: any) => {
-    // ✅ الأفضل: ابعت idToken للباك (لو بيدعمه)
     const idToken = await user.getIdToken();
 
     const payload = {
