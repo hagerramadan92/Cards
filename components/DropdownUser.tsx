@@ -115,7 +115,7 @@ export default function DropdownUser() {
         
 
         {/* name */}
-        <div className="hidden md:flex flex-col items-start leading-tight">
+        <div className="flex flex-col items-start leading-tight">
           <span className="text-[14px] text-slate-500 font-semibold">مرحبا </span>
           {/* <span className="text-sm font-extrabold text-slate-900 truncate max-w-[140px]">
             {displayName}
@@ -166,7 +166,7 @@ export default function DropdownUser() {
                       {displayName}
                     </p>
                     <p className="text-xs text-slate-500 font-semibold truncate">
-                      {session?.user?.email || "مرحبًا بك في تالا الجزيرة"}
+                      {session?.user?.email || "مرحبًا بك في  لايك كارد"}
                     </p>
                   </div>
                 </div>
