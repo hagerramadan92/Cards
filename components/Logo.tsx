@@ -48,13 +48,13 @@ export default function Logo({
 					initial={{ opacity: 0, x: 10 }}
 					animate={{ opacity: 1, x: 0 }}
 					transition={{ duration: 0.45, ease: "easeOut", delay: 0.05 }}
-					className="flex flex-col items-baseline "
+					className="flex flex-col items-baseline  "
 				>
-					<span className="font-ar  ml-auto font-extrabold text-slate-900 max-md:text-base text-lg">
+					<span className="font-ar whitespace-nowrap  ml-auto font-extrabold text-slate-900 max-md:text-base text-lg">
 						تالا الجزيره
 					</span>
 
-					<span className=" mt-[-3px] font-en font-bold text-slate-500 text-sm max-md:text-xs tracking-wide">
+					<span className=" mt-[-3px] whitespace-nowrap font-en font-bold text-slate-500 text-sm max-md:text-xs tracking-wide">
 						Tala AlJazeera
 					</span>
 				</motion.div>

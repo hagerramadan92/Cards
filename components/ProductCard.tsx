@@ -1,10 +1,11 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import HearComponent from './HearComponent';
 import PriceComponent from './PriceComponent';
 import ImageComponent from './ImageComponent';
 import Link from 'next/link';
+import { useParams, useRouter } from "next/navigation";
 import { IoMdCart } from 'react-icons/io';
 import { PiDiamondFill } from 'react-icons/pi';
 import { FaFlag } from 'react-icons/fa';
@@ -18,7 +19,12 @@ import { useAuth } from '@/src/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickViewModal from './QuickViewModal';
 import Image from 'next/image';
-
+import { ShoppingCart } from 'lucide-react';
+import { SelectedOptions } from './StickerForm';
+export interface StickerFormHandle {
+	getOptions: () => SelectedOptions;
+	validate: () => boolean;
+}
 export default function ProductCard({
 	product,
 	id,
@@ -38,7 +44,7 @@ export default function ProductCard({
 	selectedPrintingMethodId,
 	selectedPrintLocations = [],
 	selectedEmbroiderLocations = [],
-	selectedOptions = [],
+	selectedOptions: propSelectedOptions = [],
 	selectedDesignServiceId,
 	isSample = false,
 }: any) {
@@ -46,19 +52,15 @@ export default function ProductCard({
 	const [isAdding, setIsAdding] = useState(false);
 	const [quickViewOpen, setQuickViewOpen] = useState(false);
 
-	const { authToken: token, favoriteIdsSet, setFavoriteProducts } = useAuth();
-
+	const { authToken: token, favoriteIdsSet, setFavoriteProducts, favoriteProductsLoading } = useAuth();
+		const router = useRouter();
 	const computedIsFavorite = useMemo(() => {
-		if (favoriteIdsSet?.has(id)) return true;
-		if (is_favorite) return true;
-
-		try {
-			const saved = JSON.parse(localStorage.getItem('favorites') || '[]') as number[];
-			return saved.includes(id);
-		} catch {
-			return false;
+		if (favoriteProductsLoading) {
+			return is_favorite;
 		}
-	}, [favoriteIdsSet, id, is_favorite]);
+		if (favoriteIdsSet?.has(id)) return true;
+		return false;
+	}, [favoriteIdsSet, id, is_favorite, favoriteProductsLoading]);
 
 	const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -76,7 +78,19 @@ export default function ProductCard({
 		setFavoriteProducts((prev: ProductI[]) => {
 			if (next) {
 				if (prev.some((p) => p.id === productId)) return prev;
-				return [...prev, { id: productId } as ProductI];
+				
+				const newProduct: any = {
+					...product,
+					id: productId,
+					name,
+					image,
+					price,
+					final_price,
+					discount,
+					stock,
+					is_favorite: true,
+				};
+				return [...prev, newProduct];
 			} else {
 				return prev.filter((p) => p.id !== productId);
 			}
@@ -145,14 +159,14 @@ export default function ProductCard({
 
 		await addToCart(id, {
 			quantity: 1,
-			size_id: selectedSizeId ?? null,
-			color_id: selectedColorId ?? null,
-			printing_method_id: selectedPrintingMethodId ?? null,
-			print_locations: selectedPrintLocations.length ? selectedPrintLocations : [],
-			embroider_locations: selectedEmbroiderLocations.length ? selectedEmbroiderLocations : [],
-			selected_options: selectedOptions.length ? selectedOptions : [],
-			design_service_id: selectedDesignServiceId ?? null,
-			is_sample: isSample,
+			// size_id: selectedSizeId ?? null,
+			// color_id: selectedColorId ?? null,
+			// printing_method_id: selectedPrintingMethodId ?? null,
+			// print_locations: selectedPrintLocations.length ? selectedPrintLocations : [],
+			// embroidered_locations: selectedEmbroiderLocations.length ? selectedEmbroiderLocations : [],
+			// selected_options: selectedOptions.length ? selectedOptions : [],
+			// design_service_id: selectedDesignServiceId ?? null,
+			// is_sample: isSample,
 		});
 
 		setIsAdding(false);
@@ -171,13 +185,91 @@ export default function ProductCard({
 		const p = Number(price || 0);
 		return p > 0 ? p : 0;
 	}, [price]);
-
+	const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({
+			size: "اختر",
+			size_tier_id: null,
+			size_quantity: null,
+			size_price_per_unit: null,
+			size_total_price: null,
+	
+			color: "اختر",
+			material: "اختر",
+			optionGroups: {},
+			printing_method: "اختر",
+			print_locations: [],
+			isValid: false,
+		});
+	const [showValidation, setShowValidation] = useState(false);
+		const stickerFormRef = useRef<StickerFormHandle | null>(null);
+	
+	const getSelectedOptions = async () => {
+		if (stickerFormRef.current?.getOptions) {
+			const opts = await stickerFormRef.current.getOptions();
+			setSelectedOptions(opts);
+			return opts;
+		}
+		return selectedOptions;
+	};
 	const priceHasDiscount = useMemo(() => {
 		if (!displayFinalPrice) return false;
 		if (!displayPrice) return false;
 		return displayPrice !== displayFinalPrice;
 	}, [displayPrice, displayFinalPrice]);
-
+ const handleBuyNow = async () => {
+		setShowValidation(true);
+ 
+		const opts = await getSelectedOptions();
+		
+ 
+		
+ 
+		if (!token) return toast.error("يجب تسجيل الدخول أولاً");
+		if (!API_URL) return toast.error("API غير متوفر");
+ 
+		// const selected_options = buildSelectedOptionsWithPrice(apiData, opts);
+		// const idsPayload = buildIdsPayload(apiData, opts);
+ 
+		const qty = Math.max(1, Number(opts?.size_quantity || 1));
+ 
+		const cartData = {
+			product_id: product.id,
+			quantity: qty,
+			// ...idsPayload,
+			// selected_options,
+			// design_service_id: null,
+			// is_sample: false,
+			note: "",
+			image_design: null,
+		};
+ 
+		try {
+			const res: any = await addToCart(product.id, cartData);
+  
+			const cartItemId =
+				Number(res?.data?.cart_item_id) ||
+				Number(res?.data?.id) ||
+				Number(res?.cart_item_id) ||
+				Number(res?.id) ||
+				null;
+ 
+			// const fileToUpload = designFile || stickerDesignFile;
+ 
+			// if (fileToUpload) {
+			// 	if (!cartItemId) {
+			// 		toast.error("تمت الإضافة للسلة لكن لم يتم العثور على cart_item_id لربط ملف التصميم. يمكنك رفعه من السلة.");
+			// 		router.push("/cart");
+			// 		return;
+			// 	}
+ 
+			
+			// }
+ 
+			toast.success("تمت الإضافة للسلة بنجاح");
+			router.push("/cart");
+		} catch {
+			toast.error("حدث خطأ أثناء إضافة المنتج للسلة");
+		}
+	};
 	const showDiscountChip = Boolean(discount?.value); 
 	return (
 		<motion.div
@@ -293,7 +385,7 @@ export default function ProductCard({
 							<div className='flex items-center gap-1 flex-wrap' >
 								<PriceComponent start price_text={product?.price_text} />
 								{priceHasDiscount && (
-									<span className="text-sm text-gray-400 line-through">{displayPrice} ر.س</span>
+									<span className="text-sm text-gray-400 line-through">{displayPrice} ج.م</span>
 								)}
 							</div>
 						) : null}
@@ -306,15 +398,14 @@ export default function ProductCard({
 
 					{/* Buy Now Button or Out of Stock */}
 					{inStock ? (
-						<Link
-							href={`/product/${id}`}
-							className="w-full bg-pro text-white px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg sm:rounded-xl font-bold hover:bg-pro/90 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md hover:shadow-lg"
-						>
-							<span>شراء الآن</span>
-							<svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-							</svg>
-						</Link>
+						<button
+							onClick={handleBuyNow}
+								aria-label="شراء الآن"
+								className={`flex items-center justify-center w-full cursor-pointer whitespace-nowrap   gap-2 px-4 py-2 rounded-lg bg-pro text-white hover:bg-pro/90 transition-colors duration-200 font-semibold text-sm `}
+							>
+								<span>شراء الآن</span>
+								<ShoppingCart className="w-4 h-4" />
+						</button>
 					) : (
 						<div className="w-full bg-gray-200 text-gray-600 px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg sm:rounded-xl font-bold flex items-center justify-center gap-2 text-xs sm:text-sm cursor-not-allowed">
 							<span>نفدت الكمية</span>

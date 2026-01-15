@@ -317,7 +317,7 @@ export default function CategoryPage() {
 		</div>
 
 			<div className="container px-4 md:px-0 pt-4 md:pt-2 pb-6 md:py-12">
-				<div className="flex items-center md:justify-between">
+				<div className="flex items-center md:justify-between flex-wrap">
 					{/* Header */}
 				<motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-4 md:mb-6">
 					<h1 className="text-xl md:text-2xl lg:text-3xl font-black text-slate-900 mb-1 md:mb-2">{category.name}</h1>
@@ -329,9 +329,9 @@ export default function CategoryPage() {
 
 				{/* Filters and Sort */}
 				<motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-4 md:mb-6">
-					<div className="flex items-center gap-2 md:gap-2 flex-nowrap overflow-x-auto">
+					<div className="flex items-center gap-2 md:gap-2 flex-wrap  md:flex-nowrap">
 						{/* Country Filter */}
-						<FormControl size="small" sx={{ minWidth: { xs: 140, sm: 160, md: 180 }, flexShrink: 0 }}>
+						<FormControl size="small" sx={{ minWidth: { xs: 140, sm: 160, md: 180  },flexShrink: 0 }}>
 							<Select
 								value={selectedCountry}
 								onChange={(e) => setSelectedCountry(e.target.value)}

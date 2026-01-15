@@ -14,14 +14,14 @@ export default function CustomSeparator({ proName }: nameProps) {
     <Link key="2" href="/product" className="mx-1">
       المنتاجات
     </Link>,
-    <Typography key="3" sx={{ color: "#000" , fontSize:"15px" , fontFamily:"cairo"}}>
+    <Typography key="3" sx={{ color: "#696969ff" , fontSize:"15px" , fontFamily:"cairo"}}>
       {proName}
     </Typography>,
   ];
 
   return (
     <Stack spacing={10}>
-      <Breadcrumbs separator="›" aria-label="breadcrumb" sx={{ color: "#000" , fontSize:"15px" , fontFamily:"cairo"}}>
+      <Breadcrumbs separator="›" aria-label="breadcrumb" sx={{ color: "#363636ff" , fontSize:"15px" , fontFamily:"cairo"}}>
         {breadcrumbs}
       </Breadcrumbs>
     </Stack>

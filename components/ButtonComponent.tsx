@@ -71,8 +71,8 @@ export default function ButtonComponent({
   };
 
   const base =
-    "relative w-full h-14 rounded-2xl overflow-hidden " +
-    "flex items-center justify-center gap-2 px-6 " +
+    "relative w-full h-10 sm:h-14 rounded-lg   sm:rounded-2xl overflow-hidden " +
+    "flex items-center justify-center gap-2 px-2 sm:px-6 " +
     "text-white font-extrabold " +
     "transition-all duration-300 " +
     "bg-pro hover:bg-pro-max " +

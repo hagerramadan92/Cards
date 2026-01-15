@@ -401,7 +401,7 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 	{ cartItemId, productId, productData, onOptionsChange, showValidation = false, onDesignFileChange },
 	ref
 ) {
-	const { updateCartItem, fetchCartItemOptions } = useCart();
+	const { updateCartItem } = useCart();
 	const { authToken: token, user, userId } = useAuth() as any;
 	const { socialMedia } = useAppContext() as any;
 	const { direction } = useLanguage();
@@ -587,79 +587,79 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 	}, [getOptionsObj, onOptionsChange]);
 
 	// CART MODE: load saved options (⚠️ backend may have old selected_options; we try best)
-	const loadSavedOptions = useCallback(async () => {
-		if (!cartItemId) return;
-		if (!apiData) return;
+	// const loadSavedOptions = useCallback(async () => {
+	// 	if (!cartItemId) return;
+	// 	if (!apiData) return;
 
-		try {
-			const saved = await fetchCartItemOptions(cartItemId);
-			if (!saved) return;
+	// 	try {
+	// 		const saved = await fetchCartItemOptions(cartItemId);
+	// 		if (!saved) return;
 
-			// Prefer new backend fields if exist; else fallback to selected_options
-			// (لو الباك إند رجّع size_id وغيره، انت ممكن توسّع restore هنا)
-			const sizeFrom = extractValueFromOptions(saved.selected_options, "المقاس");
-			const colorFrom = extractValueFromOptions(saved.selected_options, "اللون");
-			const matFrom = extractValueFromOptions(saved.selected_options, "الخامة");
-			const pmFrom = extractValueFromOptions(saved.selected_options, "طريقة الطباعة");
+	// 		// Prefer new backend fields if exist; else fallback to selected_options
+	// 		// (لو الباك إند رجّع size_id وغيره، انت ممكن توسّع restore هنا)
+	// 		const sizeFrom = extractValueFromOptions(saved.selected_options, "المقاس");
+	// 		const colorFrom = extractValueFromOptions(saved.selected_options, "اللون");
+	// 		const matFrom = extractValueFromOptions(saved.selected_options, "الخامة");
+	// 		const pmFrom = extractValueFromOptions(saved.selected_options, "طريقة الطباعة");
 
-			const qtyFrom = extractValueFromOptions(saved.selected_options, "كمية المقاس");
-			const totalFrom = extractValueFromOptions(saved.selected_options, "سعر المقاس الإجمالي");
-			const unitFrom = extractValueFromOptions(saved.selected_options, "سعر الوحدة");
-			const locsFrom = extractValuesFromOptions(saved.selected_options, "مكان الطباعة");
+	// 		const qtyFrom = extractValueFromOptions(saved.selected_options, "كمية المقاس");
+	// 		const totalFrom = extractValueFromOptions(saved.selected_options, "سعر المقاس الإجمالي");
+	// 		const unitFrom = extractValueFromOptions(saved.selected_options, "سعر الوحدة");
+	// 		const locsFrom = extractValuesFromOptions(saved.selected_options, "مكان الطباعة");
 
-			setSize(sizeFrom || saved.size || "اختر");
-			setColor(colorFrom || (saved.color?.name || saved.color) || "اختر");
-			setMaterial(matFrom || saved.material || "اختر");
-			setPrintingMethod(pmFrom || "اختر");
-			setPrintLocations(locsFrom || []);
+	// 		setSize(sizeFrom || saved.size || "اختر");
+	// 		setColor(colorFrom || (saved.color?.name || saved.color) || "اختر");
+	// 		setMaterial(matFrom || saved.material || "اختر");
+	// 		setPrintingMethod(pmFrom || "اختر");
+	// 		setPrintLocations(locsFrom || []);
 
-			const q = qtyFrom ? Number(qtyFrom) : null;
-			const t = totalFrom ? Number(totalFrom) : null;
-			const u = unitFrom ? Number(unitFrom) : null;
+	// 		const q = qtyFrom ? Number(qtyFrom) : null;
+	// 		const t = totalFrom ? Number(totalFrom) : null;
+	// 		const u = unitFrom ? Number(unitFrom) : null;
 
-			// restore tier by qty if possible
-			if (q && apiData?.sizes) {
-				const sz = apiData.sizes.find((s: any) => s?.name === (sizeFrom || saved.size));
-				const tier = (sz?.tiers || []).find((x: any) => Number(x?.quantity) === q) || null;
+	// 		// restore tier by qty if possible
+	// 		if (q && apiData?.sizes) {
+	// 			const sz = apiData.sizes.find((s: any) => s?.name === (sizeFrom || saved.size));
+	// 			const tier = (sz?.tiers || []).find((x: any) => Number(x?.quantity) === q) || null;
 
-				const tierUnit = num(tier?.price_per_unit) || num(u);
-				const backendTotal = num(tier?.total_price);
-				const computed = q && tierUnit ? q * tierUnit : 0;
+	// 			const tierUnit = num(tier?.price_per_unit) || num(u);
+	// 			const backendTotal = num(tier?.total_price);
+	// 			const computed = q && tierUnit ? q * tierUnit : 0;
 
-				setSizeTierId(tier?.id ?? null);
-				setSizeTierQty(tier?.quantity ?? q ?? null);
-				setSizeTierUnit(tierUnit || null);
-				setSizeTierTotal(backendTotal > 0 ? backendTotal : t && t > 0 ? t : computed > 0 ? computed : null);
-			}
+	// 			setSizeTierId(tier?.id ?? null);
+	// 			setSizeTierQty(tier?.quantity ?? q ?? null);
+	// 			setSizeTierUnit(tierUnit || null);
+	// 			setSizeTierTotal(backendTotal > 0 ? backendTotal : t && t > 0 ? t : computed > 0 ? computed : null);
+	// 		}
 
-			// restore option groups (only real groups, skip "system" ones)
-			const out: Record<string, string> = {};
-			Object.keys(groupedOptions).forEach((g) => (out[g] = "اختر"));
+	// 		// restore option groups (only real groups, skip "system" ones)
+	// 		const out: Record<string, string> = {};
+	// 		Object.keys(groupedOptions).forEach((g) => (out[g] = "اختر"));
 
-			if (Array.isArray(saved.selected_options)) {
-				saved.selected_options.forEach((opt: any) => {
-					const name = String(opt.option_name || "").trim();
-					const value = String(opt.option_value || "").trim();
-					if (!name || !value) return;
+	// 		if (Array.isArray(saved.selected_options)) {
+	// 			saved.selected_options.forEach((opt: any) => {
+	// 				const name = String(opt.option_name || "").trim();
+	// 				const value = String(opt.option_value || "").trim();
+	// 				if (!name || !value) return;
 
-					// skip system fields (should not be in new version anyway)
-					if (["المقاس", "اللون", "الخامة", "طريقة الطباعة", "مكان الطباعة", "كمية المقاس", "سعر المقاس الإجمالي", "سعر الوحدة"].includes(name)) return;
+	// 				// skip system fields (should not be in new version anyway)
+	// 				if (["المقاس", "اللون", "الخامة", "طريقة الطباعة", "مكان الطباعة", "كمية المقاس", "سعر المقاس الإجمالي", "سعر الوحدة"].includes(name)) return;
 
-					if (Object.prototype.hasOwnProperty.call(out, name)) out[name] = value;
-				});
-			}
+	// 				if (Object.prototype.hasOwnProperty.call(out, name)) out[name] = value;
+	// 			});
+	// 		}
 
-			setOptionGroups(out);
-			setShowSaveButton(false);
-		} catch {
-			// ignore
-		}
-	}, [cartItemId, apiData, fetchCartItemOptions, groupedOptions]);
+	// 		setOptionGroups(out);
+	// 		setShowSaveButton(false);
+	// 	} catch {
+	// 		// ignore
+	// 	}
+	// }, [cartItemId, apiData, groupedOptions]);
 
 	useEffect(() => {
 		if (!cartItemId || !apiData) return;
-		loadSavedOptions();
-	}, [cartItemId, apiData, loadSavedOptions]);
+		// loadSavedOptions();
+	}, [cartItemId, apiData]);
 
 	const markDirty = () => {
 		if (!cartItemId) return; // only show save UI in cart mode
@@ -1495,18 +1495,18 @@ export default function ProductPageClient() {
 		if (!token) return toast.error("يجب تسجيل الدخول أولاً");
 		if (!API_URL) return toast.error("API غير متوفر");
 
-		const selected_options = buildSelectedOptionsWithPrice(apiData, opts);
-		const idsPayload = buildIdsPayload(apiData, opts);
+		// const selected_options = buildSelectedOptionsWithPrice(apiData, opts);
+		// const idsPayload = buildIdsPayload(apiData, opts);
 
 		const qty = Math.max(1, Number(opts?.size_quantity || 1));
 
 		const cartData = {
 			product_id: product.id,
 			quantity: qty,
-			...idsPayload,
-			selected_options,
-			design_service_id: null,
-			is_sample: false,
+			// ...idsPayload,
+			// selected_options,
+			// design_service_id: null,
+			// is_sample: false,
 			note: "",
 			image_design: null,
 		};
@@ -1587,7 +1587,7 @@ export default function ProductPageClient() {
 
 	if (errorMsg || !product) {
 		return (
-			<div className="min-h-[60vh] flex items-center justify-center px-4" dir="rtl">
+			<div className="min-h-[60vh] flex items-center justify-center px-4" >
 				<div className="max-w-md w-full rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
 					<div className="flex items-center gap-3">
 						<div className="w-11 h-11 rounded-2xl bg-rose-50 flex items-center justify-center">
@@ -1616,7 +1616,7 @@ export default function ProductPageClient() {
 
 	return (
 		<>
-			<section className="container pt-8 pb-24" >
+			<section className="container md:pt-8 md:pb-24 pt-5 pb-13" >
 				<motion.div variants={fadeUp} initial="hidden" animate="show" className="mb-4">
 					<CustomSeparator proName={product.name} />
 				</motion.div>
@@ -1624,9 +1624,9 @@ export default function ProductPageClient() {
 				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 					{/* Left: Info */}
 					<motion.div variants={fadeUp} initial="hidden" animate="show" className=" space-y-5 lg:col-span-5">
-						<h1 className="text-slate-900 text-2xl md:text-3xl font-extrabold leading-snug">{product.name}</h1>
+						<h1 className="text-slate-900  text-xl sm:text-2xl md:text-3xl font-extrabold leading-snug">{product.name}</h1>
 
-						<div className="mt-3 flex items-center justify-between gap-4">
+						<div className="mt-1 md:mt-3 flex items-center justify-between gap-4">
 							<div className="flex items-center gap-3">
 								<HearComponent
 									liked={isFavorite}
@@ -1655,10 +1655,10 @@ export default function ProductPageClient() {
 							<button
 								aria-label="toggle description"
 								onClick={() => setIsDescriptionOpen(!isDescriptionOpen)}
-								className={`w-full flex items-center justify-between gap-3 p-4 md:p-5 cursor-pointer bg-slate-50 transition`}
+								className={`w-full flex items-center justify-between gap-3 p-1 px-2 md:p-5  cursor-pointer bg-slate-50 transition`}
 							>
-								<div className={`min-w-0 flex-1 flex items-center gap-2 `}>
-									<Package className="w-5 h-5 text-pro-max shrink-0" />
+								<div className={`min-w-0 flex-1 flex items-center gap-2`}>
+									<Package className="w-5 h-5 text-pro-max shrink-0 " />
 									<div>
 										<p className="text-slate-900 font-extrabold text-base md:text-lg">
 											وصف المنتج
@@ -1670,7 +1670,7 @@ export default function ProductPageClient() {
 								<motion.span
 									animate={{ rotate: isDescriptionOpen ? 180 : 0 }}
 									transition={{ type: "spring", stiffness: 260, damping: 20 }}
-									className="grid place-items-center h-10 w-10 rounded-lg bg-slate-50 text-slate-700 ring-1 ring-slate-200 shrink-0"
+									className="grid place-items-center h-10 w-10 rounded-lg bg-slate-50 text-slate-700 ring-0 sm:ring-1 ring-slate-200 shrink-0"
 								>
 									<IoIosArrowDown />
 								</motion.span>
@@ -1697,12 +1697,12 @@ export default function ProductPageClient() {
 						</div>
 
 						{/* Instructions FAQ */}
-						<div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden hover:shadow-md transition mt-4">
+						<div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden hover:shadow-md transition mt-1 md:mt-4">
 							{/* Title */}
 							<button
 								aria-label="toggle instructions"
 								onClick={() => setIsInstructionsOpen(!isInstructionsOpen)}
-								className={`w-full flex items-center justify-between gap-3 p-4 md:p-5  cursor-pointer bg-slate-50 transition`}
+								className={`w-full flex items-center justify-between gap-3 p-1 px-2 md:p-5  cursor-pointer bg-slate-50 transition`}
 							>
 								<div className={`min-w-0 flex-1 flex items-center gap-2 `}>
 									<BookOpen className="w-5 h-5 text-pro-max shrink-0" />
@@ -1716,7 +1716,7 @@ export default function ProductPageClient() {
 								<motion.span
 									animate={{ rotate: isInstructionsOpen ? 180 : 0 }}
 									transition={{ type: "spring", stiffness: 260, damping: 20 }}
-									className="grid place-items-center h-10 w-10 rounded-lg bg-slate-50 text-slate-700 ring-1 ring-slate-200 shrink-0"
+									className="grid place-items-center h-10 w-10 rounded-lg bg-slate-50 text-slate-700 ring-0 sm:ring-1 ring-slate-200 shrink-0"
 								>
 									<IoIosArrowDown />
 								</motion.span>
@@ -1743,12 +1743,12 @@ export default function ProductPageClient() {
 						</div>
 
 						{/* Terms and Conditions FAQ */}
-						<div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden hover:shadow-md transition mt-4">
+						<div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden hover:shadow-md transition mt-1 md:mt-4">
 							{/* Title */}
 							<button
 								aria-label="toggle terms"
 								onClick={() => setIsTermsOpen(!isTermsOpen)}
-								className={`w-full flex items-center justify-between gap-3 p-4 md:p-5  cursor-pointer bg-slate-50 transition`}
+								className={`w-full flex items-center justify-between gap-3 p-1 px-2 md:p-5  cursor-pointer bg-slate-50 transition`}
 							>
 								<div className={`min-w-0 flex-1 flex items-center gap-2 `}>
 									<FileText className="w-5 h-5 text-pro-max shrink-0" />
@@ -1762,7 +1762,7 @@ export default function ProductPageClient() {
 								<motion.span
 									animate={{ rotate: isTermsOpen ? 180 : 0 }}
 									transition={{ type: "spring", stiffness: 260, damping: 20 }}
-									className="grid place-items-center h-10 w-10 rounded-lg bg-slate-50 text-slate-700 ring-1 ring-slate-200 shrink-0"
+									className="grid place-items-center h-10 w-10 rounded-lg bg-slate-50 text-slate-700 ring-0 sm:ring-1 ring-slate-200 shrink-0"
 								>
 									<IoIosArrowDown />
 								</motion.span>
@@ -1846,9 +1846,9 @@ export default function ProductPageClient() {
 
 								
 
-							<div className="flex  gap-2 flex-col">
-							<p className="text-sm md:text-base font-black text-slate-900 line-clamp-2">{product.name}</p>
-										<p className="text-lg text-gray-500 leading-none mt-1">{displayTotal.toFixed(2)}</p>
+							<div className="flex  sm:gap-2 flex-col">
+							<p className="text-xs md:text-sm font-black text-slate-900 line-clamp-2">{product.name}</p>
+										<p className="text-lg text-gray-500 leading-none sm:mt-1">{displayTotal.toFixed(2)}</p>
 								
 							</div>
 										

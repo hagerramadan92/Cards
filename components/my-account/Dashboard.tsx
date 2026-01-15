@@ -383,15 +383,15 @@ export default function Dashboard() {
 
 				{/* Buy and Level Up */}
 				<div className='flex items-center gap-0.5 px-2 md:px-6'>
-					<p className='text-xs md:text-sm opacity-50 me-1'>
+					<p className='text-xs md:text-sm opacity-50 me-1 '>
 						اشتري بقيمة 25793 ج.م و وارتقي لـ
 					</p>
 					<button
 						onClick={() => setShowLevelModal(true)}
-						className='flex items-center gap-0.5 hover:opacity-80 transition-opacity cursor-pointer'
+						className='flex items-center md:gap-0.5 hover:opacity-80 transition-opacity cursor-pointer'
 					>
-						<p className='text-xs md:text-sm font-bold'>المستوى الفضي</p>
-						<MdKeyboardArrowLeft size={23} />
+						<p className='text-xs md:text-sm font-bold whitespace-nowrap'>المستوى الفضي</p>
+						<MdKeyboardArrowLeft size={20} />
 					</button>
 				</div>
 
@@ -437,7 +437,7 @@ export default function Dashboard() {
 
 				{/* Three Sections */}
 				<div 
-					className='grid grid-cols-1 sm:grid-cols-3 gap-px bg-slate-100'
+					className='grid grid-cols-3  gap-px bg-slate-100'
 					style={{ backgroundColor: 'rgb(255, 250, 246)' }}
 				>
 					{/* Categories Section */}

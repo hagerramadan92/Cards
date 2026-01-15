@@ -14,40 +14,40 @@ import { useAuth } from "./AuthContext";
 interface AddToCartPayload {
 	product_id: number;
 	quantity?: number;
-	size_id?: number | null;
-	color_id?: number | null;
-	material_id?: number | null;
-	printing_method_id?: number | null;
-	print_locations?: number[];
-	embroider_locations?: number[];
-	selected_options?: { option_name: string; option_value: string }[];
-	design_service_id?: number | null;
-	is_sample?: boolean;
-	note?: string;
-	image_design?: string | null;
+	// size_id?: number | null;
+	// color_id?: number | null;
+	// material_id?: number | null;
+	// printing_method_id?: number | null;
+	// print_locations?: number[];
+	// embroider_locations?: number[];
+	// selected_options?: { option_name: string; option_value: string }[];
+	// design_service_id?: number | null;
+	// is_sample?: boolean;
+	// note?: string;
+	// image_design?: string | null;
 }
 
 interface CartItem {
 	cart_item_id: number;
 	product: any;
 	quantity: number;
-	price_per_unit: string;
-	line_total: string;
-	size?: string | null;
-	size_id?: number | null;
-	color?: { name: string; hex_code?: string; hex?: string } | null;
-	color_id?: number | null;
-	material?: string | null;
-	material_id?: number | null;
-	printing_method?: string | null;
-	printing_method_id?: number | null;
-	print_locations?: number[];
-	embroider_locations?: number[];
-	selected_options?: any[];
-	design_service?: string | null;
-	design_service_id?: number | null;
-	is_sample?: boolean;
-	image_design ?: string ;
+	// price_per_unit: string;
+	// line_total: string;
+	// size?: string | null;
+	// size_id?: number | null;
+	// color?: { name: string; hex_code?: string; hex?: string } | null;
+	// color_id?: number | null;
+	// material?: string | null;
+	// material_id?: number | null;
+	// printing_method?: string | null;
+	// printing_method_id?: number | null;
+	// print_locations?: number[];
+	// embroider_locations?: number[];
+	// selected_options?: any[];
+	// design_service?: string | null;
+	// design_service_id?: number | null;
+	// is_sample?: boolean;
+	// image_design ?: string ;
 }
 
 interface CartContextType {
@@ -68,19 +68,19 @@ interface CartContextType {
 	clearCart: () => Promise<void>;
 	refreshCart: () => Promise<void>;
 
-	updateSelectedOption: (
-		cartItemId: number,
-		optionName: string,
-		optionValue: string
-	) => Promise<boolean>;
+	// updateSelectedOption: (
+	// 	cartItemId: number,
+	// 	optionName: string,
+	// 	optionValue: string
+	// ) => Promise<boolean>;
 
-	stickerFormValues: any;
-	setStickerFormValues: (values: any) => void;
-	validateStickerForm: (fields: any) => boolean;
+	// stickerFormValues: any;
+	// setStickerFormValues: (values: any) => void;
+	// validateStickerForm: (fields: any) => boolean;
 
-	fetchCartItemOptions: (cartItemId: number) => Promise<any>;
+	// fetchCartItemOptions: (cartItemId: number) => Promise<any>;
 
-	loadItemOptions: (cartItemId: number) => Promise<void>;
+	// loadItemOptions: (cartItemId: number) => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -147,27 +147,27 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 						cart_item_id: item.id,
 						product: item.product,
 						quantity: item.quantity,
-						price_per_unit: item.price_per_unit,
-						line_total: item.line_total,
-						size: item.size,
-						size_id: item.size_id,
-						color: item.color,
-						color_id: item.color_id,
-						material: item.material,
-						material_id: item.material_id,
-						printing_method: item.printing_method,
-						printing_method_id: item.printing_method_id,
-						print_locations: item.print_locations
-							? JSON.parse(item.print_locations)
-							: [],
-						embroider_locations: item.embroider_locations
-							? JSON.parse(item.embroider_locations)
-							: [],
-						selected_options: selectedOptions,
-						design_service: item.design_service,
-						design_service_id: item.design_service_id,
-						is_sample: item.is_sample === 1,
-						...item
+						// price_per_unit: item.price_per_unit,
+						// line_total: item.line_total,
+						// size: item.size,
+						// size_id: item.size_id,
+						// color: item.color,
+						// color_id: item.color_id,
+						// material: item.material,
+						// material_id: item.material_id,
+						// printing_method: item.printing_method,
+						// printing_method_id: item.printing_method_id,
+						// print_locations: item.print_locations
+							// 	? JSON.parse(item.print_locations)
+							// 	: [],
+						// embroidered_locations: item.embroider_locations
+							// 	? JSON.parse(item.embroider_locations)
+							// 	: [],
+						// selected_options: selectedOptions,
+						// design_service: item.design_service,
+						// design_service_id: item.design_service_id,
+						// is_sample: item.is_sample === 1,
+						// ...item
 					};
 				});
 				setCart(items);
@@ -262,7 +262,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 						...item,
 						quantity,
 						line_total: (
-							parseFloat(item.price_per_unit || "0") * quantity
+							parseFloat(item.product.price || "0") * quantity
 						).toFixed(4),
 					}
 					: item
@@ -287,18 +287,18 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 		const payload: AddToCartPayload = {
 			product_id: productId,
 			quantity: 1,
-			size_id: null,
-			color_id: null,
-			material_id: null,
-			printing_method_id: null,
-			print_locations: [],
-			embroider_locations: [],
-			selected_options: [],
-			design_service_id: null,
-			is_sample: false,
-			note: "",
-			image_design: null,
-			...options,
+			// size_id: null,
+			// color_id: null,
+			// material_id: null,
+			// printing_method_id: null,
+			// print_locations: [],
+			// embroider_locations: [],
+			// selected_options: [],
+			// design_service_id: null,
+			// is_sample: false,
+			// note: "",
+			// image_design: null,
+			// ...options,
 		};
 
 		try {
@@ -421,49 +421,49 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 		}
 	};
 
-	const updateSelectedOption = async (
-		cartItemId: number,
-		optionName: string,
-		optionValue: string
-	): Promise<boolean> => {
-		if (!token) return false;
+	// const updateSelectedOption = async (
+	// 	cartItemId: number,
+	// 	optionName: string,
+	// 	optionValue: string
+	// ): Promise<boolean> => {
+	// 	if (!token) return false;
 
-		try {
-			const currentItem = cart.find((item) => item.cart_item_id === cartItemId);
-			const updatedOptions = [
-				...(currentItem?.selected_options || []).filter(
-					(opt) => opt.option_name !== optionName
-				),
-				{ option_name: optionName, option_value: optionValue },
-			];
+	// 	try {
+	// 		const currentItem = cart.find((item) => item.cart_item_id === cartItemId);
+	// 		const updatedOptions = [
+	// 			...(currentItem?.selected_options || []).filter(
+	// 				(opt) => opt.option_name !== optionName
+	// 			),
+	// 			{ option_name: optionName, option_value: optionValue },
+	// 		];
 
-			const response = await fetch(`${API_URL}/cart/items/${cartItemId}`, {
-				method: "PUT",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
-					Accept: "application/json",
-				},
-				body: JSON.stringify({ selected_options: updatedOptions }),
-			});
+	// 		const response = await fetch(`${API_URL}/cart/items/${cartItemId}`, {
+	// 			method: "PUT",
+	// 			headers: {
+	// 				"Content-Type": "application/json",
+	// 				Authorization: `Bearer ${token}`,
+	// 				Accept: "application/json",
+	// 			},
+	// 			body: JSON.stringify({ selected_options: updatedOptions }),
+	// 		});
 
-			const data = await response.json();
+	// 		const data = await response.json();
 
-			if (response.ok && data.status) {
-				await loadItemOptions(cartItemId);
-				toast.success("تم تحديث الخيار بنجاح");
-				return true;
-			} else {
-				await refreshCart();
-				toast.error(data.message || "فشل تحديث الخيار");
-				return false;
-			}
-		} catch (err) {
-			await refreshCart();
-			toast.error("خطأ في الاتصال، حاول مرة أخرى");
-			return false;
-		}
-	};
+	// 		if (response.ok && data.status) {
+	// 			await loadItemOptions(cartItemId);
+	// 			toast.success("تم تحديث الخيار بنجاح");
+	// 			return true;
+	// 		} else {
+	// 			await refreshCart();
+	// 			toast.error(data.message || "فشل تحديث الخيار");
+	// 			return false;
+	// 		}
+	// 	} catch (err) {
+	// 		await refreshCart();
+	// 		toast.error("خطأ في الاتصال، حاول مرة أخرى");
+	// 		return false;
+	// 	}
+	// };
 
 	const clearCart = async () => {
 		if (!token || cart.length === 0) return;
@@ -491,7 +491,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
 	const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 	const subtotal = cart.reduce(
-		(sum, item) => sum + parseFloat(item.line_total || "0"),
+		(sum, item) => sum + parseFloat(item.product.price || "0"),
 		0
 	);
 	const total = subtotal;
@@ -523,14 +523,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 				removeFromCart,
 				updateQuantity,
 				updateCartItem,
-				updateSelectedOption,
 				clearCart,
 				refreshCart,
-				stickerFormValues,
-				setStickerFormValues,
-				validateStickerForm,
-				fetchCartItemOptions,
-				loadItemOptions,
 			}}
 		>
 			{children}

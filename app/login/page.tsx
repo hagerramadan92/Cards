@@ -12,6 +12,7 @@ import Swal from "sweetalert2";
 import { motion } from "framer-motion";
 import { FiMail, FiLock } from "react-icons/fi";
 import Logo from "../../components/Logo";
+import LoginWithEmail from "@/components/LoginEmail/LoginWithEmail";
 
 export default function Page() {
 	const [email, setEmail] = useState("");
@@ -250,9 +251,12 @@ export default function Page() {
 							<span className="text-xs font-extrabold text-slate-500">أو</span>
 							<div className="h-px flex-1 bg-slate-200" />
 						</div>
+						<div className="grid grid-cols-2 gap-4">
+							{/* Google */}
+							<LoginWithGoogle />
+							<LoginWithEmail />
+						</div>
 
-						{/* Google */}
-						<LoginWithGoogle />
 					</div>
 				</div>
 

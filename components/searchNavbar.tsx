@@ -39,9 +39,11 @@ export default function SearchNavbar() {
 	return (
 		<div className="bg-white/80  " >
 			{/* Navbar */}
-			<div className="w-full  container relative  z-30  border-b border-gray-200">
-				<div className="flex items-center  gap-20 py-3 md:py-4">
+			<div className="w-full container relative z-30 border-b border-gray-200">
+				<div className="flex flex-1 min-w-0 items-center justify-between gap-3 py-3 md:py-4">
 					
+					{/* Left Section: Menu, Logo, Search */}
+					<div className="flex items-center gap-3 flex-1 min-w-0">
 						{/* Menu button */}
 						<button
 							onClick={() => setMenuOpen(true)}
@@ -68,45 +70,55 @@ export default function SearchNavbar() {
 							</motion.span>
 						</button>
 
-						<Logo className=" " />
+						<Logo className="shrink-0" />
+
 						<div
 							className={cn(
-								"min-w-0 ",
+								"min-w-0 flex-1 max-w-2xl",
 								"transition-all max-md:hidden duration-300"
 							)}
 						>
-							<SearchGrowWrap>
+							
+							<SearchGrowWrap >
 								<SearchComponent />
 							</SearchGrowWrap>
 						</div>
-				
+					</div>
 
+					{/* Right Section: Actions */}
+					<div className="flex items-center gap-2 md:gap-3 shrink-0">
 						{/* Auth */}
 						{!fullName ? (
 							<Link
 								href="/login"
-								className=" inline-flex items-center gap-1 whitespace-nowrap rounded-xl bg-pro text-white px-4 py-2.5 max-md:text-xs text-sm font-extrabold shadow-sm hover:opacity-95 active:scale-[0.99] transition"
+								className="inline-flex items-center gap-1 whitespace-nowrap rounded-xl bg-pro text-white px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-extrabold shadow-sm hover:opacity-95 active:scale-[0.99] transition"
 							>
 								<FaRegUser className="max-md:hidden" size={15} />
-							تسجيل دخول / انشاء حساب
+								<span className="max-md:hidden">تسجيل دخول / انشاء حساب</span>
+								<span className="md:hidden">دخول</span>
 							</Link>
 						) : (
 							<DropdownUser />
 						)}
-						{/* country & currency */}
-						<div className="flex  items-center gap-2">
-							<div className="rounded-full w-[24px] h-[24px]  flex items-center justify-center overflow-hidden">
-							<Image src="/images/eg.avif" alt="flag" width={20} height={20} className="object-cover w-full h-full" />
+
+						{/* country & currency - Hide on very small screens if needed, or keep */}
+						<div className="hidden sm:flex items-center gap-2">
+							<div className="rounded-full w-[24px] h-[24px] flex items-center justify-center overflow-hidden">
+								<Image src="/images/eg.avif" alt="flag" width={20} height={20} className="object-cover w-full h-full" />
 							</div>
 							<p className="text-sm font-bold">ج.م</p>
 						</div>
-					
-						{/* Language Selector */}
-						<LanguageSelector />
+
+						{/* Language Selector - Hide on mobile (in drawer) */}
+						<div className="hidden md:block">
+							<LanguageSelector />
+						</div>
+
 						{/* Cart */}
 						<div className={`cursor-pointer ${!fullName && "hidden"}`}>
 							<CartSidebar />
 						</div>
+					</div>
 					
 				</div>
 			</div>

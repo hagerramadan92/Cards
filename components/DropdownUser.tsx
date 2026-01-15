@@ -85,7 +85,6 @@ export default function DropdownUser() {
     { href: "/myAccount", label: "حسابي", icon: <FaUser size={18} /> },
     { href: "/myAccount/orders", label: "طلباتي", icon: <FaClipboardCheck size={18} /> },
     { href: "/myAccount/favorites", label: "منتجاتي المفضلة", icon: <FaHeart size={16} /> },
-    { href: "/myAccount/addresses", label: "إدارة العناوين", icon: <FaMapLocationDot size={18} /> },
     { href: "/myAccount/help", label: "مركز المساعدة", icon: <FaQuestionCircle size={18} /> },
   ];
 
@@ -101,23 +100,26 @@ export default function DropdownUser() {
       >
         {/* avatar with ring + online dot */}
         <div className="relative">
-          <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-slate-200 to-slate-100 opacity-0 group-hover:opacity-100 transition" />
-          <Image
-            src={displayImage}
-            alt="User"
-            width={36}
-            height={36}
-            className="relative rounded-full object-cover border border-slate-200"
-          />
-          <span className="absolute -bottom-0.5 -left-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white" />
+          <div className="absolute  -inset-1 rounded-full bg-gradient-to-tr from-slate-200 to-slate-100 opacity-0 group-hover:opacity-100 transition" />
+         <div className="w-[35px] h-[35px] flex items-center justify-center">
+                <Image
+                  src={displayImage}
+                  alt="User"
+                  fill
+                  className="relative  rounded-full object-cover "
+                />
+         </div>
+         
+          {/* <span className="absolute -bottom-0.5 -left-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white" /> */}
         </div>
+        
 
         {/* name */}
         <div className="hidden md:flex flex-col items-start leading-tight">
-          <span className="text-[10px] text-slate-500 font-semibold">أهلاً 👋</span>
-          <span className="text-sm font-extrabold text-slate-900 truncate max-w-[140px]">
+          <span className="text-[14px] text-slate-500 font-semibold">مرحبا </span>
+          {/* <span className="text-sm font-extrabold text-slate-900 truncate max-w-[140px]">
             {displayName}
-          </span>
+          </span> */}
         </div>
 
         {/* chevron */}
