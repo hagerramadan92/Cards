@@ -62,13 +62,13 @@ export default function LanguageSelector() {
 								key={lang.code}
 								onClick={() => handleLanguageChange(lang.code)}
 								className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors first:rounded-t-lg last:rounded-b-lg ${
-									language === lang.code ? "bg-blue-50 text-blue-700 font-semibold" : "text-gray-700"
+									language === lang.code ? "bg-blue-50/100 text-pro font-semibold" : "text-gray-700"
 								}`}
 							>
 								<span className="text-lg">{lang.flag}</span>
 								<span>{lang.name}</span>
 								{language === lang.code && (
-									<span className="ml-auto text-blue-600">✓</span>
+									<span className="ml-auto text-pro">✓</span>
 								)}
 							</button>
 						))}

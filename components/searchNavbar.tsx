@@ -40,8 +40,8 @@ export default function SearchNavbar() {
 		<div className="bg-white/80  " >
 			{/* Navbar */}
 			<div className="w-full  container relative  z-30  border-b border-gray-200">
-				<div className="flex items-center justify-between gap-3 py-3 md:py-4">
-					<div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
+				<div className="flex items-center  gap-20 py-3 md:py-4">
+					
 						{/* Menu button */}
 						<button
 							onClick={() => setMenuOpen(true)}
@@ -69,21 +69,9 @@ export default function SearchNavbar() {
 						</button>
 
 						<Logo className=" " />
-
-						<nav className="hidden md:flex items-center gap-2 ms-2">
-							<Link
-								href="/blogs"
-								className="px-3 py-2 rounded-xl text-sm font-extrabold text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition"
-							>
-								المدونة
-							</Link>
-						</nav>
-
-
-						{/* Search (expands on focus) */}
 						<div
 							className={cn(
-								"min-w-0 flex-1",
+								"min-w-0 ",
 								"transition-all max-md:hidden duration-300"
 							)}
 						>
@@ -91,43 +79,35 @@ export default function SearchNavbar() {
 								<SearchComponent />
 							</SearchGrowWrap>
 						</div>
-					</div>
-
-					{/* Right Section */}
-					<div className="flex items-center gap-2 md:gap-4 shrink-0">
-						{/* Phone */}
-						{phone && <div className="hidden lg:flex flex-col text-sm leading-tight">
-
-							<a
-								href={`tel:${String(phone).replace(/\s+/g, "")}`}
-								className="flex items-center gap-1 text-pro-hover font-bold hover:opacity-90 transition"
-							>
-								<span className="tabular-nums">{phone}</span>
-								<LuPhone size={22} strokeWidth={1.3} />
-							</a>
-						</div>}
-
-						{/* Language Selector */}
-						<LanguageSelector />
-
-						{/* Cart */}
-						<div className={`cursor-pointer ${!fullName && "hidden"}`}>
-							<CartSidebar />
-						</div>
+				
 
 						{/* Auth */}
 						{!fullName ? (
 							<Link
 								href="/login"
-								className=" inline-flex items-center gap-2 rounded-xl bg-pro text-white px-4 py-2.5 max-md:text-xs text-sm font-extrabold shadow-sm hover:opacity-95 active:scale-[0.99] transition"
+								className=" inline-flex items-center gap-1 whitespace-nowrap rounded-xl bg-pro text-white px-4 py-2.5 max-md:text-xs text-sm font-extrabold shadow-sm hover:opacity-95 active:scale-[0.99] transition"
 							>
 								<FaRegUser className="max-md:hidden" size={15} />
-								تسجيل دخول
+							تسجيل دخول / انشاء حساب
 							</Link>
 						) : (
 							<DropdownUser />
 						)}
-					</div>
+						{/* country & currency */}
+						<div className="flex  items-center gap-2">
+							<div className="rounded-full w-[24px] h-[24px]  flex items-center justify-center overflow-hidden">
+							<Image src="/images/eg.avif" alt="flag" width={20} height={20} className="object-cover w-full h-full" />
+							</div>
+							<p className="text-sm font-bold">ج.م</p>
+						</div>
+					
+						{/* Language Selector */}
+						<LanguageSelector />
+						{/* Cart */}
+						<div className={`cursor-pointer ${!fullName && "hidden"}`}>
+							<CartSidebar />
+						</div>
+					
 				</div>
 			</div>
 
