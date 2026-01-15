@@ -18,15 +18,15 @@ const cairo = Cairo({
 
 export const metadata: Metadata = {
 	title: {
-		default: "Ecommerce | تسوق أذكى وأسهل",
-		template: "%s | Ecommerce",
-	},
-	description: "منصة تجارة إلكترونية متكاملة توفر لك تجربة تسوق سهلة، آمنة وسريعة مع أفضل المنتجات والخدمات.",
-	keywords: ["تجارة إلكترونية", "تسوق أونلاين", "متجر إلكتروني", "Ecommerce", "شراء منتجات", "الدفع عند الاستلام", "منتجات مخصصة",],
+		default: "أكبر منصة بطاقات شحن رقمية",
+		template: "%s | LikeCard",
+	}, 
+	description: "أكبر منصة بطاقات شحن رقمية",
+	keywords: ["أكبر منصة بطاقات شحن رقمية", "LikeCard", "", "", "",],
 
-	authors: [{ name: "Ecommerce Team" }],
-	creator: "Ecommerce",
-	publisher: "Ecommerce",
+	authors: [{ name: "LikeCard Team" }],
+	creator: "LikeCard",
+	publisher: "LikeCard",
 
 	robots: {
 		index: true,
@@ -51,25 +51,25 @@ export const metadata: Metadata = {
 		type: "website",
 		locale: "ar_AR",
 		url: "https://your-domain.com",
-		siteName: "Ecommerce",
-		title: "Ecommerce | تسوق أذكى وأسهل",
+		siteName: "LikeCard",
+		title: "LikeCard | أكبر منصة بطاقات شحن رقمية",
 		description:
-			"اكتشف تجربة تسوق عربية حديثة مع منتجات عالية الجودة وخدمة عملاء مميزة.",
+			"أكبر منصة بطاقات شحن رقمية",
 		images: [
 			{
 				url: "/og-image.jpg", // ✨ حط صورة OG حقيقية
 				width: 1200,
 				height: 630,
-				alt: "Ecommerce متجر إلكتروني",
+				alt: "LikeCard متجر إلكتروني",
 			},
 		],
 	},
 
 	twitter: {
 		card: "summary_large_image",
-		title: "Ecommerce | تسوق أذكى وأسهل",
+		title: "LikeCard | 	أكبر منصة بطاقات شحن رقمية",
 		description:
-			"منصة تجارة إلكترونية عربية توفر لك أفضل تجربة شراء.",
+			"أكبر منصة بطاقات شحن رقمية",
 		images: ["/og-image.jpg"],
 	},
 

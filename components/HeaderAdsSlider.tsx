@@ -86,13 +86,31 @@ export default function HeaderAdsSlider() {
 		if (ads.length <= 1) return ads;
 		return [...ads, ...ads];
 	}, [ads]);
+	const slide = [
+		{
+			id: 1,
+			description: "PlayMore...Payless",
+			icon: "fa-bolt",
+		},
+		{
+			id: 2,
+			description: "فلاش سيل",
+			icon: "fa-rocket",
+		},
+		{
+			id: 3,
+			description: "بلايستشن ",
+			icon: "fa-fire",
+		},
+	];
+
 
 	/* ---------- Skeleton ---------- */
 	if (loading) {
 		return <HeaderAdsSkeleton />;
 	}
 
-	if (!slides.length) return null;
+	if (!slide.length) return null;
 
 	return (
 		<div
@@ -112,7 +130,7 @@ export default function HeaderAdsSlider() {
 					}}
 					className="h-10"
 				>
-					{slides.map((ad, idx) => (
+					{slide.map((ad, idx) => (
 						<SwiperSlide
 							key={`${ad.id}-${idx}`}
 							className="!flex items-center"

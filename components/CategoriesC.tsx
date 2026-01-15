@@ -131,7 +131,7 @@ export default function CategoriesSlider({
 	};
 
 	return (
-		<section className="relative w-full py-4 md:py-6">
+		<section className="relative w-full py-4 md:py-6 ">
 			{/* Header */}
 			<div className="mb-3 md:mb-4 flex items-center justify-between gap-2">
 				<div className="flex items-center gap-2">
@@ -190,7 +190,7 @@ export default function CategoriesSlider({
 					ref={scrollContainerRef}
 					id="all_cate"
 					dir={isRTL ? "rtl" : "ltr"}
-					className="flex-1 flex overflow-x-auto gap-2 scrollbar-light scroll-smooth"
+					className="flex-1 flex overflow-x-auto gap-1 scrollbar-light scroll-smooth"
 					onScroll={checkScrollability}
 				>
 					{displayedItems.map((cat) => (

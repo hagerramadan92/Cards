@@ -135,7 +135,7 @@ export default function SearchComponent({ className = "", setMenuOpen }: any) {
 			<div className="relative">
 				<input
 					type="text"
-					placeholder="ابحث عن منتج..."
+					placeholder="ما الذي تبحث عنه؟"
 					value={query}
 					onChange={(e) => {
 						setQuery(e.target.value);
@@ -203,7 +203,7 @@ export default function SearchComponent({ className = "", setMenuOpen }: any) {
 					{!loading && results.length === 0 && (
 						<div className="p-4 text-center">
 							<p className="text-gray-600 font-bold">لا توجد نتائج</p>
-							<p className="text-xs text-gray-500 mt-1">جرّب كلمات مختلفة أو اكتب اسم المنتج</p>
+							<p className="text-xs text-gray-500 mt-1">جرّب كلمات مختلفة أو اكتب اسم الكارد</p>
 
 							{trimmed && (
 								<button
@@ -243,7 +243,7 @@ export default function SearchComponent({ className = "", setMenuOpen }: any) {
 													<p className="font-extrabold text-gray-900 truncate">{item.name}</p>
 													{item.price && (
 														<p className="text-sm text-gray-500 mt-0.5">
-															{item.price} ريال
+															{item.price} جنية
 														</p>
 													)}
 												</div>

@@ -91,9 +91,9 @@ export default function SearchNavbar() {
 						{!fullName ? (
 							<Link
 								href="/login"
-								className="inline-flex items-center gap-1 whitespace-nowrap rounded-xl bg-pro text-white px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-extrabold shadow-sm hover:opacity-95 active:scale-[0.99] transition"
+								className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg bg-gray-100 text-pro px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-extrabold shadow-sm hover:opacity-95 active:scale-[0.99] transition"
 							>
-								<FaRegUser className="max-md:hidden" size={15} />
+								<FaRegUser className="" size={15} />
 								<span className="max-md:hidden">تسجيل دخول / انشاء حساب</span>
 								<span className="md:hidden">دخول</span>
 							</Link>
@@ -110,7 +110,7 @@ export default function SearchNavbar() {
 						</div>
 
 						{/* Language Selector - Hide on mobile (in drawer) */}
-						<div className="hidden md:block">
+						<div className="hidden sm:flex">
 							<LanguageSelector />
 						</div>
 
@@ -162,7 +162,7 @@ export default function SearchNavbar() {
 									</div>
 									<div>
 										<h2 className="text-lg md:text-xl font-extrabold text-gray-900">القائمة</h2>
-										<p className="text-xs text-gray-500">تسوق بسهولة حسب الأقسام</p>
+										<p className="text-xs text-gray-500">تسوق بسهولة حسب الفئة</p>
 									</div>
 								</div>
 
@@ -190,14 +190,6 @@ export default function SearchNavbar() {
 										<SearchGrowWrap inDrawer>
 											<SearchComponent setMenuOpen={setMenuOpen} />
 										</SearchGrowWrap>
-
-										<Link
-											href="/blogs"
-											onClick={() => setMenuOpen(false)}
-											className="w-fit gap-4 inline-flex items-center justify-between rounded-xl bg-slate-900 text-white px-4 py-3 text-sm font-extrabold hover:bg-slate-800 transition"
-										>
-											<span>المدونة</span>
- 										</Link>
 									</div>
 								</div>
 

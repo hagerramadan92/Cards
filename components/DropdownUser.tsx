@@ -89,7 +89,7 @@ export default function DropdownUser() {
   ];
 
   return (
-    <div className="relative max-md:mt-[3px] " ref={menuRef} dir="rtl">
+    <div className="relative max-md:mt-[3px] " ref={menuRef}>
       {/* Trigger */}
       <button
         type="button"
@@ -148,11 +148,11 @@ export default function DropdownUser() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.98 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="absolute end-0 mt-3 w-72 z-50"
+            className="absolute end-0 mt-3 w-52 md:w-72 z-50"
           >
             <div className="rounded-3xl border border-slate-200 bg-white shadow-xl overflow-hidden">
               {/* header */}
-              <div className="p-4 bg-slate-50 border-b border-slate-200">
+              <div className="p-2 md:p-4 bg-slate-50 border-b border-slate-200">
                 <div className="flex items-center gap-3">
                   <Image
                     src={displayImage}
@@ -179,16 +179,16 @@ export default function DropdownUser() {
                     key={it.href}
                     href={it.href}
                     onClick={handleLinkClick}
-                    className="group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5 hover:bg-slate-50 transition"
+                    className="group flex items-center justify-between gap-2 md:gap-3 rounded-2xl px-3 py-2.5 hover:bg-slate-50 transition"
                   >
                     <div className="flex items-center gap-3">
                       <span className="h-9 w-9 rounded-2xl border border-slate-200 bg-white flex items-center justify-center text-slate-700 group-hover:scale-[1.02] transition">
                         {it.icon}
                       </span>
-                      <span className="text-sm font-bold text-slate-800">{it.label}</span>
+                      <span className="text-sm font-bold text-slate-800 whitespace-nowrap">{it.label}</span>
                     </div>
 
-                    <span className="scale-x-[-1] text-slate-300 group-hover:text-slate-400 transition">
+                    <span className="scale-x-[-1] hidden md:block  text-slate-300 group-hover:text-slate-400 transition">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                         <path
                           d="M9 6l6 6-6 6"
@@ -212,13 +212,13 @@ export default function DropdownUser() {
                   className="w-full flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5 hover:bg-rose-50 transition"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="h-9 w-9 rounded-2xl border border-rose-200 bg-white flex items-center justify-center text-rose-600">
+                    <span className="h-9 w-9 rounded-2xl  border border-rose-200 bg-white flex items-center justify-center text-rose-600">
                       <FaArrowRightFromBracket size={18} />
                     </span>
                     <span className="text-sm font-extrabold text-rose-700">تسجيل الخروج</span>
                   </div>
 
-                  <span className="text-rose-300 scale-x-[-1] ">
+                  <span className="text-rose-300 scale-x-[-1] hidden md:block">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                       <path
                         d="M9 6l6 6-6 6"

@@ -251,7 +251,7 @@ export default function Page() {
 							<span className="text-xs font-extrabold text-slate-500">أو</span>
 							<div className="h-px flex-1 bg-slate-200" />
 						</div>
-						<div className="grid grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 							{/* Google */}
 							<LoginWithGoogle />
 							<LoginWithEmail />
