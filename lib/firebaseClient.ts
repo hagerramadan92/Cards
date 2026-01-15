@@ -11,7 +11,6 @@
 //   appId: "1:1034296304853:web:8803ee7201d740ae092e5c",
 //   measurementId: "G-X47MBXE9QZ"
 // };
-
 // function initFirebase() {
 //   if (!getApps().length) {
 //     return initializeApp(firebaseConfig);
