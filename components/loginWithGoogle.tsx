@@ -19,8 +19,8 @@ export default function LoginWithGoogle() {
 
     const payload = {
       provider: "google",
-      id_token: idToken,             // ✅ مهم (لو الباك بيعمل verify)
-      provider_id: user.uid,         // ✅ احتياطي لو الباك محتاجه
+      id_token: idToken,             
+      provider_id: user.uid,         
       email: user.email,
       name: user.displayName,
       image: user.photoURL,
