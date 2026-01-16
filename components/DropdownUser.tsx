@@ -94,14 +94,14 @@ export default function DropdownUser() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="group inline-flex items-center gap-3 md:rounded-xl md:border md:border-slate-200 md:bg-white/80 md:backdrop-blur md:px-3 md:py-2  md:hover:shadow-md md:hover:bg-white transition"
+        className="group inline-flex items-center  md:gap-3 md:rounded-xl rounded-full border border-slate-200 bg-white/80 md:backdrop-blur md:px-3 md:py-2  md:hover:shadow-md md:hover:bg-white transition"
         aria-haspopup="menu"
         aria-expanded={open}
       >
         {/* avatar with ring + online dot */}
         <div className="relative">
           <div className="absolute  -inset-1 rounded-full bg-gradient-to-tr from-slate-200 to-slate-100 opacity-0 group-hover:opacity-100 transition" />
-         <div className="w-[35px] h-[35px] flex items-center justify-center">
+         <div className="w-[30px] h-[30px] md:w-[35px] md:h-[35px] flex items-center justify-center">
                 <Image
                   src={displayImage}
                   alt="User"
@@ -110,13 +110,13 @@ export default function DropdownUser() {
                 />
          </div>
          
-          {/* <span className="absolute -bottom-0.5 -left-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white" /> */}
+          <span className="absolute -bottom-0.5 -left-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white" />
         </div>
         
 
         {/* name */}
         <div className="flex flex-col items-start leading-tight">
-          <span className="text-[14px] text-slate-500 font-semibold">مرحبا </span>
+          <span className="text-[14px] text-slate-500 font-semibold hidden md:block">مرحبا </span>
           {/* <span className="text-sm font-extrabold text-slate-900 truncate max-w-[140px]">
             {displayName}
           </span> */}

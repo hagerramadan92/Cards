@@ -16,6 +16,8 @@ import Logo from "./Logo";
 import { CategoriesSliderSkeleton } from "./skeletons/HomeSkeletons";
 import CategoriesSlider from "./CategoriesC";
 import LanguageSelector from "./LanguageSelector";
+import { FaBarsStaggered } from "react-icons/fa6";
+import CurrencySelector from "./Currency/CurrencySelector";
 
 function cn(...c: (string | false | null | undefined)[]) {
 	return c.filter(Boolean).join(" ");
@@ -50,8 +52,8 @@ export default function SearchNavbar() {
 							aria-label="فتح القائمة"
 							className={cn(
 								"md:hidden shrink-0 relative",
-								"rounded-xl p-2",
-								"bg-white/90 backdrop-blur border border-slate-200",
+								"rounded-xl ",
+								"bg-white/90 backdrop-blur ",
 								"text-slate-800 ",
 								"hover:shadow-md hover:bg-white",
 								"active:scale-95 transition-all duration-200",
@@ -66,7 +68,8 @@ export default function SearchNavbar() {
 								whileTap={{ scale: 0.92 }}
 								className="relative z-10 flex items-center justify-center"
 							>
-								<FaBars size={18} />
+								{/* <FaBars size={18} /> */}
+								<FaBarsStaggered size={22} className="text-pro" />
 							</motion.span>
 						</button>
 
@@ -87,6 +90,10 @@ export default function SearchNavbar() {
 
 					{/* Right Section: Actions */}
 					<div className="flex items-center gap-2 md:gap-3 shrink-0">
+						{/* Language Selector - Hide on mobile (in drawer) */}
+						<div className="sm:block hidden">
+							<LanguageSelector />
+						</div>
 						{/* Auth */}
 						{!fullName ? (
 							<Link
@@ -106,13 +113,10 @@ export default function SearchNavbar() {
 							<div className="rounded-full w-[24px] h-[24px] flex items-center justify-center overflow-hidden">
 								<Image src="/images/eg.avif" alt="flag" width={20} height={20} className="object-cover w-full h-full" />
 							</div>
-							<p className="text-sm font-bold">ج.م</p>
+							<CurrencySelector />
 						</div>
 
-						{/* Language Selector - Hide on mobile (in drawer) */}
-						<div className="hidden sm:flex">
-							<LanguageSelector />
-						</div>
+						
 
 						{/* Cart */}
 						<div className={`cursor-pointer ${!fullName && "hidden"}`}>
@@ -167,10 +171,7 @@ export default function SearchNavbar() {
 								</div>
 
 								<div className="flex items-center gap-2">
-									{/* Language Selector for Mobile */}
-									<div className="md:hidden">
-										<LanguageSelector />
-									</div>
+									
 									<button
 										aria-label="Close menu"
 										onClick={() => setMenuOpen(false)}
@@ -180,6 +181,17 @@ export default function SearchNavbar() {
 									</button>
 								</div>
 							</div>
+							 <div className="flex flex-col px-2">
+								{/* Language Selector for Mobile */}
+							<div className="md:hidden flex items-center justify-between">
+								<p>اللغة</p>
+								<LanguageSelector />
+							</div>
+							<div className="md:hidden flex items-center justify-between">
+								<p>العمله</p>
+								<CurrencySelector/>
+							</div>
+							 </div>
 
 							{/* Drawer content */}
 							<div className="  p-2 space-y-5 !pl-4 ">
@@ -196,7 +208,7 @@ export default function SearchNavbar() {
 
 
 								{/* Support card */}
-								<div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+								{/* <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
 
 									<div className="flex items-center justify-between">
 										<div>
@@ -221,7 +233,7 @@ export default function SearchNavbar() {
 											تواصل معنا
 										</Link>
 									</div>
-								</div>
+								</div> */}
 
 
 								{/* Categories */}
