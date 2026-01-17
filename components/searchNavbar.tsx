@@ -18,6 +18,7 @@ import CategoriesSlider from "./CategoriesC";
 import LanguageSelector from "./LanguageSelector";
 import { FaBarsStaggered } from "react-icons/fa6";
 import CurrencySelector from "./Currency/CurrencySelector";
+import { useSession } from "next-auth/react";
 
 function cn(...c: (string | false | null | undefined)[]) {
 	return c.filter(Boolean).join(" ");
@@ -25,6 +26,7 @@ function cn(...c: (string | false | null | undefined)[]) {
 
 export default function SearchNavbar() {
 	const [menuOpen, setMenuOpen] = useState(false);
+	const { status } = useSession();
 
 	const { fullName } = useAuth();
 	const { socialMedia, parentCategories, loadingCategories } = useAppContext();
@@ -95,7 +97,7 @@ export default function SearchNavbar() {
 							<LanguageSelector />
 						</div>
 						{/* Auth */}
-						{!fullName ? (
+						{status !== "authenticated" ? (
 							<Link
 								href="/login"
 								className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg bg-gray-100 text-pro px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-extrabold shadow-sm hover:opacity-95 active:scale-[0.99] transition"
@@ -268,7 +270,7 @@ export default function SearchNavbar() {
 
 							{/* Drawer footer */}
 							<div className="mt-auto border-slate-200 border-t p-5 bg-white">
-								{!fullName ? (
+								{status !== "authenticated" ? (
 									<Link
 										href="/login"
 										onClick={() => setMenuOpen(false)}

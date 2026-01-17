@@ -1,14 +1,25 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
+if (!process.env.GOOGLE_CLIENT_ID) {
+  console.error("GOOGLE_CLIENT_ID is not set in environment variables");
+}
+if (!process.env.GOOGLE_CLIENT_SECRET) {
+  console.error("GOOGLE_CLIENT_SECRET is not set in environment variables");
+}
+if (!process.env.NEXTAUTH_SECRET) {
+  console.error("NEXTAUTH_SECRET is not set in environment variables");
+}
+
 const handler = NextAuth({
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
       authorization: {
         params: {
           scope: "openid email profile",
+          prompt: "consent select_account",
         },
       },
     }),
@@ -18,35 +29,21 @@ const handler = NextAuth({
     signIn: "/login",
     error: "/login",
   },
-  debug: process.env.NODE_ENV === "development",
+  debug: true, // process.env.NODE_ENV === "development",
   callbacks: {
     async jwt({ token, account }) {
-      if (account?.provider === "google" && account?.access_token) {
-        try {
-          const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-            headers: {
-              Authorization: `Bearer ${account.access_token}`,
-            },
-          });
-          const data = await res.json() as { picture?: string };
-          token.image = data.picture ?? null;
-          token.provider = account.provider;
-        } catch (err) {
-          console.log("Error fetching Google profile image:", err);
-          token.image = null;
-        }
+      if (account) {
+        token.provider = account.provider;
       }
       return token;
     },
     async session({ session, token }) {
       session.user = {
-        sub: token.sub,
         name: token.name,
         email: token.email,
-        image: token.image,
-        provider: token.provider,
+        image: token.picture ?? token.image ?? null,
+        provider: token.provider as string,
       };
-     
       return session;
     },
   },
