@@ -22,6 +22,7 @@ const handler = NextAuth({
           prompt: "consent select_account",
         },
       },
+      checks: ["none"],
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,
