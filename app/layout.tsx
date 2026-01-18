@@ -9,6 +9,8 @@ import { ToastProvider } from "@/src/context/ToastContext";
 import { Cairo } from "next/font/google";
 import LayoutShell from "./LayoutShell";
 import '@/lib/fontawesome'
+import { AuthProvider } from "@/components/LoginEmail/AuthProvider";
+
 
 const cairo = Cairo({
 	subsets: ["arabic"],
@@ -90,6 +92,7 @@ export default function RootLayout({
 		<html lang="ar" dir="rtl" className={cairo.className}>
 
 			<body className="bg-white">
+				<AuthProvider>
 				<AppProvider>
 					<ToastProvider>
 						<Providers>
@@ -102,6 +105,7 @@ export default function RootLayout({
 						</Providers>
 					</ToastProvider>
 				</AppProvider>
+				</AuthProvider>
 			</body>
 		</html>
 	);
