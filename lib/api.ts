@@ -1,11 +1,21 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export async function fetchApi(endpoint: string) {
+function getLanguageHeader(): string {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("language") || "ar";
+  }
+  return "ar";
+}
+
+export async function fetchApi(endpoint: string, options: RequestInit = {}) {
   try {
     const res = await fetch(`${API_URL}/${endpoint}`, {
-      method: "GET",
+      ...options,
+      method: options.method || "GET",
       headers: {
         Accept: "application/json",
+        "Accept-Language": getLanguageHeader(),
+        ...options.headers,
       },
       mode: "cors",
       cache: "no-store",
@@ -23,12 +33,15 @@ export async function fetchApi(endpoint: string) {
     throw err;
   }
 }
-export async function fetchApi2(endpoint: string) {
+export async function fetchApi2(endpoint: string, options: RequestInit = {}) {
   try {
     const res = await fetch(`${endpoint}`, {
-      method: "GET",
+      ...options,
+      method: options.method || "GET",
       headers: {
         Accept: "application/json",
+        "Accept-Language": getLanguageHeader(),
+        ...options.headers,
       },
       mode: "cors",
       cache: "no-store",

@@ -33,10 +33,10 @@ export default function LoginWithGoogle() {
         }`}
       >
         {loading ? (
-          <p className="font-bold text-slate-600">جاري تسجيل الدخول...</p>
+          <p className="text-sm font-semibold text-slate-700">جاري تسجيل الدخول...</p>
         ) : (
           <>
-            <p className="font-extrabold text-slate-800">Google</p>
+            <p className="text-sm font-semibold text-slate-700">جوجل</p>
             <Image src="/images/g.png" alt="Google" width={22} height={22} />
           </>
         )}

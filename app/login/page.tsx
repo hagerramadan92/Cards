@@ -13,6 +13,8 @@ import { motion } from "framer-motion";
 import { FiMail, FiLock } from "react-icons/fi";
 import Logo from "../../components/Logo";
 import LoginWithEmail from "@/components/LoginEmail/LoginWithEmail";
+import LoginWithFaceBook from "@/components/login-facebook/LoginWithFaceBook";
+import LoginWithX from "@/components/login-facebook/LoginWithX";
 
 export default function Page() {
 	const [email, setEmail] = useState("");
@@ -43,7 +45,12 @@ export default function Page() {
 	const canSubmit = useMemo(() => {
 		return email.trim().length > 0 && password.trim().length > 0 && !pending;
 	}, [email, password, pending]);
-
+	function getLanguage(): string {
+		if (typeof window !== "undefined") {
+			return localStorage.getItem("language") || "ar";
+		}
+		return "ar";
+	}
 	const handleSubmit = async (e?: React.FormEvent) => {
 		e?.preventDefault();
 		if (pending) return;
@@ -69,7 +76,7 @@ export default function Page() {
 			const res = await fetch(`${API_URL}/auth/login`, {
 				method: "POST",
 				// credentials: "include", 
-				headers: { "Content-Type": "application/json", Accept: "application/json" },
+				headers: { "Content-Type": "application/json", Accept: "application/json", "Accept-Language": getLanguage(),  },
 
 				body: JSON.stringify({ email, password }),
 			});
@@ -251,10 +258,12 @@ export default function Page() {
 							<span className="text-xs font-extrabold text-slate-500">أو</span>
 							<div className="h-px flex-1 bg-slate-200" />
 						</div>
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 							{/* Google */}
 							<LoginWithGoogle />
-							<LoginWithEmail />
+							{/* <LoginWithEmail /> */}
+							<LoginWithFaceBook />
+							<LoginWithX />
 						</div>
 
 					</div>

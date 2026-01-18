@@ -30,7 +30,12 @@ export default function ForgetPasswordPage() {
 	const canVerify = useMemo(() => finalCode.length === 6 && !loading, [finalCode, loading]);
 
 	const setMessage = (type: "error" | "success" | "info", text: string) => setMsg({ type, text });
-
+function getLanguage(): string {
+		if (typeof window !== "undefined") {
+			return localStorage.getItem("language") || "ar";
+		}
+		return "ar";
+	}
 	const handleSendCode = async () => {
 		if (!email.trim()) return setMessage("error", "من فضلك أدخل بريدك الإلكتروني");
 
@@ -40,7 +45,7 @@ export default function ForgetPasswordPage() {
 
 			const res = await fetch(`${API_URL}/auth/send-otp`, {
 				method: "POST",
-				headers: { "Content-Type": "application/json", Accept: "application/json" },
+				headers: { "Content-Type": "application/json", Accept: "application/json"  , "Accept-Language": getLanguage()},
 
 				body: JSON.stringify({ email }),
 			});

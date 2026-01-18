@@ -48,7 +48,12 @@ function HeaderAdsSkeleton() {
 		</div>
 	);
 }
-
+function getLanguage(): string {
+		if (typeof window !== "undefined") {
+			return localStorage.getItem("language") || "ar";
+		}
+		return "ar";
+	}
 export default function HeaderAdsSlider() {
 	const [ads, setAds] = useState<Ad[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -61,7 +66,10 @@ export default function HeaderAdsSlider() {
 		async function load() {
 			try {
 				setLoading(true);
-				const res = await fetch(`${apiBase}/ads`, { cache: "no-store" });
+				const res = await fetch(`${apiBase}/ads`, {
+					headers: { "Accept-Language": getLanguage() },
+					cache: "no-store"
+				});
 				const json = (await res.json()) as ApiResponse;
 
 				if (!cancelled && json?.status && Array.isArray(json.data)) {
@@ -110,11 +118,10 @@ export default function HeaderAdsSlider() {
 		return <HeaderAdsSkeleton />;
 	}
 
-	if (!slide.length) return null;
+	if (!slides.length) return null;
 
 	return (
 		<div
-			dir="rtl"
 			className="w-full border-b border-gray-200 bg-gray-100 text-gray-900 "
 		>
 			<div className="mx-auto max-w-7xl px-2 sm:px-4">
@@ -130,7 +137,7 @@ export default function HeaderAdsSlider() {
 					}}
 					className="h-10"
 				>
-					{slide.map((ad, idx) => (
+					{slides.map((ad, idx) => (
 						<SwiperSlide
 							key={`${ad.id}-${idx}`}
 							className="!flex items-center"

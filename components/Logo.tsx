@@ -52,7 +52,7 @@ export default function Logo({
 					className="flex flex-col "
 				>
 					<span className="font-ar whitespace-nowrap  font-extrabold text-slate-900 max-md:text-base text-lg">
-						لايك كارد
+						فلاشي كارد
 					</span>
 
 					<span className=" mt-[-3px] whitespace-nowrap font-en font-bold text-slate-500 text-[9px] max-md:text-xs tracking-wide text-pro-max">

@@ -51,7 +51,12 @@ export default function ResetPasswordPage() {
   const canSubmit = useMemo(() => {
     return password.trim().length > 0 && confirmPassword.trim().length > 0 && !loading;
   }, [password, confirmPassword, loading]);
-
+function getLanguage(): string {
+		if (typeof window !== "undefined") {
+			return localStorage.getItem("language") || "ar";
+		}
+		return "ar";
+	}
   const handleResetPassword = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (loading) return;
@@ -87,7 +92,7 @@ export default function ResetPasswordPage() {
 
       const res = await fetch(`${API_URL}/auth/reset-password`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" , "Accept-Language": getLanguage()},
         body: JSON.stringify({
           email,
           otp,

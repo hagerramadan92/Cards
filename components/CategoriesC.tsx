@@ -212,7 +212,7 @@ export default function CategoriesSlider({
 								{/* Category Image */}
 								<div
 									className={cn(
-										"relative w-full flex-1",
+										"relative w-full border-box flex-1",
 										"rounded-md overflow-hidden"
 									)}
 								>
@@ -221,7 +221,7 @@ export default function CategoriesSlider({
 										alt={cat.name}
 										fill
 										sizes="(max-width: 768px) 80px, 112px"
-										className="object-cover transition duration-300 group-hover:scale-[1.06]"
+										className="object-cover transition duration-300 group-hover:scale-[1.06] w-[142px] h-[50px]"
 									/>
 									{/* overlay gradient */}
 									<div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition" />
@@ -229,7 +229,7 @@ export default function CategoriesSlider({
 
 								{/* Category Name */}
 								<p className="text-[11px] md:text-[13px] font-extrabold text-slate-700 text-center leading-tight line-clamp-2 group-hover:text-pro transition px-1 flex-shrink-0">
-									{cat.name}
+								{cat.name.length > 15 ? `${cat.name.substring(0, 15)}...` : cat.name}
 								</p>
 							</div>
 						</Link>

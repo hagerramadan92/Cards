@@ -245,6 +245,12 @@ export default function SignupPage() {
 
 		return newErrors;
 	};
+	function getLanguage(): string {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("language") || "ar";
+  }
+  return "ar";
+}
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -267,7 +273,7 @@ export default function SignupPage() {
 
 			const res = await fetch(`${API_URL}/auth/register`, {
 				method: "POST",
-				headers: { "Content-Type": "application/json", Accept: "application/json" },
+				headers: { "Content-Type": "application/json", Accept: "application/json" ,  "Accept-Language": getLanguage(),  },
 				body: JSON.stringify({
 					name: `${firstName} ${lastName}`,
 					email,

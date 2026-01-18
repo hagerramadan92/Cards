@@ -67,6 +67,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [session, status]); // intentionally not depending on userName/authToken to avoid cascades
 
   /* ---------------------- FETCH FAVORITES (MERGED: PRODUCTS + IDS) ---------------------- */
+  	function getLanguage(): string {
+		if (typeof window !== "undefined") {
+			return localStorage.getItem("language") || "ar";
+		}
+		return "ar";
+	}
   useEffect(() => {
     let cancelled = false;
 
@@ -85,6 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           headers: {
             Accept: "application/json",
             Authorization: `Bearer ${authToken}`,
+            "Accept-Language": getLanguage(),
           },
           cache: "no-store",
         });

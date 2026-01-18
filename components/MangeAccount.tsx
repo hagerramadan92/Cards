@@ -180,6 +180,12 @@ export default function MangeAccount() {
 	function cn(...c: (string | false | undefined | null)[]) {
 		return c.filter(Boolean).join(" ");
 	}
+		function getLanguage(): string {
+		if (typeof window !== "undefined") {
+			return localStorage.getItem("language") || "ar";
+		}
+		return "ar";
+	}
 
 	useEffect(() => {
 		function handleClickOutside(event: MouseEvent) {
@@ -195,7 +201,7 @@ export default function MangeAccount() {
 		setIsFetching(true);
 		try {
 			const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
-				headers: { Authorization: `Bearer ${token}` },
+				headers: { Authorization: `Bearer ${token}` , "Accept-Language": getLanguage(),  },
 				cache: "no-store",
 			});
 

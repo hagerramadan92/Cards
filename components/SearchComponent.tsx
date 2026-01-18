@@ -5,6 +5,7 @@ import { CgSearch } from "react-icons/cg";
 import { AiOutlineClose } from "react-icons/ai";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { fetchApi } from "@/lib/api";
 
 interface Props {
 	className?: string;
@@ -63,12 +64,11 @@ export default function SearchComponent({ className = "", setMenuOpen }: any) {
 			setLoading(true);
 			setOpen(true);
 
-			const res = await fetch(`${API_URL}/products?search=${encodeURIComponent(q)}`, {
+			const data = await fetchApi(`products?search=${encodeURIComponent(q)}`, {
 				signal: controller.signal,
 			});
 
-			const data = await res.json();
-			const items = data?.data || [];
+			const items = data || [];
 
 			setResults(items);
 			setActiveIndex(items.length ? 0 : -1);

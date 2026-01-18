@@ -166,7 +166,7 @@ export default function DropdownUser() {
                       {displayName}
                     </p>
                     <p className="text-xs text-slate-500 font-semibold truncate">
-                      {session?.user?.email || "مرحبًا بك في  لايك كارد"}
+                      { "مرحبًا بك في  لايك كارد"}
                     </p>
                   </div>
                 </div>
