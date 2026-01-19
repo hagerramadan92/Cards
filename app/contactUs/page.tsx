@@ -815,7 +815,7 @@ export default function ContactPageOne() {
 									</div>
 								</Field>
 
-								<div className="md:col-span-2">
+								
 									<Field label={t('address')} error={errors.address}>
 										<div className="relative">
 											<span className="absolute right-4 top-3.5 text-slate-400">
@@ -830,7 +830,7 @@ export default function ContactPageOne() {
 											/>
 										</div>
 									</Field>
-								</div>
+								
 
 								<div className="md:col-span-2">
 									<Field label={t('message')} error={errors.message}>
@@ -875,47 +875,7 @@ export default function ContactPageOne() {
 						</div>
 					</div>
 
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mt-16 max-w-4xl mx-auto">
-						<InfoCard
-							title={t('call_now')}
-							value={hotline}
-							icon={<FiPhone className="text-xl" />}
-							actions={
-								<>
-									<ActionPill
-										label={t('contact')}
-										onClick={() => (window.location.href = `tel:${hotline}`)}
-										icon={<FiPhone />}
-									/>
-									<ActionPill
-										label={t('copied')}
-										onClick={() => copyToClipboard(hotline, t('phone_number'))}
-										icon={<FiCopy />}
-									/>
-								</>
-							}
-						/>
-
-						<InfoCard
-							title={t('email')}
-							value={email}
-							icon={<FiMail className="text-xl" />}
-							actions={
-								<>
-									<ActionPill
-										label={t('contact')}
-										onClick={() => (window.location.href = `mailto:${email}`)}
-										icon={<FiMail />}
-									/>
-									<ActionPill
-										label={t('copied')}
-										onClick={() => copyToClipboard(email, t('email'))}
-										icon={<FiCopy />}
-									/>
-								</>
-							}
-						/>
-					</div>
+					
 				</div>
 			</div>
 		</section>

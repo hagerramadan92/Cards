@@ -404,7 +404,7 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 	const { updateCartItem } = useCart();
 	const { authToken: token, user, userId } = useAuth() as any;
 	const { socialMedia } = useAppContext() as any;
-	const { direction } = useLanguage();
+	const { direction, t } = useLanguage();
 	const isRTL = direction === "rtl";
 
 	const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -1258,7 +1258,7 @@ export default function ProductPageClient() {
 	const { addToCart } = useCart();
 	const { homeData } = useAppContext();
 	const router = useRouter();
-	const { direction, language } = useLanguage();
+	const { direction, language, t } = useLanguage();
 	const isRTL = direction === "rtl";
 
 	const stickerFormRef = useRef<StickerFormHandle | null>(null);

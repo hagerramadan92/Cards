@@ -75,7 +75,7 @@ export default function CategoryPage() {
 	const API_URL = process.env.NEXT_PUBLIC_API_URL;
 	const { id } = useParams();
 	const categoryId = id as string;
-	const { language } = useLanguage();
+	const { language, t } = useLanguage();
 
 	const [loading, setLoading] = useState(true);
 	const [category, setCategory] = useState<CategoryData | null>(null);

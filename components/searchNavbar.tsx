@@ -39,7 +39,6 @@ export default function SearchNavbar() {
 		[socialMedia]
 	);
 
-	const phone = socials.find((s: any) => s.key === "phone")?.value || socials?.[0]?.value;
 
 
 	return (
@@ -208,36 +207,6 @@ export default function SearchNavbar() {
 										</SearchGrowWrap>
 									</div>
 								</div>
-
-
-
-								{/* Support card */}
-								{/* <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-
-									<div className="flex items-center justify-between">
-										<div>
-											<p className="text-sm font-extrabold text-gray-900">الدعم</p>
-											<p className="text-xs text-gray-500 mt-0.5">تواصل معنا لأي استفسار</p>
-										</div>
-										<LuPhone className="text-gray-700" size={20} />
-									</div>
-
-									<div className="mt-3 flex gap-2">
-										<a
-											href={`tel:${String(phone).replace(/\s+/g, "")}`}
-											className="flex-1 rounded-xl bg-pro text-white py-2.5 text-sm font-extrabold text-center hover:opacity-95 transition"
-										>
-											اتصل الآن
-										</a>
-										<Link
-											href="/contactUs"
-											onClick={() => setMenuOpen(false)}
-											className="flex-1 rounded-xl bg-gray-100 text-gray-900 py-2.5 text-sm font-extrabold text-center hover:bg-gray-200 transition"
-										>
-											تواصل معنا
-										</Link>
-									</div>
-								</div> */}
 
 
 								{/* Categories */}

@@ -31,8 +31,13 @@ export default function LanguageSelector() {
   } = useLanguage();
   
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [browserLang, setBrowserLang] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const languages = availableLanguages.map(lang => ({
     code: lang.code,
@@ -132,6 +137,27 @@ export default function LanguageSelector() {
     await refreshLanguages();
     setIsOpen(false);
   };
+
+  // Rule of Hooks: Early returns must come AFTER all hook calls
+  if (!mounted) {
+    // Return a consistent placeholder that matches the server-side default (usually Arabic "ar")
+    // This prevents the "Hydration failed" error by ensuring initial client render matches server HTML.
+    return (
+      <div className="relative">
+        <button
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200 opacity-50"
+          aria-label="Select language"
+          disabled
+        >
+          <span className="text-sm">🇸🇦</span>
+          <span className="hidden sm:inline text-sm font-medium text-gray-700">
+            العربية
+          </span>
+          <BiChevronDown className="w-4 h-4 text-gray-500" />
+        </button>
+      </div>
+    );
+  }
 
   if (isLoadingLanguages && availableLanguages.length <= 3) {
     return (

@@ -34,19 +34,9 @@ const LANGUAGES_API_ENDPOINT = "https://flash-cardy.renix4tech.com/api/v1/langua
 const activeRequests = new Set<AbortController>();
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("language") || "ar";
-    }
-    return "ar";
-  });
-  const [direction, setDirection] = useState<Direction>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("language");
-      return saved === "en" ? "ltr" : "rtl";
-    }
-    return "rtl";
-  });
+  // Initialize with server-side defaults to prevent hydration mismatches
+  const [language, setLanguageState] = useState<Language>("ar");
+  const [direction, setDirection] = useState<Direction>("rtl");
   const [mounted, setMounted] = useState(false);
   const [availableLanguages, setAvailableLanguages] = useState<LanguageData[]>([
     { id: 1, code: "ar", name: "العربية" },
@@ -277,7 +267,22 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const loadInitialData = async () => {
       setMounted(true);
-      // جلب اللغات المتاحة (سيقوم بتحديث الحالة إذا لزم الأمر)
+      
+      // Sync with localStorage on client-side mount
+      if (typeof window !== "undefined") {
+        const savedLang = localStorage.getItem("language");
+        if (savedLang && savedLang !== "ar") {
+          setLanguageState(savedLang);
+          setDirection(savedLang === "en" ? "ltr" : "rtl");
+          
+          // Update html attributes
+          const dir = savedLang === "ar" ? "rtl" : "ltr";
+          document.documentElement.setAttribute("dir", dir || "rtl");
+          document.documentElement.setAttribute("lang", savedLang || "ar");
+        }
+      }
+      
+      // جلب اللغات المتاحة
       await refreshLanguages();
     };
 
