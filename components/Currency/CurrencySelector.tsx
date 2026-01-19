@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BiChevronDown } from "react-icons/bi";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 const currencies = [
 	{ code: "EGP", name: "جنية", symbol: "ج.م" },
@@ -10,6 +11,7 @@ const currencies = [
 ];
 
 export default function CurrencySelector() {
+	const { t } = useLanguage();
 	const [currency, setCurrency] = useState("EGP");
 	const [isOpen, setIsOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);

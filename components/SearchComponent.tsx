@@ -6,6 +6,7 @@ import { AiOutlineClose } from "react-icons/ai";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { fetchApi } from "@/lib/api";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 interface Props {
 	className?: string;
@@ -13,6 +14,7 @@ interface Props {
 
 export default function SearchComponent({ className = "", setMenuOpen }: any) {
 	const [query, setQuery] = useState("");
+	const { t } = useLanguage();
 	const [results, setResults] = useState<any[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [open, setOpen] = useState(false);
@@ -135,7 +137,7 @@ export default function SearchComponent({ className = "", setMenuOpen }: any) {
 			<div className="relative">
 				<input
 					type="text"
-					placeholder="ما الذي تبحث عنه؟"
+					placeholder={t("searchPlaceholder")}
 					value={query}
 					onChange={(e) => {
 						setQuery(e.target.value);
