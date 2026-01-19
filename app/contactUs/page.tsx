@@ -571,9 +571,7 @@ export default function ContactPageOne() {
 		[base_url, form, loading, validate, t]
 	);
 
-	// ===== Contact Data (edit freely) =====
-	const hotline = "15829";
-	const email = "hello@codexx.com";
+
 
 	const copyToClipboard = async (text: string, label: string) => {
 		try {

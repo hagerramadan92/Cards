@@ -203,22 +203,6 @@ export default function LanguageSelector() {
             transition={{ duration: 0.2 }}
             className="absolute top-full end-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[200px] max-h-[400px] overflow-y-auto"
           >
-            {/* لغة المتصفح المقترحة */}
-            {browserLang && browserLang !== language && (
-              <div className="px-4 py-2 text-xs text-gray-500 bg-blue-50 border-b border-blue-100">
-                <div className="font-medium">Browser suggests:</div>
-                <div className="flex items-center gap-2 mt-1">
-                  <span>{flagMap[browserLang] || "🌐"}</span>
-                  <span>{browserLang.toUpperCase()}</span>
-                  <button
-                    onClick={() => handleLanguageChange(browserLang)}
-                    className="ml-auto text-xs text-blue-600 hover:text-blue-800"
-                  >
-                    Use
-                  </button>
-                </div>
-              </div>
-            )}
             
             {/* قائمة اللغات */}
             <div className="py-1">
@@ -228,7 +212,7 @@ export default function LanguageSelector() {
                   onClick={() => handleLanguageChange(lang.code)}
                   className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${
                     language === lang.code 
-                      ? "bg-blue-50 text-blue-600 font-semibold border-s-2 border-blue-600" 
+                      ? "bg-blue-50 text-pro font-semibold border-s-2 border-blue-900" 
                       : "text-gray-700"
                   }`}
                   title={`Change language to ${lang.name} (${lang.code})`}
@@ -236,50 +220,15 @@ export default function LanguageSelector() {
                   <span className="text-lg">{lang.flag}</span>
                   <div className="flex-1 text-left">
                     <div className="font-medium">{lang.name}</div>
-                    <div className="text-xs text-gray-400 mt-0.5">
-                      Accept-Language: {lang.code}
-                    </div>
                   </div>
                   {language === lang.code && (
-                    <span className="text-blue-600 font-bold">✓</span>
+                    <span className="text-blue-900 font-bold">✓</span>
                   )}
                 </button>
               ))}
             </div>
             
-            {/* قسم التحكم */}
-            <div className="border-t border-gray-100 p-2 bg-gray-50">
-              {error && (
-                <div className="px-3 py-2 mb-2 text-xs text-red-600 bg-red-50 rounded">
-                  Error: {error}
-                </div>
-              )}
-              
-              <div className="flex gap-2">
-                <button
-                  onClick={handleRefreshLanguages}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-xs text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                  title="Reload languages list"
-                >
-                  <BiRefresh className="w-3 h-3" />
-                  <span>Refresh</span>
-                </button>
-                
-                <button
-                  onClick={() => {
-                    console.log('Current language headers:', {
-                      'Accept-Language': language,
-                      'Language': language
-                    });
-                    setIsOpen(false);
-                  }}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-xs text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                  title="Show current headers"
-                >
-                  <span>Headers</span>
-                </button>
-              </div>
-            </div>
+         
           </motion.div>
         )}
       </AnimatePresence>
