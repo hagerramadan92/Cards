@@ -29,7 +29,7 @@ export default function CategoriesSlider({
 	const [canScrollEnd, setCanScrollEnd] = useState(false);
 	
 	// Get direction from LanguageContext - updates automatically when language changes
-	const { direction } = useLanguage();
+	const { direction, t } = useLanguage();
 	const isRTL = direction === 'rtl';
 
 	const items = useMemo(() => categories ?? [], [categories]);
@@ -158,7 +158,7 @@ export default function CategoriesSlider({
 						href="/category"
 						className="text-pro-max text-sm md:text-base font-semibold px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 transition whitespace-nowrap"
 					>
-						عرض الكل
+						{t('view_all')}
 					</Link>
 				)}
 			</div>
@@ -168,7 +168,7 @@ export default function CategoriesSlider({
 				{/* Start Arrow (Left in LTR, Right in RTL) */}
 				<button
 					type="button"
-					aria-label={isRTL ? "التالي" : "السابق"}
+					aria-label={isRTL ? t('next') : t('previous')}
 					onClick={scrollStart}
 					disabled={!canScrollStart}
 					className={cn(
@@ -239,7 +239,7 @@ export default function CategoriesSlider({
 				{/* End Arrow (Right in LTR, Left in RTL) */}
 				<button
 					type="button"
-					aria-label={isRTL ? "السابق" : "التالي"}
+					aria-label={isRTL ? t('previous') : t('next')}
 					onClick={scrollEnd}
 					disabled={!canScrollEnd}
 					className={cn(

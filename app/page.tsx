@@ -10,6 +10,7 @@ import { BannerI } from "@/Types/BannerI";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 // ✅ Skeletons
 import {
@@ -23,6 +24,7 @@ import FastBuy from "@/components/HomeSection/FastBuy";
 export default function Home() {
 	const { homeData, loadingCategories, parentCategories, loadingHome, appear_in_home_categories } =
 		useAppContext();
+	const { t, language } = useLanguage();
 
 	// ✅ local copy so we can append pages
 	const [categories2, setCategories2] = useState<any[]>(
@@ -102,7 +104,7 @@ export default function Home() {
 			mounted = false;
 		};
 	 
-	}, []);
+	}, [language]);
 
 	const sliderSrc = useMemo(
 		() => (mainSlider?.[0]?.items || []).map((i) => i.image),
@@ -119,7 +121,7 @@ export default function Home() {
 						<SliderComponent src={mainSlider?.[0]} />
 					) : (
 						<div className="h-[200px] md:h-[420px] flex items-center justify-center text-gray-400">
-							لا توجد بنرات حالياً
+							{t('no_categories')}
 						</div>
 					)}
 				
@@ -134,7 +136,7 @@ export default function Home() {
 					{loadingCategories ? (
 						<CategoriesSliderSkeleton />
 					) : (
-						<CategoriesSlider categories={parentCategories} title="الفئات الاكثر شعبية"/>
+						<CategoriesSlider categories={parentCategories} title={t('popular_categories')}/>
 					)}
 				</div>
 				{/* <div className="container max-md:overflow-hidden w-full  ">
@@ -195,7 +197,7 @@ export default function Home() {
 												href={`/category/${category.id}`}
 												className="text-pro-max text-sm md:text-base font-semibold px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 transition"
 											>
-												عرض الكل
+												{t('view_all')}
 											</Link>
 										</div>
 									</div>
@@ -248,7 +250,7 @@ export default function Home() {
 							disabled={loadingMore}
 							className="rounded-2xl px-6 py-3 font-extrabold shadow-sm border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed"
 						>
-							{loadingMore ? "جاري تحميل المزيد..." : "تحميل المزيد"}
+							{loadingMore ? t('loading') : t('refresh')}
 						</button>
 					</div>
 				)}

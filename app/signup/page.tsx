@@ -5,13 +5,15 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/context/AuthContext";
 import { BiSolidHide, BiSolidShow } from "react-icons/bi";
 import Link from "next/link";
-import LoginWithGoogle from "@/components/loginWithGoogle"; // ✅ use your new component name
+import LoginWithGoogle from "@/components/loginWithGoogle";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
-import { FiMail, FiLock, FiUser, FiPhone, FiChevronDown } from "react-icons/fi";
+import { FiMail, FiLock, FiUser, FiChevronDown } from "react-icons/fi";
 import ButtonComponent from "../../components/ButtonComponent";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function SignupPage() {
+	const { t, language } = useLanguage();
 	const router = useRouter();
 	const { login } = useAuth();
 	const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -29,145 +31,145 @@ export default function SignupPage() {
 		EG: {
 			pattern: /^01[0-9]{9}$/,
 			example: "01012345678",
-			message: "رقم الهاتف غير صحيح (مثال: 01012345678)",
+			message: t('invalid_phone'),
 			flag: "eg",
-			name: "مصر",
+			name: t('egypt'),
 			code: "+20",
 		},
 		SA: {
 			pattern: /^05[0-9]{8}$/,
 			example: "0512345678",
-			message: "رقم الهاتف غير صحيح (مثال: 0512345678)",
+			message: t('invalid_phone'),
 			flag: "sa",
-			name: "السعودية",
+			name: t('saudi_arabia'),
 			code: "+966",
 		},
 		AE: {
 			pattern: /^05[0-9]{8}$/,
 			example: "0512345678",
-			message: "رقم الهاتف غير صحيح (مثال: 0512345678)",
+			message: t('invalid_phone'),
 			flag: "ae",
-			name: "الإمارات",
+			name: t('uae'),
 			code: "+971",
 		},
 		KW: {
 			pattern: /^[569][0-9]{7}$/,
 			example: "51234567",
-			message: "رقم الهاتف غير صحيح (مثال: 51234567)",
+			message: t('invalid_phone'),
 			flag: "kw",
-			name: "الكويت",
+			name: t('kuwait'),
 			code: "+965",
 		},
 		QA: {
 			pattern: /^[3-7][0-9]{7}$/,
 			example: "33123456",
-			message: "رقم الهاتف غير صحيح (مثال: 33123456)",
+			message: t('invalid_phone'),
 			flag: "qa",
-			name: "قطر",
+			name: t('qatar'),
 			code: "+974",
 		},
 		BH: {
 			pattern: /^[3-9][0-9]{7}$/,
 			example: "36123456",
-			message: "رقم الهاتف غير صحيح (مثال: 36123456)",
+			message: t('invalid_phone'),
 			flag: "bh",
-			name: "البحرين",
+			name: t('bahrain'),
 			code: "+973",
 		},
 		OM: {
 			pattern: /^[79][0-9]{8}$/,
 			example: "912345678",
-			message: "رقم الهاتف غير صحيح (مثال: 912345678)",
+			message: t('invalid_phone'),
 			flag: "om",
-			name: "عمان",
+			name: t('oman'),
 			code: "+968",
 		},
 		JO: {
 			pattern: /^07[789][0-9]{7}$/,
 			example: "0791234567",
-			message: "رقم الهاتف غير صحيح (مثال: 0791234567)",
+			message: t('invalid_phone'),
 			flag: "jo",
-			name: "الأردن",
+			name: t('jordan'),
 			code: "+962",
 		},
 		LB: {
 			pattern: /^[0-9]{8}$/,
 			example: "12345678",
-			message: "رقم الهاتف غير صحيح (مثال: 12345678)",
+			message: t('invalid_phone'),
 			flag: "lb",
-			name: "لبنان",
+			name: t('lebanon'),
 			code: "+961",
 		},
 		IQ: {
 			pattern: /^07[0-9]{9}$/,
 			example: "07912345678",
-			message: "رقم الهاتف غير صحيح (مثال: 07912345678)",
+			message: t('invalid_phone'),
 			flag: "iq",
-			name: "العراق",
+			name: t('iraq'),
 			code: "+964",
 		},
 		YE: {
 			pattern: /^7[0-9]{8}$/,
 			example: "712345678",
-			message: "رقم الهاتف غير صحيح (مثال: 712345678)",
+			message: t('invalid_phone'),
 			flag: "ye",
-			name: "اليمن",
+			name: t('yemen'),
 			code: "+967",
 		},
 		SY: {
 			pattern: /^9[0-9]{8}$/,
 			example: "912345678",
-			message: "رقم الهاتف غير صحيح (مثال: 912345678)",
+			message: t('invalid_phone'),
 			flag: "sy",
-			name: "سوريا",
+			name: t('syria'),
 			code: "+963",
 		},
 		PS: {
 			pattern: /^05[0-9]{8}$/,
 			example: "0512345678",
-			message: "رقم الهاتف غير صحيح (مثال: 0512345678)",
+			message: t('invalid_phone'),
 			flag: "ps",
-			name: "فلسطين",
+			name: t('palestine'),
 			code: "+970",
 		},
 		MA: {
 			pattern: /^06[0-9]{8}$/,
 			example: "0612345678",
-			message: "رقم الهاتف غير صحيح (مثال: 0612345678)",
+			message: t('invalid_phone'),
 			flag: "ma",
-			name: "المغرب",
+			name: t('morocco'),
 			code: "+212",
 		},
 		DZ: {
 			pattern: /^05[0-9]{8}$/,
 			example: "0512345678",
-			message: "رقم الهاتف غير صحيح (مثال: 0512345678)",
+			message: t('invalid_phone'),
 			flag: "dz",
-			name: "الجزائر",
+			name: t('algeria'),
 			code: "+213",
 		},
 		TN: {
 			pattern: /^[2-9][0-9]{7}$/,
 			example: "21234567",
-			message: "رقم الهاتف غير صحيح (مثال: 21234567)",
+			message: t('invalid_phone'),
 			flag: "tn",
-			name: "تونس",
+			name: t('tunisia'),
 			code: "+216",
 		},
 		LY: {
 			pattern: /^9[0-9]{8}$/,
 			example: "912345678",
-			message: "رقم الهاتف غير صحيح (مثال: 912345678)",
+			message: t('invalid_phone'),
 			flag: "ly",
-			name: "ليبيا",
+			name: t('libya'),
 			code: "+218",
 		},
 		SD: {
 			pattern: /^9[0-9]{8}$/,
 			example: "912345678",
-			message: "رقم الهاتف غير صحيح (مثال: 912345678)",
+			message: t('invalid_phone'),
 			flag: "sd",
-			name: "السودان",
+			name: t('sudan'),
 			code: "+249",
 		},
 	};
@@ -219,43 +221,37 @@ export default function SignupPage() {
 	const validate = () => {
 		const newErrors: typeof errors = {};
 
-		if (!firstName.trim()) newErrors.firstName = "الاسم الأول مطلوب";
-		if (!lastName.trim()) newErrors.lastName = "الاسم الأخير مطلوب";
+		if (!firstName.trim()) newErrors.firstName = t('first_name_required');
+		if (!lastName.trim()) newErrors.lastName = t('last_name_required');
 
-		if (!email.trim()) newErrors.email = "البريد الإلكتروني مطلوب";
+		if (!email.trim()) newErrors.email = t('email_required');
 		else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-			newErrors.email = "البريد الإلكتروني غير صحيح";
+			newErrors.email = t('email_invalid');
 
 		if (!phone.trim()) {
-			newErrors.phone = "رقم الهاتف مطلوب";
+			newErrors.phone = t('phone_required');
 		} else if (phoneCountry && phonePatterns[phoneCountry]) {
 			const pattern = phonePatterns[phoneCountry];
 			if (!pattern.pattern.test(phone)) {
 				newErrors.phone = pattern.message;
 			}
 		} else if (!/^\d+$/.test(phone)) {
-			newErrors.phone = "رقم الهاتف يجب أن يحتوي على أرقام فقط";
+			newErrors.phone = t('phone_digits_only');
 		}
 
-		if (!password.trim()) newErrors.password = "كلمة المرور مطلوبة";
-		else if (password.length < 8) newErrors.password = "كلمة المرور يجب أن تكون 8 أحرف على الأقل";
+		if (!password.trim()) newErrors.password = t('password_required');
+		else if (password.length < 8) newErrors.password = t('password_min_length');
 
-		if (!confirmPassword.trim()) newErrors.confirmPassword = "تأكيد كلمة المرور مطلوب";
-		else if (confirmPassword !== password) newErrors.confirmPassword = "كلمة المرور غير متطابقة";
+		if (!confirmPassword.trim()) newErrors.confirmPassword = t('confirm_password_required');
+		else if (confirmPassword !== password) newErrors.confirmPassword = t('passwords_not_match');
 
 		return newErrors;
 	};
-	function getLanguage(): string {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem("language") || "ar";
-  }
-  return "ar";
-}
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!API_URL) {
-			Swal.fire({ icon: "error", title: "خطأ", text: "NEXT_PUBLIC_API_URL غير موجود", confirmButtonText: "موافق" });
+			Swal.fire({ icon: "error", title: t('error'), text: "NEXT_PUBLIC_API_URL missing", confirmButtonText: t('close') });
 			return;
 		}
 
@@ -264,7 +260,7 @@ export default function SignupPage() {
 
 		if (Object.keys(newErrors).length) {
 			setErrors(newErrors);
-			Swal.fire({ icon: "error", title: "خطأ", text: "من فضلك راجع البيانات", confirmButtonText: "حسناً" });
+			Swal.fire({ icon: "error", title: t('error'), text: t('please_check_data'), confirmButtonText: t('close') });
 			return;
 		}
 
@@ -273,11 +269,11 @@ export default function SignupPage() {
 
 			const res = await fetch(`${API_URL}/auth/register`, {
 				method: "POST",
-				headers: { "Content-Type": "application/json", Accept: "application/json" ,  "Accept-Language": getLanguage(),  },
+				headers: { "Content-Type": "application/json", Accept: "application/json" ,  "Accept-Language": language },
 				body: JSON.stringify({
 					name: `${firstName} ${lastName}`,
 					email,
-					phone,
+					phone: `${phonePatterns[phoneCountry].code}${phone}`,
 					password,
 					password_confirmation: confirmPassword,
 				}),
@@ -298,30 +294,28 @@ export default function SignupPage() {
 					);
 				}
 
-				Swal.fire({ icon: "success", title: "تم إنشاء الحساب بنجاح", timer: 1400, showConfirmButton: false });
+				Swal.fire({ icon: "success", title: t('account_created_success'), timer: 1400, showConfirmButton: false });
 				router.push("/");
 			} else {
-				const msg = data.message || "حدث خطأ أثناء التسجيل";
+				const msg = data.message || t('signup_error');
 				setErrors((p) => ({ ...p, form: msg }));
 
-				// map backend errors if exists
 				if (data.errors) {
 					const apiErrors: any = {};
 					Object.keys(data.errors).forEach((k) => (apiErrors[k] = data.errors[k][0]));
 					setErrors((p) => ({ ...p, ...apiErrors }));
 				}
 
-				Swal.fire({ icon: "error", title: "خطأ", text: msg, confirmButtonText: "موافق" });
+				Swal.fire({ icon: "error", title: t('error'), text: msg, confirmButtonText: t('close') });
 			}
 		} catch (err) {
-			setErrors((p) => ({ ...p, form: "فشل الاتصال بالخادم" }));
-			Swal.fire({ icon: "error", title: "خطأ", text: "فشل الاتصال بالخادم", confirmButtonText: "موافق" });
+			setErrors((p) => ({ ...p, form: t('server_error') }));
+			Swal.fire({ icon: "error", title: t('error'), text: t('server_error'), confirmButtonText: t('close') });
 		} finally {
 			setPending(false);
 		}
 	};
 
-	// ✅ same input style like login page
 	const fieldBase =
 		"w-full rounded-2xl border bg-white px-4 py-3 text-[15px] font-semibold outline-none transition " +
 		"placeholder:text-slate-400 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200";
@@ -350,8 +344,7 @@ export default function SignupPage() {
 				<div className="rounded-3xl border border-slate-200 bg-white shadow-[0_10px_35px_rgba(15,23,42,0.08)] overflow-hidden">
 					{/* Header */}
 					<div className="p-7 pb-5 bg-gradient-to-l from-slate-900 to-slate-800 text-white">
-						<h1 className="text-xl text-center md:text-2xl font-extrabold leading-snug">إنشاء حساب جديد</h1>
-
+						<h1 className="text-xl text-center md:text-2xl font-extrabold leading-snug">{t('create_new_account')}</h1>
 					</div>
 
 					<div className="p-7">
@@ -362,11 +355,11 @@ export default function SignupPage() {
 							</div>
 						)}
 
-						<form className="space-y-4" >
+						<form className="space-y-4" onSubmit={handleSubmit}>
 							{/* First + Last */}
 							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 								<div>
-									<label className="block text-sm font-extrabold text-slate-800 mb-2">الاسم الأول</label>
+									<label className="block text-sm font-extrabold text-slate-800 mb-2">{t('first_name')}</label>
 									<div className="relative">
 										<span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
 											<FiUser />
@@ -377,7 +370,7 @@ export default function SignupPage() {
 												setFirstName(e.target.value);
 												if (errors.firstName) setErrors((p) => ({ ...p, firstName: "" }));
 											}}
-											placeholder="محمد"
+											placeholder={t('first_name_hint')}
 											className={[fieldBase, "pr-11", errors.firstName ? fieldBad : fieldOk].join(" ")}
 										/>
 									</div>
@@ -385,7 +378,7 @@ export default function SignupPage() {
 								</div>
 
 								<div>
-									<label className="block text-sm font-extrabold text-slate-800 mb-2">الاسم الأخير</label>
+									<label className="block text-sm font-extrabold text-slate-800 mb-2">{t('last_name')}</label>
 									<div className="relative">
 										<span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
 											<FiUser />
@@ -396,7 +389,7 @@ export default function SignupPage() {
 												setLastName(e.target.value);
 												if (errors.lastName) setErrors((p) => ({ ...p, lastName: "" }));
 											}}
-											placeholder="أحمد"
+											placeholder={t('last_name_hint')}
 											className={[fieldBase, "pr-11", errors.lastName ? fieldBad : fieldOk].join(" ")}
 										/>
 									</div>
@@ -406,7 +399,7 @@ export default function SignupPage() {
 
 							{/* Email */}
 							<div>
-								<label className="block text-sm font-extrabold text-slate-800 mb-2">البريد الإلكتروني</label>
+								<label className="block text-sm font-extrabold text-slate-800 mb-2">{t('email')}</label>
 								<div className="relative">
 									<span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
 										<FiMail />
@@ -417,7 +410,7 @@ export default function SignupPage() {
 											setEmail(e.target.value);
 											if (errors.email) setErrors((p) => ({ ...p, email: "" }));
 										}}
-										placeholder="example@email.com"
+										placeholder={t('email_or_phone_placeholder')}
 										className={[fieldBase, "pr-11", errors.email ? fieldBad : fieldOk].join(" ")}
 									/>
 								</div>
@@ -426,7 +419,7 @@ export default function SignupPage() {
 
 							{/* Phone */}
 							<div>
-								<label className="block text-sm font-extrabold text-slate-800 mb-2">رقم الهاتف</label>
+								<label className="block text-sm font-extrabold text-slate-800 mb-2">{t('phone_number')}</label>
 								<div className="relative flex" dir="ltr">
 									{/* Country Dropdown - Left side */}
 									<div className="relative flex-shrink-0 w-20 " ref={phoneCountryRef}>
@@ -447,7 +440,7 @@ export default function SignupPage() {
 													</span>
 												</div>
 											) : (
-												<span className="text-xs">اختر</span>
+												<span className="text-xs">{t('select_country')}</span>
 											)}
 											<FiChevronDown className={`text-slate-400 text-xs transition-transform ${phoneCountryOpen ? "rotate-180" : ""}`} />
 										</button>
@@ -488,7 +481,7 @@ export default function SignupPage() {
 											placeholder={
 												phoneCountry && phonePatterns[phoneCountry]
 													? ` ${phonePatterns[phoneCountry].example}`
-													: "أدخل رقم الهاتف"
+													: t('enter_phone_number')
 											}
 											inputMode="numeric"
 											className={cn(
@@ -504,7 +497,7 @@ export default function SignupPage() {
 
 							{/* Password */}
 							<div>
-								<label className="block text-sm font-extrabold text-slate-800 mb-2">كلمة المرور</label>
+								<label className="block text-sm font-extrabold text-slate-800 mb-2">{t('password')}</label>
 								<div className="relative">
 									<span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
 										<FiLock />
@@ -516,14 +509,14 @@ export default function SignupPage() {
 											setPassword(e.target.value);
 											if (errors.password) setErrors((p) => ({ ...p, password: "" }));
 										}}
-										placeholder="••••••••"
+										placeholder={t('password_placeholder')}
 										className={[fieldBase, "pr-11 pl-12", errors.password ? fieldBad : fieldOk].join(" ")}
 									/>
 									<button
 										type="button"
 										onClick={() => setShowPassword((p) => !p)}
 										className="absolute left-3 top-1/2 -translate-y-1/2 rounded-xl px-2 py-2 text-slate-600 hover:bg-slate-100 transition"
-										aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+										aria-label={showPassword ? t('hide_password') : t('show_password')}
 									>
 										{showPassword ? <BiSolidShow size={22} /> : <BiSolidHide size={22} />}
 									</button>
@@ -533,7 +526,7 @@ export default function SignupPage() {
 
 							{/* Confirm */}
 							<div>
-								<label className="block text-sm font-extrabold text-slate-800 mb-2">تأكيد كلمة المرور</label>
+								<label className="block text-sm font-extrabold text-slate-800 mb-2">{t('confirm_password')}</label>
 								<div className="relative">
 									<span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
 										<FiLock />
@@ -545,14 +538,14 @@ export default function SignupPage() {
 											setConfirmPassword(e.target.value);
 											if (errors.confirmPassword) setErrors((p) => ({ ...p, confirmPassword: "" }));
 										}}
-										placeholder="••••••••"
+										placeholder={t('password_placeholder')}
 										className={[fieldBase, "pr-11 pl-12", errors.confirmPassword ? fieldBad : fieldOk].join(" ")}
 									/>
 									<button
 										type="button"
 										onClick={() => setShowConfirm((p) => !p)}
 										className="absolute left-3 top-1/2 -translate-y-1/2 rounded-xl px-2 py-2 text-slate-600 hover:bg-slate-100 transition"
-										aria-label={showConfirm ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+										aria-label={showConfirm ? t('hide_password') : t('show_password')}
 									>
 										{showConfirm ? <BiSolidShow size={22} /> : <BiSolidHide size={22} />}
 									</button>
@@ -567,7 +560,7 @@ export default function SignupPage() {
 							<div className="pt-2">
 								<div className={`${pending ? "opacity-80 pointer-events-none" : ""}`}>
 									<ButtonComponent
-										title={pending ? "جاري إنشاء الحساب..." : "إنشاء حساب"}
+										title={pending ? t('creating_account') : t('signup_short')}
 										onClick={handleSubmit as any}
 									/>
 								</div>
@@ -575,19 +568,17 @@ export default function SignupPage() {
 
 							{/* Login link */}
 							<div className="text-center pt-2">
-								<span className="text-sm font-semibold text-slate-600">لدي حساب بالفعل؟ </span>
+								<span className="text-sm font-semibold text-slate-600">{t('already_have_account')} </span>
 								<Link href="/login" className="text-sm font-extrabold text-pro hover:opacity-80 transition">
-									تسجيل الدخول
+									{t('login_short')}
 								</Link>
 							</div>
 						</form>
- 
- 
 					</div>
 				</div>
 
 				<p className="text-center text-xs text-slate-500 font-semibold mt-4">
-					بإنشاء حساب أنت توافق على الشروط وسياسة الخصوصية.
+					{t('signup_agreement_note')}
 				</p>
 			</motion.div>
 		</div>

@@ -831,7 +831,7 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 					<div className="flex items-center justify-between gap-2">
 						<div className="flex items-center gap-2">
 							<Warning className="text-yellow-600 text-sm" />
-							<p className="text-sm text-yellow-800 font-bold">لديك تغييرات غير محفوظة</p>
+							<p className="text-sm text-yellow-800 font-bold">{t('unsaved_changes')}</p>
 						</div>
 						<div className="flex gap-2">
 							<Button
@@ -841,7 +841,7 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 								startIcon={<Refresh />}
 								sx={{ borderRadius: "14px", borderColor: "#e2e8f0", color: "#0f172a", fontWeight: 900 }}
 							>
-								إعادة تعيين
+								{t('reset')}
 							</Button>
 
 							<Button
@@ -852,7 +852,7 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 								startIcon={saving ? <CircularProgress size={16} /> : <Save />}
 								sx={{ borderRadius: "14px", backgroundColor: "#f59e0b", fontWeight: 900 }}
 							>
-								{saving ? "جاري الحفظ..." : "حفظ"}
+								{saving ? t('saving') : t('save')}
 							</Button>
 						</div>
 					</div>
@@ -862,7 +862,7 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 			{cartItemId && savedSuccessfully && (
 				<motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="mb-4">
 					<Alert severity="success" className="rounded-2xl" icon={<CheckCircle />}>
-						تم حفظ التغييرات بنجاح
+						{t('changes_saved')}
 					</Alert>
 				</motion.div>
 			)}
@@ -871,10 +871,10 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 				{needSize && (
 					<Box>
 						<FormControl fullWidth size="small" required error={showValidation && needSize && size === "اختر"}>
-							<InputLabel>المقاس</InputLabel>
-							<Select value={size} onChange={(e) => handleSizeChange(e.target.value as string)} label="المقاس" className="bg-white">
+							<InputLabel>{t('size')}</InputLabel>
+							<Select value={size} onChange={(e) => handleSizeChange(e.target.value as string)} label={t('size')} className="bg-white">
 								<MenuItem value="اختر" disabled>
-									<em className="text-gray-400">اختر</em>
+									<em className="text-gray-400">{t('select')}</em>
 								</MenuItem>
 								{apiData.sizes.map((s: any) => (
 									<MenuItem key={s.id} value={s.name}>
@@ -882,50 +882,41 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 									</MenuItem>
 								))}
 							</Select>
-							{showValidation && needSize && size === "اختر" && <FormHelperText className="text-red-500 text-xs">يجب اختيار المقاس</FormHelperText>}
+							{showValidation && needSize && size === "اختر" && <FormHelperText className="text-red-500 text-xs">{t('required_field')}</FormHelperText>}
 						</FormControl>
 					</Box>
 				)}
 
 				{needSizeTier && (
 					<Box>
-						<FormControl fullWidth size="small" required error={showValidation && needSizeTier && !sizeTierId}>
-							<InputLabel>الكمية</InputLabel>
-							<Select
-								value={sizeTierId ? String(sizeTierId) : "اختر"}
-								onChange={(e) => handleTierChange(e.target.value as string)}
-								label="الكمية"
-								className="bg-white"
-							>
+						<FormControl fullWidth size="small" required error={showValidation && !sizeTierId}>
+							<InputLabel>{t('quantity')}</InputLabel>
+							<Select value={sizeTierId ? String(sizeTierId) : "اختر"} onChange={(e) => handleTierChange(e.target.value as string)} label={t('quantity')} className="bg-white">
 								<MenuItem value="اختر" disabled>
-									<em className="text-gray-400">اختر</em>
+									<em className="text-gray-400">{t('select')}</em>
 								</MenuItem>
 
 								{sizeTiers.map((t: any) => {
 									const qty = num(t.quantity);
 									const unit = num(t.price_per_unit);
 									const backendTotal = num(t.total_price);
-									const computed = qty > 0 && unit > 0 ? qty * unit : 0;
-									const showTotal = backendTotal > 0 ? backendTotal : computed;
+									const computedTotal = qty > 0 && unit > 0 ? qty * unit : 0;
+									const showTotal = backendTotal > 0 ? backendTotal : computedTotal;
 
 									return (
 										<MenuItem key={t.id} value={String(t.id)}>
 											<div className="flex items-center justify-between gap-3 w-full">
-												<span>{qty} قطعة</span>
-												<span className="text-xs font-black text-slate-700">{Number(showTotal).toFixed(2)} ر.س</span>
+												<span>{qty} {t('pieces')}</span>
+												<span className="text-xs font-black text-slate-700">{num(showTotal).toFixed(2)} {t('currency')}</span>
 											</div>
 										</MenuItem>
 									);
 								})}
 							</Select>
 
-							{showValidation && needSizeTier && !sizeTierId && <FormHelperText className="text-red-500 text-xs">يجب اختيار كمية المقاس</FormHelperText>}
+							{showValidation && !sizeTierId && <FormHelperText className="text-red-500 text-xs">{t('required_field')}</FormHelperText>}
 
-							{!!sizeTierId && (
-								<FormHelperText className="text-slate-600 text-xs">
-									سعر الوحدة: {num(sizeTierUnit).toFixed(2)} — الإجمالي: {num(sizeTierTotal).toFixed(2)}
-								</FormHelperText>
-							)}
+							{!!sizeTierId && <FormHelperText className="text-slate-600 text-xs">{t('unit_price')}: {num(sizeTierUnit).toFixed(2)} {t('currency')} — {t('total')}: {num(sizeTierTotal).toFixed(2)} {t('currency')}</FormHelperText>}
 						</FormControl>
 					</Box>
 				)}
@@ -955,7 +946,7 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 									</MenuItem>
 								))}
 							</Select>
-							{showValidation && needColor && color === "اختر" && <FormHelperText className="text-red-500 text-xs">يجب اختيار اللون</FormHelperText>}
+							{showValidation && needColor && color === "اختر" && <FormHelperText className="text-red-500 text-xs">{t('required_field')}</FormHelperText>}
 						</FormControl>
 					</Box>
 				)}
@@ -989,7 +980,7 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 									</MenuItem>
 								))}
 							</Select>
-							{showValidation && needMaterial && material === "اختر" && <FormHelperText className="text-red-500 text-xs">يجب اختيار الخامة</FormHelperText>}
+							{showValidation && needMaterial && material === "اختر" && <FormHelperText className="text-red-500 text-xs">{t('required_field')}</FormHelperText>}
 						</FormControl>
 					</Box>
 				)}
@@ -1039,7 +1030,7 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 									))}
 								</Select>
 
-								{fieldError && <FormHelperText className="text-red-500 text-xs">يجب اختيار {groupName}</FormHelperText>}
+								{fieldError && <FormHelperText className="text-red-500 text-xs">{t('required_field')}</FormHelperText>}
 							</FormControl>
 
 							{/* Design boxes: show only when social values exist */}
@@ -1267,7 +1258,7 @@ export default function ProductPageClient() {
 	const { addToCart } = useCart();
 	const { homeData } = useAppContext();
 	const router = useRouter();
-	const { direction } = useLanguage();
+	const { direction, language } = useLanguage();
 	const isRTL = direction === "rtl";
 
 	const stickerFormRef = useRef<StickerFormHandle | null>(null);
@@ -1333,7 +1324,10 @@ export default function ProductPageClient() {
 
 			try {
 				const res = await fetch(`${API_URL}/products/${productId}`, {
-					headers: token ? { Authorization: `Bearer ${token}` } : {},
+					headers: {
+						... (token ? { Authorization: `Bearer ${token}` } : {}),
+						'Accept-Language': language
+					},
 					cache: "no-store",
 				});
 
@@ -1353,7 +1347,7 @@ export default function ProductPageClient() {
 				setIsFavorite(!!prod && saved.includes(prod.id));
 			} catch (e: any) {
 				if (!mounted) return;
-				setErrorMsg(e?.message === "not_found" ? "المنتج غير موجود" : "حدث خطأ أثناء تحميل المنتج");
+				setErrorMsg(e?.message === "not_found" ? t('error_loading') : t('error_loading'));
 			} finally {
 				if (mounted) setLoading(false);
 			}
@@ -1363,7 +1357,7 @@ export default function ProductPageClient() {
 		return () => {
 			mounted = false;
 		};
-	}, [productId, token, API_URL]);
+	}, [productId, token, API_URL, language]);
 
 	const hasSeededDefaultRef = useRef(false);
 
@@ -1525,7 +1519,7 @@ export default function ProductPageClient() {
 
 			if (fileToUpload) {
 				if (!cartItemId) {
-					toast.error("تمت الإضافة للسلة لكن لم يتم العثور على cart_item_id لربط ملف التصميم. يمكنك رفعه من السلة.");
+					toast.error(t('error_loading'));
 					router.push("/cart");
 					return;
 				}
@@ -1533,10 +1527,10 @@ export default function ProductPageClient() {
 			
 			}
 
-			toast.success("تمت الإضافة للسلة بنجاح");
+			toast.success(t('changes_saved'));
 			router.push("/cart");
 		} catch {
-			toast.error("حدث خطأ أثناء إضافة المنتج للسلة");
+			toast.error(t('error_loading'));
 		}
 	};
 
@@ -1594,15 +1588,15 @@ export default function ProductPageClient() {
 							<FiAlertTriangle className="text-rose-600" size={22} />
 						</div>
 						<div>
-							<p className="font-extrabold text-slate-900">تعذر عرض المنتج</p>
-							<p className="text-sm text-slate-600 mt-1">{errorMsg || "المنتج غير موجود"}</p>
+							<p className="font-extrabold text-slate-900">{t('error_loading')}</p>
+							<p className="text-sm text-slate-600 mt-1">{errorMsg || t('error_loading')}</p>
 						</div>
 					</div>
 					<button
 						onClick={() => location.reload()}
 						className="mt-4 w-full rounded-2xl bg-slate-900 text-white py-3 font-extrabold hover:opacity-95 transition"
 					>
-						إعادة المحاولة
+						{t('refresh')}
 					</button>
 				</div>
 			</div>
@@ -1636,10 +1630,10 @@ export default function ProductPageClient() {
 								/>
 								<button
 									onClick={handleBuyNow}
-									aria-label="شراء الآن"
+									aria-label={t('buy_now')}
 									className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-pro text-white hover:bg-pro/90 transition-colors duration-200 font-semibold text-sm ${isRTL ? "flex-row-reverse" : ""}`}
 								>
-									<span>شراء الآن</span>
+									<span>{t('buy_now')}</span>
 									<ShoppingCart className="w-4 h-4" />
 								</button>
 							</div>
@@ -1661,7 +1655,7 @@ export default function ProductPageClient() {
 									<Package className="w-5 h-5 text-pro-max shrink-0 " />
 									<div>
 										<p className="text-slate-900 font-extrabold text-base md:text-lg">
-											وصف المنتج
+											{t('description')}
 										</p>
 									
 									</div>
@@ -1708,7 +1702,7 @@ export default function ProductPageClient() {
 									<BookOpen className="w-5 h-5 text-pro-max shrink-0" />
 									<div>
 										<p className="text-slate-900 font-extrabold text-base md:text-lg">
-											تعليمات
+											{t('instructions')}
 										</p>
 									</div>
 								</div>
@@ -1754,7 +1748,7 @@ export default function ProductPageClient() {
 									<FileText className="w-5 h-5 text-pro-max shrink-0" />
 									<div>
 										<p className="text-slate-900 font-extrabold text-base md:text-lg">
-											الشروط والأحكام
+											{t('terms_conditions')}
 										</p>
 									</div>
 								</div>
@@ -1859,7 +1853,7 @@ export default function ProductPageClient() {
 									<div className="min-w-[130px] md:min-w-[150px]">
 										<ButtonComponent
 											className="scale-[.8]"
-											title="أضف للسلة"
+											title={t('add_to_cart')}
 											onClick={handleAddToCart}
 										/>
 								

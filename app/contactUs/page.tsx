@@ -16,6 +16,7 @@ import {
 	FiMoreHorizontal,
 } from "react-icons/fi";
 import { HiLightBulb } from "react-icons/hi";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 interface FormData {
 	full_name: string;
@@ -90,6 +91,7 @@ function InfoCard({
 	icon: React.ReactNode;
 	actions?: React.ReactNode;
 }) {
+	const { t } = useLanguage();
 	return (
 		<div className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
 			<div className="flex items-start gap-4">
@@ -109,13 +111,14 @@ function InfoCard({
 			<div className="mt-5 h-px w-full bg-gradient-to-l from-slate-200 via-slate-100 to-transparent" />
 
 			<p className="mt-4 text-xs text-slate-500 leading-relaxed">
-				لو بتحب، ابعت لنا رسالة من النموذج — بنرد عادةً خلال وقت قصير.
+				{t('contact_card_hint')}
 			</p>
 		</div>
 	);
 }
 
 export default function ContactPageOne() {
+	const { t, language } = useLanguage();
 	const [loading, setLoading] = useState(false);
 	const [errors, setErrors] = useState<Errors>({});
 	const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
@@ -136,10 +139,10 @@ export default function ContactPageOne() {
 
 	// Suggestion type options
 	const suggestionTypes = [
-		{ value: "complaint", label: "شكوى", icon: FiAlertCircle, color: "text-red-600", bgColor: "bg-red-50", borderColor: "border-red-200" },
-		{ value: "suggestion", label: "اقتراح", icon: HiLightBulb, color: "text-yellow-600", bgColor: "bg-yellow-50", borderColor: "border-yellow-200" },
-		{ value: "inquiry", label: "استفسار", icon: FiHelpCircle, color: "text-blue-600", bgColor: "bg-blue-50", borderColor: "border-blue-200" },
-		{ value: "other", label: "أخرى", icon: FiMoreHorizontal, color: "text-slate-600", bgColor: "bg-slate-50", borderColor: "border-slate-200" },
+		{ value: "complaint", label: t('complaint'), icon: FiAlertCircle, color: "text-red-600", bgColor: "bg-red-50", borderColor: "border-red-200" },
+		{ value: "suggestion", label: t('suggestion'), icon: HiLightBulb, color: "text-yellow-600", bgColor: "bg-yellow-50", borderColor: "border-yellow-200" },
+		{ value: "inquiry", label: t('inquiry'), icon: FiHelpCircle, color: "text-blue-600", bgColor: "bg-blue-50", borderColor: "border-blue-200" },
+		{ value: "other", label: t('other'), icon: FiMoreHorizontal, color: "text-slate-600", bgColor: "bg-slate-50", borderColor: "border-slate-200" },
 	];
 
 	const selectedSuggestionType = suggestionTypes.find((t) => t.value === form.suggestion_type);
@@ -163,273 +166,273 @@ export default function ContactPageOne() {
 		EG: {
 			pattern: /^01[0-9]{9}$/,
 			example: "01012345678",
-			message: "رقم الهاتف غير صحيح (مثال: 01012345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "01012345678"),
 			flag: "🇪🇬",
-			name: "مصر",
+			name: t('egypt'),
 			code: "+20",
 		},
 		SA: {
 			pattern: /^05[0-9]{8}$/,
 			example: "0512345678",
-			message: "رقم الهاتف غير صحيح (مثال: 0512345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "0512345678"),
 			flag: "🇸🇦",
-			name: "السعودية",
+			name: t('saudi_arabia'),
 			code: "+966",
 		},
 		AE: {
 			pattern: /^05[0-9]{8}$/,
 			example: "0512345678",
-			message: "رقم الهاتف غير صحيح (مثال: 0512345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "0512345678"),
 			flag: "🇦🇪",
-			name: "الإمارات",
+			name: t('uae'),
 			code: "+971",
 		},
 		KW: {
 			pattern: /^[569][0-9]{7}$/,
 			example: "51234567",
-			message: "رقم الهاتف غير صحيح (مثال: 51234567)",
+			message: t('phone_invalid_with_example').replace("{example}", "51234567"),
 			flag: "🇰🇼",
-			name: "الكويت",
+			name: t('kuwait'),
 			code: "+965",
 		},
 		QA: {
 			pattern: /^[3-7][0-9]{7}$/,
 			example: "33123456",
-			message: "رقم الهاتف غير صحيح (مثال: 33123456)",
+			message: t('phone_invalid_with_example').replace("{example}", "33123456"),
 			flag: "🇶🇦",
-			name: "قطر",
+			name: t('qatar'),
 			code: "+974",
 		},
 		BH: {
 			pattern: /^[3-9][0-9]{7}$/,
 			example: "36123456",
-			message: "رقم الهاتف غير صحيح (مثال: 36123456)",
+			message: t('phone_invalid_with_example').replace("{example}", "36123456"),
 			flag: "🇧🇭",
-			name: "البحرين",
+			name: t('bahrain'),
 			code: "+973",
 		},
 		OM: {
 			pattern: /^[79][0-9]{8}$/,
 			example: "912345678",
-			message: "رقم الهاتف غير صحيح (مثال: 912345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "912345678"),
 			flag: "🇴🇲",
-			name: "عمان",
+			name: t('oman'),
 			code: "+968",
 		},
 		JO: {
 			pattern: /^07[789][0-9]{7}$/,
 			example: "0791234567",
-			message: "رقم الهاتف غير صحيح (مثال: 0791234567)",
+			message: t('phone_invalid_with_example').replace("{example}", "0791234567"),
 			flag: "🇯🇴",
-			name: "الأردن",
+			name: t('jordan'),
 			code: "+962",
 		},
 		LB: {
 			pattern: /^[0-9]{8}$/,
 			example: "12345678",
-			message: "رقم الهاتف غير صحيح (مثال: 12345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "12345678"),
 			flag: "🇱🇧",
-			name: "لبنان",
+			name: t('lebanon'),
 			code: "+961",
 		},
 		IQ: {
 			pattern: /^07[0-9]{9}$/,
 			example: "07912345678",
-			message: "رقم الهاتف غير صحيح (مثال: 07912345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "07912345678"),
 			flag: "🇮🇶",
-			name: "العراق",
+			name: t('iraq'),
 			code: "+964",
 		},
 		YE: {
 			pattern: /^7[0-9]{8}$/,
 			example: "712345678",
-			message: "رقم الهاتف غير صحيح (مثال: 712345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "712345678"),
 			flag: "🇾🇪",
-			name: "اليمن",
+			name: t('yemen'),
 			code: "+967",
 		},
 		SY: {
 			pattern: /^9[0-9]{8}$/,
 			example: "912345678",
-			message: "رقم الهاتف غير صحيح (مثال: 912345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "912345678"),
 			flag: "🇸🇾",
-			name: "سوريا",
+			name: t('syria'),
 			code: "+963",
 		},
 		PS: {
 			pattern: /^05[0-9]{8}$/,
 			example: "0512345678",
-			message: "رقم الهاتف غير صحيح (مثال: 0512345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "0512345678"),
 			flag: "🇵🇸",
-			name: "فلسطين",
+			name: t('palestine'),
 			code: "+970",
 		},
 		MA: {
 			pattern: /^06[0-9]{8}$/,
 			example: "0612345678",
-			message: "رقم الهاتف غير صحيح (مثال: 0612345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "0612345678"),
 			flag: "🇲🇦",
-			name: "المغرب",
+			name: t('morocco'),
 			code: "+212",
 		},
 		DZ: {
 			pattern: /^05[0-9]{8}$/,
 			example: "0512345678",
-			message: "رقم الهاتف غير صحيح (مثال: 0512345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "0512345678"),
 			flag: "🇩🇿",
-			name: "الجزائر",
+			name: t('algeria'),
 			code: "+213",
 		},
 		TN: {
 			pattern: /^[2-9][0-9]{7}$/,
 			example: "21234567",
-			message: "رقم الهاتف غير صحيح (مثال: 21234567)",
+			message: t('phone_invalid_with_example').replace("{example}", "21234567"),
 			flag: "🇹🇳",
-			name: "تونس",
+			name: t('tunisia'),
 			code: "+216",
 		},
 		LY: {
 			pattern: /^9[0-9]{8}$/,
 			example: "912345678",
-			message: "رقم الهاتف غير صحيح (مثال: 912345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "912345678"),
 			flag: "🇱🇾",
-			name: "ليبيا",
+			name: t('libya'),
 			code: "+218",
 		},
 		SD: {
 			pattern: /^9[0-9]{8}$/,
 			example: "912345678",
-			message: "رقم الهاتف غير صحيح (مثال: 912345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "912345678"),
 			flag: "🇸🇩",
-			name: "السودان",
+			name: t('sudan'),
 			code: "+249",
 		},
 		US: {
 			pattern: /^[2-9][0-9]{9}$/,
 			example: "2015551234",
-			message: "رقم الهاتف غير صحيح (مثال: 2015551234)",
+			message: t('phone_invalid_with_example').replace("{example}", "2015551234"),
 			flag: "🇺🇸",
-			name: "الولايات المتحدة",
+			name: t('united_states'),
 			code: "+1",
 		},
 		GB: {
 			pattern: /^07[0-9]{9}$/,
 			example: "07123456789",
-			message: "رقم الهاتف غير صحيح (مثال: 07123456789)",
+			message: t('phone_invalid_with_example').replace("{example}", "07123456789"),
 			flag: "🇬🇧",
-			name: "المملكة المتحدة",
+			name: t('united_kingdom'),
 			code: "+44",
 		},
 		FR: {
 			pattern: /^0[1-9][0-9]{8}$/,
 			example: "0612345678",
-			message: "رقم الهاتف غير صحيح (مثال: 0612345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "0612345678"),
 			flag: "🇫🇷",
-			name: "فرنسا",
+			name: t('france'),
 			code: "+33",
 		},
 		DE: {
 			pattern: /^0[1-9][0-9]{9,10}$/,
 			example: "01712345678",
-			message: "رقم الهاتف غير صحيح (مثال: 01712345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "01712345678"),
 			flag: "🇩🇪",
-			name: "ألمانيا",
+			name: t('germany'),
 			code: "+49",
 		},
 		IT: {
 			pattern: /^3[0-9]{9}$/,
 			example: "3123456789",
-			message: "رقم الهاتف غير صحيح (مثال: 3123456789)",
+			message: t('phone_invalid_with_example').replace("{example}", "3123456789"),
 			flag: "🇮🇹",
-			name: "إيطاليا",
+			name: t('italy'),
 			code: "+39",
 		},
 		ES: {
 			pattern: /^[6-9][0-9]{8}$/,
 			example: "612345678",
-			message: "رقم الهاتف غير صحيح (مثال: 612345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "612345678"),
 			flag: "🇪🇸",
-			name: "إسبانيا",
+			name: t('spain'),
 			code: "+34",
 		},
 		CA: {
 			pattern: /^[2-9][0-9]{9}$/,
 			example: "2045551234",
-			message: "رقم الهاتف غير صحيح (مثال: 2045551234)",
+			message: t('phone_invalid_with_example').replace("{example}", "2045551234"),
 			flag: "🇨🇦",
-			name: "كندا",
+			name: t('canada'),
 			code: "+1",
 		},
 		AU: {
 			pattern: /^04[0-9]{8}$/,
 			example: "0412345678",
-			message: "رقم الهاتف غير صحيح (مثال: 0412345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "0412345678"),
 			flag: "🇦🇺",
-			name: "أستراليا",
+			name: t('australia'),
 			code: "+61",
 		},
 		TR: {
 			pattern: /^05[0-9]{9}$/,
 			example: "05123456789",
-			message: "رقم الهاتف غير صحيح (مثال: 05123456789)",
+			message: t('phone_invalid_with_example').replace("{example}", "05123456789"),
 			flag: "🇹🇷",
-			name: "تركيا",
+			name: t('turkey'),
 			code: "+90",
 		},
 		IN: {
 			pattern: /^[6-9][0-9]{9}$/,
 			example: "9123456789",
-			message: "رقم الهاتف غير صحيح (مثال: 9123456789)",
+			message: t('phone_invalid_with_example').replace("{example}", "9123456789"),
 			flag: "🇮🇳",
-			name: "الهند",
+			name: t('india'),
 			code: "+91",
 		},
 		CN: {
 			pattern: /^1[3-9][0-9]{9}$/,
 			example: "13812345678",
-			message: "رقم الهاتف غير صحيح (مثال: 13812345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "13812345678"),
 			flag: "🇨🇳",
-			name: "الصين",
+			name: t('china'),
 			code: "+86",
 		},
 		JP: {
 			pattern: /^0[789]0[0-9]{8}$/,
 			example: "09012345678",
-			message: "رقم الهاتف غير صحيح (مثال: 09012345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "09012345678"),
 			flag: "🇯🇵",
-			name: "اليابان",
+			name: t('japan'),
 			code: "+81",
 		},
 		KR: {
 			pattern: /^01[0-9]{8,9}$/,
 			example: "01012345678",
-			message: "رقم الهاتف غير صحيح (مثال: 01012345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "01012345678"),
 			flag: "🇰🇷",
-			name: "كوريا الجنوبية",
+			name: t('south_korea'),
 			code: "+82",
 		},
 		BR: {
 			pattern: /^[1-9][0-9]{10}$/,
 			example: "11987654321",
-			message: "رقم الهاتف غير صحيح (مثال: 11987654321)",
+			message: t('phone_invalid_with_example').replace("{example}", "11987654321"),
 			flag: "🇧🇷",
-			name: "البرازيل",
+			name: t('brazil'),
 			code: "+55",
 		},
 		MX: {
 			pattern: /^[1-9][0-9]{9}$/,
 			example: "5512345678",
-			message: "رقم الهاتف غير صحيح (مثال: 5512345678)",
+			message: t('phone_invalid_with_example').replace("{example}", "5512345678"),
 			flag: "🇲🇽",
-			name: "المكسيك",
+			name: t('mexico'),
 			code: "+52",
 		},
 		RU: {
 			pattern: /^9[0-9]{9}$/,
 			example: "9123456789",
-			message: "رقم الهاتف غير صحيح (مثال: 9123456789)",
+			message: t('phone_invalid_with_example').replace("{example}", "9123456789"),
 			flag: "🇷🇺",
-			name: "روسيا",
+			name: t('russia'),
 			code: "+7",
 		},
 	};
@@ -437,10 +440,10 @@ export default function ContactPageOne() {
 	const validate = useCallback((data: FormData) => {
 		const newErrors: Errors = {};
 
-		if (!data.full_name.trim()) newErrors.full_name = "الاسم الكامل مطلوب";
+		if (!data.full_name.trim()) newErrors.full_name = t('full_name_required');
 
 		if (!data.phone.trim()) {
-			newErrors.phone = "رقم الهاتف مطلوب";
+			newErrors.phone = t('phone_required');
 		} else if (data.country && phonePatterns[data.country]) {
 			const phoneValidation = phonePatterns[data.country];
 			if (!phoneValidation.pattern.test(data.phone.trim())) {
@@ -448,21 +451,21 @@ export default function ContactPageOne() {
 			}
 		} else if (data.country) {
 			if (data.phone.trim().length < 8 || data.phone.trim().length > 15) {
-				newErrors.phone = "رقم الهاتف غير صحيح";
+				newErrors.phone = t('invalid_phone');
 			}
 		}
 
-		if (!data.email.trim()) newErrors.email = "البريد الإلكتروني مطلوب";
+		if (!data.email.trim()) newErrors.email = t('email_required');
 		else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim()))
-			newErrors.email = "صيغة البريد الإلكتروني غير صحيحة";
+			newErrors.email = t('email_invalid');
 
-		if (!data.address.trim()) newErrors.address = "العنوان مطلوب";
+		if (!data.address.trim()) newErrors.address = t('address_details_required');
 
-		if (!data.suggestion_type.trim()) newErrors.suggestion_type = "نوع الاقتراح مطلوب";
-		if (!data.message.trim()) newErrors.message = "الرسالة مطلوبة";
+		if (!data.suggestion_type.trim()) newErrors.suggestion_type = t('required_field');
+		if (!data.message.trim()) newErrors.message = t('required_field');
 
 		return newErrors;
-	}, []);
+	}, [t, phonePatterns]);
 
 	const isValid = useMemo(() => Object.keys(errors).length === 0, [errors]);
 
@@ -515,7 +518,11 @@ export default function ContactPageOne() {
 			try {
 				const res = await fetch(base_url, {
 					method: "POST",
-					headers: { "Content-Type": "application/json" },
+					headers: { 
+						"Content-Type": "application/json",
+						"Accept": "application/json",
+						"Accept-Language": language
+					},
 					body: JSON.stringify({
 						...form,
 						phone: form.phone.trim(),
@@ -528,9 +535,9 @@ export default function ContactPageOne() {
 				if (res.ok && data?.status) {
 					Swal.fire({
 						icon: "success",
-						title: "تم الإرسال بنجاح",
-						text: data?.message || "سنتواصل معك قريبًا.",
-						confirmButtonText: "موافق",
+						title: t('sent_success'),
+						text: data?.message || t('contact_soon_note'),
+						confirmButtonText: t('close'),
 					});
 
 					setForm({
@@ -548,20 +555,20 @@ export default function ContactPageOne() {
 
 				Swal.fire({
 					icon: "error",
-					title: "خطأ",
-					text: data?.message || "حدث خطأ أثناء الإرسال",
+					title: t('error'),
+					text: data?.message || t('send_error'),
 				});
 			} catch {
 				Swal.fire({
 					icon: "error",
-					title: "خطأ في الاتصال",
-					text: "تعذر الاتصال بالسيرفر",
+					title: t('connect_error'),
+					text: t('server_error'),
 				});
 			} finally {
 				setLoading(false);
 			}
 		},
-		[base_url, form, loading, validate]
+		[base_url, form, loading, validate, t]
 	);
 
 	// ===== Contact Data (edit freely) =====
@@ -573,16 +580,16 @@ export default function ContactPageOne() {
 			await navigator.clipboard.writeText(text);
 			Swal.fire({
 				icon: "success",
-				title: "تم النسخ",
-				text: `تم نسخ ${label}`,
+				title: t('copied'),
+				text: `${t('copied')} ${label}`,
 				timer: 1400,
 				showConfirmButton: false,
 			});
 		} catch {
 			Swal.fire({
 				icon: "error",
-				title: "تعذر النسخ",
-				text: "الرجاء المحاولة مرة أخرى",
+				title: t('error'),
+				text: t('connect_error'),
 			});
 		}
 	};
@@ -602,10 +609,10 @@ export default function ContactPageOne() {
 				{/* Hero */}
 				<div className="mb-5 text-center"> 
 					<h1 className=" max-md:text-center mt-4 text-pro text-3xl md:text-4xl font-extrabold text-slate-950 leading-tight">
-						اتصل <span className="text-pro-max">بنا</span>
+						{t('contact')} <span className="text-pro-max">{t('us')}</span>
 					</h1>
 					<p className="mt-2">
-						اختر وسيلة التواصل المناسبة أو اترك رسالة عبر النموذج، وسنعود لك في أقرب وقت.
+						{t('contact_subtitle')}
 					</p>
 				</div>
 
@@ -622,26 +629,26 @@ export default function ContactPageOne() {
 								onSubmit={handleSubmit}
 								className="p-6 md:p-8 grid md:grid-cols-2 gap-5 mt-0"
 							>
-								<Field label="الإسم " error={errors.full_name}>
+								<Field label={t('full_name')} error={errors.full_name}>
 									<input
 										name="full_name"
 										value={form.full_name}
 										onChange={handleChange}
 										className={inputClass("full_name")}
-										placeholder="أدخل الاسم كامل"
+										placeholder={t('enter_full_name')}
 										autoComplete="given-name"
 									/>
 								</Field>
 
 							
-								<Field label="البريد الإلكتروني" error={errors.email}>
+								<Field label={t('email')} error={errors.email}>
 									<input
 										name="email"
 										type="text"
 										value={form.email}
 										onChange={handleChange}
 										className={inputClass("email")}
-										placeholder="example@email.com"
+										placeholder={t('email_or_phone_placeholder')}
 										autoComplete="email"
 									/>
 								</Field>
@@ -649,7 +656,7 @@ export default function ContactPageOne() {
 								
 
 								<div className="md:col-span-2">
-									<Field label="اختر نوع الاقتراح" error={errors.suggestion_type}>
+									<Field label={t('select_suggestion_type')} error={errors.suggestion_type}>
 										<div ref={suggestionTypeRef} className="relative">
 											{/* Custom Dropdown Button */}
 											<button
@@ -672,7 +679,7 @@ export default function ContactPageOne() {
 															<span className="text-slate-900">{selectedSuggestionType.label}</span>
 														</>
 													) : (
-														<span className="text-slate-400">اختر نوع الاقتراح</span>
+														<span className="text-slate-400">{t('select_suggestion_type')}</span>
 													)}
 												</div>
 												<FiChevronDown
@@ -735,7 +742,7 @@ export default function ContactPageOne() {
 									</Field>
 								</div>
 								<Field
-									label="رقم الهاتف"
+									label={t('phone_number')}
 									error={errors.phone}
 								>
 									<div className="relative flex" dir="ltr">
@@ -758,7 +765,7 @@ export default function ContactPageOne() {
 														</span>
 													</div>
 												) : (
-													<span>اختر البلد</span>
+													<span>{t('select_country')}</span>
 												)}
 												<FiChevronDown className={`text-slate-400 text-xs transition-transform ${countryDropdownOpen ? "rotate-180" : ""}`} />
 											</button>
@@ -797,69 +804,117 @@ export default function ContactPageOne() {
 													inputClass("phone"),
 													"rounded-l-none rounded-r-lg"
 												)}
-												placeholder={
+											placeholder={
 													form.country && phonePatterns[form.country]
-														? `مثال: ${phonePatterns[form.country].example}`
-														: "أدخل رقم الهاتف"
+														? ` ${phonePatterns[form.country].example}`
+														: t('enter_phone_number')
 												}
 												inputMode="numeric"
 											/>
 										</div>
 									</div>
 								</Field>
-								<Field label="العنوان" error={errors.address}>
-									<input
-										name="address"
-										value={form.address}
-										onChange={handleChange}
-										className={inputClass("address")}
-										placeholder="أدخل العنوان الكامل"
-										autoComplete="street-address"
-									/>
-								</Field>
+
 								<div className="md:col-span-2">
-									<Field label="الرسالة" error={errors.message}>
-										<textarea
-											name="message"
-											value={form.message}
-											onChange={handleChange}
-											rows={6}
-											className={textareaClass("message")}
-											placeholder="فضلاً اكتب رسالتك بالتفصيل..."
-										/>
+									<Field label={t('address')} error={errors.address}>
+										<div className="relative">
+											<span className="absolute right-4 top-3.5 text-slate-400">
+												<FiMapPin />
+											</span>
+											<input
+												name="address"
+												value={form.address}
+												onChange={handleChange}
+												className={cn(inputClass("address"), "pr-11")}
+												placeholder={t('enter_address')}
+											/>
+										</div>
 									</Field>
 								</div>
 
-								{/* Submit */}
-								<div className="md:col-span-2 pt-1">
+								<div className="md:col-span-2">
+									<Field label={t('message')} error={errors.message}>
+										<div className="relative">
+											<span className="absolute right-4 top-3.5 text-slate-400">
+												<FiMessageSquare />
+											</span>
+											<textarea
+												name="message"
+												value={form.message}
+												onChange={handleChange}
+												className={cn(textareaClass("message"), "pr-11")}
+												placeholder={t('how_can_we_help')}
+											/>
+										</div>
+									</Field>
+								</div>
+
+								<div className="md:col-span-2 pt-2">
 									<button
 										type="submit"
-										aria-label="submit form"
 										disabled={loading}
-										className={`
-											w-full rounded-2xl py-3.5 font-extrabold text-white transition bg-pro-max
-											${loading ? "bg-slate-400 cursor-not-allowed" : "bg-pro hover:opacity-95 active:scale-[0.99]"}
-											`}
+										className={cn(
+											"w-full flex items-center justify-center gap-3 rounded-2xl bg-pro px-8 py-4 text-sm font-extrabold text-white shadow-lg shadow-pro/20 transition-all duration-300 hover:bg-pro-max hover:shadow-pro/30 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:grayscale disabled:cursor-not-allowed",
+											loading && "animate-pulse"
+										)}
 									>
 										{loading ? (
-											<span className="inline-flex items-center justify-center gap-2">
-												<span className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-												جاري الإرسال...
-											</span>
+											<>
+												<div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+												<span>{t('sending')}</span>
+											</>
 										) : (
-											"إرسال الرسالة"
+											<>
+												<FiArrowUpRight className="text-lg" />
+												<span>{t('send_message')}</span>
+											</>
 										)}
 									</button>
-
-									{!loading && !isValid && Object.keys(errors).length ? (
-										<p className="mt-3 text-xs text-slate-500">
-											تأكد من إدخال البيانات بشكل صحيح قبل الإرسال.
-										</p>
-									) : null }
 								</div>
 							</form>
 						</div>
- 
+					</div>
+
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mt-16 max-w-4xl mx-auto">
+						<InfoCard
+							title={t('call_now')}
+							value={hotline}
+							icon={<FiPhone className="text-xl" />}
+							actions={
+								<>
+									<ActionPill
+										label={t('contact')}
+										onClick={() => (window.location.href = `tel:${hotline}`)}
+										icon={<FiPhone />}
+									/>
+									<ActionPill
+										label={t('copied')}
+										onClick={() => copyToClipboard(hotline, t('phone_number'))}
+										icon={<FiCopy />}
+									/>
+								</>
+							}
+						/>
+
+						<InfoCard
+							title={t('email')}
+							value={email}
+							icon={<FiMail className="text-xl" />}
+							actions={
+								<>
+									<ActionPill
+										label={t('contact')}
+										onClick={() => (window.location.href = `mailto:${email}`)}
+										icon={<FiMail />}
+									/>
+									<ActionPill
+										label={t('copied')}
+										onClick={() => copyToClipboard(email, t('email'))}
+										icon={<FiCopy />}
+									/>
+								</>
+							}
+						/>
 					</div>
 				</div>
 			</div>

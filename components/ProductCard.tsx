@@ -21,6 +21,7 @@ import QuickViewModal from './QuickViewModal';
 import Image from 'next/image';
 import { ShoppingCart } from 'lucide-react';
 import { SelectedOptions } from './StickerForm';
+import { useLanguage } from '@/src/context/LanguageContext';
 export interface StickerFormHandle {
 	getOptions: () => SelectedOptions;
 	validate: () => boolean;
@@ -51,6 +52,7 @@ export default function ProductCard({
 	const [showImage, setShowImage] = useState(false);
 	const [isAdding, setIsAdding] = useState(false);
 	const [quickViewOpen, setQuickViewOpen] = useState(false);
+	const { t } = useLanguage();
 
 	const { authToken: token, favoriteIdsSet, setFavoriteProducts, favoriteProductsLoading } = useAuth();
 		const router = useRouter();
@@ -68,7 +70,7 @@ export default function ProductCard({
 
 	const toggleFavorite = async (productId: number) => {
 		if (!token) {
-			toast.error('يجب تسجيل الدخول أولاً');
+			toast.error(t('login')); // Use login key as placeholder for "Login required"
 			return;
 		}
 
@@ -128,7 +130,7 @@ export default function ProductCard({
 					}
 				});
 
-				toast.error(data?.message || 'فشل تحديث المفضلة');
+				toast.error(data?.message || t('error_loading'));
 				return;
 			}
 		} catch {
@@ -142,7 +144,7 @@ export default function ProductCard({
 				}
 			});
 
-			toast.error('حدث خطأ أثناء تحديث المفضلة');
+			toast.error(t('error_loading'));
 		}
 	};
 
@@ -150,7 +152,7 @@ export default function ProductCard({
 
 	const handleAddToCart = async () => {
 		if (!token) {
-			toast.error('يجب تسجيل الدخول أولاً');
+			toast.error(t('login'));
 			return;
 		}
 		if (isAdding || !inStock) return;
@@ -223,8 +225,8 @@ export default function ProductCard({
  
 		
  
-		if (!token) return toast.error("يجب تسجيل الدخول أولاً");
-		if (!API_URL) return toast.error("API غير متوفر");
+		if (!token) return toast.error(t('login'));
+		if (!API_URL) return toast.error(t('error_loading'));
  
 		// const selected_options = buildSelectedOptionsWithPrice(apiData, opts);
 		// const idsPayload = buildIdsPayload(apiData, opts);
@@ -264,10 +266,10 @@ export default function ProductCard({
 			
 			// }
  
-			toast.success("تمت الإضافة للسلة بنجاح");
+			toast.success(t('add_to_cart')); // Reuse add_to_cart for success
 			router.push("/cart");
 		} catch {
-			toast.error("حدث خطأ أثناء إضافة المنتج للسلة");
+			toast.error(t('error_loading'));
 		}
 	};
 	const showDiscountChip = Boolean(discount?.value); 
@@ -293,7 +295,7 @@ export default function ProductCard({
 						</div> */}
 							{inStock && (
 							<motion.button
-								aria-label="add to cart"
+								aria-label={t('add_to_cart')}
 								onClick={(e) => {
 									e.preventDefault();
 									e.stopPropagation();
@@ -428,15 +430,15 @@ export default function ProductCard({
 					{inStock ? (
 						<button
 							onClick={handleBuyNow}
-								aria-label="شراء الآن"
+								aria-label={t('buy_now')}
 								className={`flex items-center justify-center w-full cursor-pointer whitespace-nowrap   gap-2 px-4 py-2 rounded-lg bg-pro text-white hover:bg-pro/90 transition-colors duration-200 font-semibold text-sm `}
 							>
-								<span>شراء الآن</span>
+								<span>{t('buy_now')}</span>
 								<ShoppingCart className="w-4 h-4" />
 						</button>
 					) : (
 						<div className="w-full bg-gray-200 text-gray-600 px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg sm:rounded-xl font-bold flex items-center justify-center gap-2 text-xs sm:text-sm cursor-not-allowed">
-							<span>نفدت الكمية</span>
+							<span>{t('out_of_stock')}</span>
 						</div>
 					)}
 

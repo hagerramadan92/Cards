@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { IoCloseSharp } from "react-icons/io5";
 import { motion, AnimatePresence } from "framer-motion";
 import { AddressI } from "@/Types/AddressI";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 interface AddressFormProps {
 	open: boolean;
@@ -30,19 +31,6 @@ interface AddressFormInputs {
 
 // ✅ Saudi phone: 05XXXXXXXX OR +9665XXXXXXXX OR 9665XXXXXXXX
 const SA_PHONE_REGEX = /^(?:05\d{8}|(?:\+?966)5\d{8})$/;
-
-const schema = yup.object().shape({
-	firstName: yup.string().required("الإسم الأول مطلوب"),
-	lastName: yup.string().required("الإسم الأخير مطلوب"),
-	details: yup.string().required("تفاصيل العنوان مطلوبة"),
-	phone: yup
-		.string()
-		.matches(SA_PHONE_REGEX, "رقم الجوال السعودي غير صحيح")
-		.required("رقم الجوال مطلوب"),
-	city: yup.string().required("المدينة مطلوبة"),
-	area: yup.string().required("المنطقة مطلوبة"),
-	addressType: yup.string().required("نوع العنوان مطلوب"),
-});
 
 function Field({
 	label,
@@ -73,11 +61,25 @@ export default function AddressForm({
 	initialData,
 	onSuccess,
 }: AddressFormProps) {
+	const { t } = useLanguage();
 	const base_url = process.env.NEXT_PUBLIC_API_URL;
 	const [loading, setLoading] = useState(false);
 	const [mounted, setMounted] = useState(false);
 
 	useEffect(() => setMounted(true), []);
+
+	const schema = useMemo(() => yup.object().shape({
+		firstName: yup.string().required(t('first_name_required')),
+		lastName: yup.string().required(t('last_name_required')),
+		details: yup.string().required(t('address_details_required')),
+		phone: yup
+			.string()
+			.matches(SA_PHONE_REGEX, t('saudi_phone_invalid'))
+			.required(t('phone_required')),
+		city: yup.string().required(t('city_required')),
+		area: yup.string().required(t('area_required')),
+		addressType: yup.string().required(t('address_type_required')),
+	}), [t]);
 
 	const {
 		register,
@@ -98,8 +100,8 @@ export default function AddressForm({
 	const isEdit = Boolean(initialData?.id);
 
 	const title = useMemo(
-		() => (isEdit ? "تعديل العنوان" : "إضافة عنوان جديد"),
-		[isEdit]
+		() => (isEdit ? t('edit_address') : t('add_new_address')),
+		[isEdit, t]
 	);
 
 	useEffect(() => {
@@ -165,10 +167,10 @@ export default function AddressForm({
 			const result = await res.json().catch(() => null);
 
 			if (!res.ok || !result?.status) {
-				throw new Error(result?.message || "حدث خطأ");
+				throw new Error(result?.message || t('error'));
 			}
 
-			toast.success(isEdit ? "تم تعديل العنوان بنجاح" : "تم إضافة العنوان بنجاح", {
+			toast.success(isEdit ? t('address_updated_success') : t('address_saved_success'), {
 				duration: 1200,
 			});
 
@@ -177,7 +179,7 @@ export default function AddressForm({
 
 			setTimeout(() => onClose(), 150);
 		} catch (err: any) {
-			toast.error(err?.message || "حدث خطأ أثناء حفظ العنوان");
+			toast.error(err?.message || t('error_saving_address'));
 		} finally {
 			setLoading(false);
 		}
@@ -218,7 +220,7 @@ export default function AddressForm({
 										{title}
 									</h2>
 									<p className="mt-1 text-sm text-slate-500">
-										املأ البيانات بدقة لتسهيل التوصيل.
+										{t('fill_data_accurately')}
 									</p>
 								</div>
 
@@ -238,13 +240,13 @@ export default function AddressForm({
 								<div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-5 shadow-sm">
 									<div className="flex items-center justify-between mb-4">
 										<h3 className="text-base md:text-lg font-extrabold text-slate-900">
-											بيانات المستلم
+											{t('recipient_data')}
 										</h3>
-										<span className="text-xs font-bold text-slate-500">(مطلوب)</span>
+										<span className="text-xs font-bold text-slate-500">{t('required')}</span>
 									</div>
 
 									<div className="grid md:grid-cols-2 gap-4 md:gap-5">
-										<Field label="الإسم الأول" error={errors.firstName?.message}>
+										<Field label={t('first_name')} error={errors.firstName?.message}>
 											<input
 												{...register("firstName")}
 												className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none transition
@@ -253,11 +255,11 @@ export default function AddressForm({
 															? "border-rose-300 focus:ring-4 focus:ring-rose-100"
 															: "border-slate-200 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
 													}`}
-												placeholder="مثال: أحمد"
+												placeholder={t('first_name_hint')}
 											/>
 										</Field>
 
-										<Field label="الإسم الأخير" error={errors.lastName?.message}>
+										<Field label={t('last_name')} error={errors.lastName?.message}>
 											<input
 												{...register("lastName")}
 												className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none transition
@@ -266,16 +268,16 @@ export default function AddressForm({
 															? "border-rose-300 focus:ring-4 focus:ring-rose-100"
 															: "border-slate-200 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
 													}`}
-												placeholder="مثال: محمد"
+												placeholder={t('last_name_hint')}
 											/>
 										</Field>
 									</div>
 
 									<div className="mt-4">
 										<Field
-											label="رقم الجوال"
+											label={t('phone_number')}
 											error={errors.phone?.message}
-											hint="مثال: 05xxxxxxxx أو +9665xxxxxxxx"
+											hint={t('phone_hint')}
 										>
 											<input
 												{...register("phone")}
@@ -295,11 +297,11 @@ export default function AddressForm({
 								{/* ✅ Section: Location FIRST */}
 								<div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-5 shadow-sm">
 									<h3 className="text-base md:text-lg font-extrabold text-slate-900 mb-4">
-										المدينة والمنطقة
+										{t('city')} {t('and')} {t('area')}
 									</h3>
 
 									<div className="grid md:grid-cols-2 gap-4 md:gap-5">
-										<Field label="المدينة" error={errors.city?.message}>
+										<Field label={t('city')} error={errors.city?.message}>
 											<select
 												{...register("city")}
 												className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none transition bg-white
@@ -309,7 +311,7 @@ export default function AddressForm({
 															: "border-slate-200 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
 													}`}
 											>
-												<option value="">اختر المدينة</option>
+												<option value="">{t('select_city')}</option>
 												{/* بدّل القيم دي بمدن السعودية */}
 												<option value="الرياض">الرياض</option>
 												<option value="جدة">جدة</option>
@@ -317,7 +319,7 @@ export default function AddressForm({
 											</select>
 										</Field>
 
-										<Field label="المنطقة" error={errors.area?.message}>
+										<Field label={t('area')} error={errors.area?.message}>
 											<select
 												{...register("area")}
 												className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none transition bg-white
@@ -327,7 +329,7 @@ export default function AddressForm({
 															: "border-slate-200 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
 													}`}
 											>
-												<option value="">اختر المنطقة</option>
+												<option value="">{t('select_area')}</option>
 												{/* بدّل القيم دي بمناطق/أحياء السعودية */}
 												<option value="حي العليا">حي العليا</option>
 												<option value="حي النزهة">حي النزهة</option>
@@ -337,11 +339,11 @@ export default function AddressForm({
 									</div>
 
 									<div className="mt-5">
-										<Field label="نوع العنوان" error={errors.addressType?.message}>
+										<Field label={t('address_type')} error={errors.addressType?.message}>
 											<div className="flex gap-3">
 												{[
-													{ value: "home", label: "منزل" },
-													{ value: "work", label: "عمل" },
+													{ value: "home", label: t('home_type') },
+													{ value: "work", label: t('work_type') },
 												].map((btn) => (
 													<button
 														key={btn.value}
@@ -369,20 +371,20 @@ export default function AddressForm({
 								{/* ✅ Section: Address details AFTER city/area */}
 								<div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-5 shadow-sm">
 									<h3 className="text-base md:text-lg font-extrabold text-slate-900 mb-4">
-										تفاصيل العنوان
+										{t('address_details')}
 									</h3>
 
-									<Field label="تفاصيل العنوان" error={errors.details?.message}>
+									<Field label={t('address_details')} error={errors.details?.message}>
 										<textarea
 											{...register("details")}
 											rows={3}
 											className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none transition resize-none
-                        ${
+                         ${
 													errors.details
 														? "border-rose-300 focus:ring-4 focus:ring-rose-100"
 														: "border-slate-200 focus:border-pro focus:ring-2 focus:ring-pro/20  duration-200"
 												}`}
-											placeholder="اسم الشارع، رقم المبنى، رقم الشقة، أقرب معلم..."
+											placeholder={t('address_details_placeholder')}
 										/>
 									</Field>
 								</div>
@@ -394,7 +396,7 @@ export default function AddressForm({
 									onClick={onClose}
 									className="rounded-xl px-5 py-3 text-sm font-extrabold text-slate-700 bg-slate-50 ring-1 ring-slate-200 hover:bg-slate-100 transition"
 								>
-									إلغاء
+									{t('cancel')}
 								</button>
 
 								<button
@@ -411,10 +413,10 @@ export default function AddressForm({
 									{loading || isSubmitting ? (
 										<span className="inline-flex items-center gap-2">
 											<span className="h-5 w-5 rounded-full border-2 border-white/80 border-t-transparent animate-spin" />
-											جارٍ الحفظ...
+											{t('saving')}
 										</span>
 									) : (
-										"حفظ العنوان"
+										t('save_address')
 									)}
 								</button>
 							</div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, ChangeEvent, useMemo } from "react";
+import { useLanguage } from "@/src/context/LanguageContext";
 import { FiSearch } from "react-icons/fi";
 import NoOrders from "./NoOrders";
 import Image from "next/image";
@@ -95,26 +96,26 @@ function OrdersSkeleton({ count = 4 }: { count?: number }) {
 
 /* ---------------- Helpers ---------------- */
 
-function statusUI(status: string) {
+function statusUI(status: string, t: any) {
 	if (status === "pending")
-		return { label: "قيد الانتظار", cls: "bg-amber-50 text-amber-700 ring-1 ring-amber-100" };
+		return { label: t('order_status_pending'), cls: "bg-amber-50 text-amber-700 ring-1 ring-amber-100" };
 	if (status === "waiting" || status === "processing")
-		return { label: "جاري التنفيذ", cls: "bg-blue-50 text-blue-700 ring-1 ring-blue-100" };
+		return { label: t('order_status_processing'), cls: "bg-blue-50 text-blue-700 ring-1 ring-blue-100" };
 	if (status === "completed")
-		return { label: "مكتمل", cls: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100" };
+		return { label: t('order_status_completed'), cls: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100" };
 	if (status === "rejected" || status === "cancelled")
-		return { label: "مرفوض", cls: "bg-rose-50 text-rose-700 ring-1 ring-rose-100" };
+		return { label: t('order_status_rejected'), cls: "bg-rose-50 text-rose-700 ring-1 ring-rose-100" };
 	return { label: status, cls: "bg-slate-50 text-slate-700 ring-1 ring-slate-200" };
 }
 
-function paymentStatusUI(status: string) {
+function paymentStatusUI(status: string, t: any) {
 	if (status === "paid")
-		return { label: "مدفوع", cls: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100" };
+		return { label: t('payment_status_paid'), cls: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100" };
 	if (status === "pending")
-		return { label: "قيد الدفع", cls: "bg-amber-50 text-amber-700 ring-1 ring-amber-100" };
+		return { label: t('payment_status_pending'), cls: "bg-amber-50 text-amber-700 ring-1 ring-amber-100" };
 	if (status === "failed")
-		return { label: "فشل الدفع", cls: "bg-rose-50 text-rose-700 ring-1 ring-rose-100" };
-	return { label: "غير محدد", cls: "bg-slate-50 text-slate-700 ring-1 ring-slate-200" };
+		return { label: t('payment_status_failed'), cls: "bg-rose-50 text-rose-700 ring-1 ring-rose-100" };
+	return { label: t('payment_status_unknown'), cls: "bg-slate-50 text-slate-700 ring-1 ring-slate-200" };
 }
 
 /* ---------------- Component ---------------- */
@@ -122,6 +123,7 @@ function paymentStatusUI(status: string) {
 type FilterType = "all" | "pending" | "waiting" | "completed" | "rejected";
 
 export default function Orders() {
+	const { t } = useLanguage();
 	const [search, setSearch] = useState<string>("");
 	const [orders, setOrders] = useState<Order[]>([]);
 	const [loading, setLoading] = useState<boolean>(true);
@@ -217,7 +219,7 @@ export default function Orders() {
 			{orders.length === 0 ? (
 				<div className=" mt-12 flex items-center flex-col">
 					<Image src="/images/no-order.png" width={230} height={220} alt="notfound" />
-					<NoOrders title="ليس لديك أي طلبات حتى الآن." />
+					<NoOrders title={t('no_orders')} />
 				</div>
 			) : (
 				<>
@@ -226,7 +228,7 @@ export default function Orders() {
 						<div className="flex flex-col gap-4">
 							<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
 								<div>
-									<h2 className="text-xl font-extrabold text-slate-900">طلباتي</h2>
+									<h2 className="text-xl font-extrabold text-slate-900">{t('orders')}</h2>
 									
 								</div>
 
@@ -235,7 +237,7 @@ export default function Orders() {
 										<FiSearch className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-400" />
 									<input
 										type="text"
-										placeholder="ابحث برقم الطلب"
+										placeholder={t('search_order_number')}
 										value={search}
 										onChange={handleSearchChange}
 										className="w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 py-3 text-sm font-semibold text-slate-900
@@ -245,7 +247,7 @@ export default function Orders() {
 									</div>
 
 									<div className="text-nowrap max-md:text-xs inline-flex items-center justify-center rounded-xl bg-slate-50 max-md:p-2 px-4 py-3 text-sm font-extrabold text-slate-700 ring-1 ring-slate-200">
-										{filteredOrders.length} طلب
+										{filteredOrders.length} {t('order_singular')}
 									</div>
 								</div>
 							</div>
@@ -260,7 +262,7 @@ export default function Orders() {
 											: "bg-slate-100 text-slate-700 hover:bg-slate-200"
 									}`}
 								>
-									جميع الطلبات
+									{t('all_orders')}
 								</button>
 								<button
 									onClick={() => handleFilterChange("pending")}
@@ -270,7 +272,7 @@ export default function Orders() {
 											: "bg-slate-100 text-slate-700 hover:bg-slate-200"
 									}`}
 								>
-									قيد الانتظار
+									{t('order_status_pending')}
 								</button>
 								<button
 									onClick={() => handleFilterChange("waiting")}
@@ -280,7 +282,7 @@ export default function Orders() {
 											: "bg-slate-100 text-slate-700 hover:bg-slate-200"
 									}`}
 								>
-									جاري التنفيذ
+									{t('order_status_processing')}
 								</button>
 								<button
 									onClick={() => handleFilterChange("completed")}
@@ -290,7 +292,7 @@ export default function Orders() {
 											: "bg-slate-100 text-slate-700 hover:bg-slate-200"
 									}`}
 								>
-									مكتمل
+									{t('order_status_completed')}
 								</button>
 								<button
 									onClick={() => handleFilterChange("rejected")}
@@ -300,7 +302,7 @@ export default function Orders() {
 											: "bg-slate-100 text-slate-700 hover:bg-slate-200"
 									}`}
 								>
-									مرفوض
+									{t('order_status_rejected')}
 								</button>
 							</div>
 						</div>
@@ -308,13 +310,13 @@ export default function Orders() {
 
 					{/* List */}
 					{filteredOrders.length === 0 ? (
-						<NoOrders title="ليس لديك أي طلبات" />
+						<NoOrders title={t('no_orders')} />
 					) : (
 						<div className="grid gap-4">
 							{filteredOrders.map((order) => {
 								const item = order.items?.[0];
 								const img = item?.product?.image || "/images/noimg.png";
-								const status = statusUI(order.status);
+								const status = statusUI(order.status, t);
 
 								return (
 									<Link
@@ -338,10 +340,10 @@ export default function Orders() {
 											<div className="flex-1 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
 												<div className="space-y-2">
 													<p className="text-slate-900 font-bold text-base">
-														رقم الطلب: <span className="font-extrabold">{order.order_number}</span>
+														{t('order_id')}: <span className="font-extrabold">{order.order_number}</span>
 													</p>
 													<p className="text-slate-700 font-semibold text-sm">
-														الإجمالي المدفوع: <span className="font-extrabold text-pro-max">{order.formatted_total}</span>
+														{t('total_paid')}: <span className="font-extrabold text-pro-max">{order.formatted_total}</span>
 													</p>
 												</div>
 

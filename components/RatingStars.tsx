@@ -2,8 +2,10 @@ import { ReviewsI } from "@/Types/ReviewsI";
 import { FaStar } from "react-icons/fa";
 import { PiStarHalfFill } from "react-icons/pi";
 import { SlStar } from "react-icons/sl";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function RatingStars({ average_ratingc , reviewsc}: { average_ratingc: number , reviewsc:ReviewsI[]}) {
+  const { t } = useLanguage();
   const fullStars = Math.floor(average_ratingc);    
   const hasHalfStar = average_ratingc % 1 >= 0.5;   
   const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0); 
@@ -28,7 +30,7 @@ export default function RatingStars({ average_ratingc , reviewsc}: { average_rat
         ))}
       </div>
 
-      <p className=" max-md:hidden text-[13px] text-gray-400 font-semibold ms-1">({reviewsc.length}  تقييم) </p>
+      <p className=" max-md:hidden text-[13px] text-gray-400 font-semibold ms-1">({reviewsc.length}  {t('rating')}) </p>
     </div>
   );
 }

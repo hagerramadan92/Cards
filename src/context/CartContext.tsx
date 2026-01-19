@@ -10,6 +10,7 @@ import {
 } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "./AuthContext";
+import { useLanguage } from "./LanguageContext";
 
 interface AddToCartPayload {
 	product_id: number;
@@ -89,6 +90,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 	const [cart, setCart] = useState<CartItem[]>([]);
 	const [loading, setLoading] = useState(true);
 	const { authToken: token } = useAuth();
+	const { language } = useLanguage();
 	const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 	const [stickerFormValues, setStickerFormValues] = useState<any>({
@@ -126,6 +128,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 				headers: {
 					Authorization: `Bearer ${token}`,
 					Accept: "application/json",
+					"Accept-Language": language,
 				},
 			});
  
@@ -195,6 +198,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 				headers: {
 					Authorization: `Bearer ${token}`,
 					Accept: "application/json",
+					"Accept-Language": language,
 				},
 			});
 
@@ -307,6 +311,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 				headers: {
 					"Content-Type": "application/json",
 					Authorization: `Bearer ${token}`,
+					"Accept-Language": language,
 				},
 				body: JSON.stringify(payload),
 			});
@@ -367,6 +372,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 					"Content-Type": "application/json",
 					Authorization: `Bearer ${token}`,
 					Accept: "application/json",
+					"Accept-Language": language,
 				},
 				body: JSON.stringify({ quantity }),
 			});
@@ -399,6 +405,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 					"Content-Type": "application/json",
 					Authorization: `Bearer ${token}`,
 					Accept: "application/json",
+					"Accept-Language": language,
 				},
 				body: JSON.stringify(updates),
 			});
@@ -487,7 +494,20 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
 	useEffect(() => {
 		fetchCart();
-	}, [token]);
+
+		const handleLanguageChange = (e: any) => {
+			if (e.detail?.language) {
+				fetchCart();
+			}
+		};
+
+		if (typeof window !== "undefined") {
+			window.addEventListener("languageChanged", handleLanguageChange as any);
+			return () => {
+				window.removeEventListener("languageChanged", handleLanguageChange as any);
+			};
+		}
+	}, [token, language]);
 
 	const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 	const subtotal = cart.reduce(

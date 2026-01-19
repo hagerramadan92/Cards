@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useLanguage } from "@/src/context/LanguageContext";
 import ProductCard from "@/components/ProductCard";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
@@ -36,6 +37,34 @@ interface CategoryData {
 	terms?: string;
 }
 
+/* -------------------- Sub-Category Card -------------------- */
+function CategoryCard({ category }: { category: CategoryChild }) {
+	return (
+		<motion.div
+			whileHover={{ y: -6 }}
+			transition={{ type: "spring", stiffness: 260, damping: 18 }}
+			className="group rounded-lg border border-slate-100 cursor-pointer 
+			bg-white mx-auto overflow-hidden shadow-sm 
+			hover:shadow-md w-full h-[120px] sm:h-[140px] md:h-[160px]"
+		>
+			<Link href={`/category/${category.id}`} className="flex flex-col items-center justify-center gap-1 md:gap-2">
+				<div className="relative bg-slate-50 mt-1.5 md:mt-3 w-[85%] h-[80px] md:h-[105px]">
+					<Image
+						src={category.image || "/images/noimg.png"}
+						alt={category.name}
+						fill
+						sizes="(max-width: 768px) 100vw, 25vw"
+						className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+					/>
+				</div>
+				<h3 className="text-xs md:text-sm line-clamp-1 drop-shadow text-center px-2 font-black text-slate-900">
+					{category.name}
+				</h3>
+			</Link>
+		</motion.div>
+	);
+}
+
 
 const fadeUp = {
 	hidden: { opacity: 0, y: 10 },
@@ -46,6 +75,7 @@ export default function CategoryPage() {
 	const API_URL = process.env.NEXT_PUBLIC_API_URL;
 	const { id } = useParams();
 	const categoryId = id as string;
+	const { language } = useLanguage();
 
 	const [loading, setLoading] = useState(true);
 	const [category, setCategory] = useState<CategoryData | null>(null);
@@ -125,7 +155,11 @@ export default function CategoryPage() {
 		async function fetchCategoryAndProducts() {
 			setLoading(true);
 			try {
-				const res = await fetch(`${API_URL}/categories/${categoryId}`);
+				const res = await fetch(`${API_URL}/categories/${categoryId}`, {
+					headers: {
+						'Accept-Language': language
+					}
+				});
 				const result = await res.json();
 
 				if (result.status && result.data) {
@@ -139,7 +173,11 @@ export default function CategoryPage() {
 
 						for (const child of cat.children) {
 							try {
-								const childRes = await fetch(`${API_URL}/categories/${child.id}`);
+								const childRes = await fetch(`${API_URL}/categories/${child.id}`, {
+									headers: {
+										'Accept-Language': language
+									}
+								});
 								const childData = await childRes.json();
 								if (childData.status && childData.data?.products) {
 									allProds.push(...childData.data.products);
@@ -170,7 +208,7 @@ export default function CategoryPage() {
 		}
 
 		fetchCategoryAndProducts();
-	}, [categoryId, API_URL]);
+	}, [categoryId, API_URL, language]);
 
 	// Filter by country
 	useEffect(() => {
@@ -244,10 +282,10 @@ export default function CategoryPage() {
 	const gridClass = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 md:gap-6";
 
 	const sortOptions: { label: string; value: "" | "rating" | "asc" | "desc" }[] = [
-		{ label: "الخيارات المميزة", value: "" },
-		{ label: "الأعلى تقييماً", value: "rating" },
-		{ label: "من الأقل إلى الأكثر", value: "asc" },
-		{ label: "من الأكثر إلى الأقل", value: "desc" },
+		{ label: t('featured'), value: "" },
+		{ label: t('highest_rated'), value: "rating" },
+		{ label: t('price_low_high'), value: "asc" },
+		{ label: t('price_high_low'), value: "desc" },
 	];
 
 
@@ -287,7 +325,7 @@ export default function CategoryPage() {
 			{/* Full Width Banner */}
 		<div className="relative w-full h-[200px] md:h-[300px] lg:h-[400px] mb-3">
 			<Image
-				src={category.category_banners?.[0]?.image || "/images/cover.webp"}
+				src={category.image || "/images/cover.webp"}
 				alt={category.name}
 				fill
 				className="object-cover"
@@ -300,11 +338,11 @@ export default function CategoryPage() {
 				<div className="container mx-auto px-2 pt-2">
 					<nav className="flex items-center gap-1 md:gap-2 text-xs md:text-sm text-white/90 flex-wrap">
 						<Link href="/" className="hover:text-white transition">
-							الرئيسية
+							{t('home')}
 						</Link>
 						<span className="text-white/60">›</span>
 						<Link href="/category" className="hover:text-white transition">
-							الأقسام
+							{t('categories')}
 						</Link>
 						<span className="text-white/60">›</span>
 						<span className="text-white font-semibold line-clamp-1">{category.name}</span>
@@ -321,14 +359,17 @@ export default function CategoryPage() {
 					{/* Header */}
 				<motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-4 md:mb-6">
 					<h1 className="text-xl md:text-2xl lg:text-3xl font-black text-slate-900 mb-1 md:mb-2">{category.name}</h1>
-					<p className="text-xs md:text-sm text-slate-500">
-						عرض <span className="font-extrabold text-slate-900">{filteredProducts.length}</span>{" "}
-						منتج
-					</p>
+					{allProducts.length > 0 && (
+						<p className="text-xs md:text-sm text-slate-500">
+							{t('display')} <span className="font-extrabold text-slate-900">{filteredProducts.length}</span>{" "}
+							{t('product_singular')}
+						</p>
+					)}
 				</motion.div>
 
 				{/* Filters and Sort */}
-				<motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-4 md:mb-6">
+				{allProducts.length > 0 && (
+					<motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-4 md:mb-6">
 					<div className="flex items-center gap-2 md:gap-2 flex-wrap  md:flex-nowrap">
 						{/* Country Filter */}
 						<FormControl size="small" sx={{ minWidth: { xs: 140, sm: 160, md: 180  },flexShrink: 0 }}>
@@ -338,14 +379,14 @@ export default function CategoryPage() {
 								displayEmpty
 								IconComponent={KeyboardArrowDownRoundedIcon}
 								renderValue={(selected) => {
-									if (!selected) return "جميع البلدان";
+									if (!selected) return t('all_countries');
 									const country = countries.find((c) => c.code === selected);
 									return country ? (
 										<div className="flex items-center gap-2">
 											<span className={`fi fi-${country.flag}`}></span>
 											<span>{country.name}</span>
 										</div>
-									) : "جميع البلدان";
+									) : t('all_countries');
 								}}
 								sx={{
 									direction: "rtl",
@@ -400,7 +441,7 @@ export default function CategoryPage() {
 								}}
 							>
 								<MenuItem value="">
-									<em>جميع البلدان</em>
+									<em>{t('all_countries')}</em>
 								</MenuItem>
 								{countries.map((country) => (
 									<MenuItem key={country.code} value={country.code}>
@@ -422,7 +463,7 @@ export default function CategoryPage() {
 									IconComponent={KeyboardArrowDownRoundedIcon}
 									renderValue={(selected) =>
 										sortOptions.find((o) => o.value === selected)?.label ||
-										"الترتيب الافتراضي"
+										t('default_sort')
 									}
 									sx={{
 										direction: "rtl",
@@ -488,6 +529,7 @@ export default function CategoryPage() {
 							</FormControl>
 					</div>
 				</motion.div>
+				)}
 				</div>
 
 				{/* Products and Description Row */}
@@ -503,7 +545,7 @@ export default function CategoryPage() {
 							>
 									<div className="flex items-center gap-2">
 										<Package className="w-5 h-5 text-pro-max shrink-0" />
-										<h3 className="text-sm font-extrabold text-slate-900">الوصف</h3>
+										<h3 className="text-sm font-extrabold text-slate-900">{t('description')}</h3>
 									</div>
 								<motion.span
 									animate={{ rotate: isDescriptionOpen ? 180 : 0 }}
@@ -526,7 +568,7 @@ export default function CategoryPage() {
 										{category.description ? (
 											<div className="prose prose-sm max-w-none text-slate-700 text-xs md:text-sm" dangerouslySetInnerHTML={{ __html: category.description }} />
 										) : (
-											<p className="text-xs md:text-sm text-slate-500">لا يوجد وصف متاح</p>
+											<p className="text-xs md:text-sm text-slate-500">{t('no_description_available')}</p>
 										)}
 									</div>
 									</motion.div>
@@ -543,7 +585,7 @@ export default function CategoryPage() {
 							>
 									<div className="flex items-center gap-2">
 										<BookOpen className="w-5 h-5 text-pro-max shrink-0" />
-										<h3 className="text-sm font-extrabold text-slate-900">التعليمات</h3>
+										<h3 className="text-sm font-extrabold text-slate-900">{t('instructions')}</h3>
 									</div>
 								<motion.span
 									animate={{ rotate: isInstructionsOpen ? 180 : 0 }}
@@ -566,7 +608,7 @@ export default function CategoryPage() {
 										{category.instructions ? (
 											<div className="prose prose-sm max-w-none text-slate-700 text-xs md:text-sm" dangerouslySetInnerHTML={{ __html: category.instructions }} />
 										) : (
-											<p className="text-xs md:text-sm text-slate-500">لا توجد تعليمات متاحة</p>
+											<p className="text-xs md:text-sm text-slate-500">{t('no_instructions_available')}</p>
 										)}
 									</div>
 									</motion.div>
@@ -583,7 +625,7 @@ export default function CategoryPage() {
 							>
 									<div className="flex items-center gap-2">
 										<FileText className="w-5 h-5 text-pro-max shrink-0" />
-										<h3 className="text-sm font-extrabold text-slate-900">الشروط والأحكام</h3>
+										<h3 className="text-sm font-extrabold text-slate-900">{t('terms_conditions')}</h3>
 									</div>
 								<motion.span
 									animate={{ rotate: isTermsOpen ? 180 : 0 }}
@@ -606,7 +648,7 @@ export default function CategoryPage() {
 										{category.terms ? (
 											<div className="prose prose-sm max-w-none text-slate-700 text-xs md:text-sm" dangerouslySetInnerHTML={{ __html: category.terms }} />
 										) : (
-											<p className="text-xs md:text-sm text-slate-500">لا توجد شروط وأحكام متاحة</p>
+											<p className="text-xs md:text-sm text-slate-500">{t('no_terms_available')}</p>
 										)}
 									</div>
 									</motion.div>
@@ -616,8 +658,8 @@ export default function CategoryPage() {
 					</div>
 					
 					<div className="lg:col-span-9 order-2 lg:order-2">
-						{/* Sub categories row */}
-						{subCategories.length > 0 && (
+						{/* Sub categories row (only if we have products) */}
+						{subCategories.length > 0 && allProducts.length > 0 && (
 							<motion.div
 								initial={{ opacity: 0, y: 8 }}
 								animate={{ opacity: 1, y: 0 }}
@@ -649,11 +691,27 @@ export default function CategoryPage() {
 							</motion.div>
 						)}
 
-						{/* Products */}
+						{/* Products or Sub-categories Grid */}
 						{paginatedProducts.length === 0 ? (
-							<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white border border-slate-200 rounded-xl md:rounded-2xl p-6 md:p-10 text-center">
-								<p className="text-slate-700 font-extrabold text-base md:text-lg">لا توجد منتجات</p>
-							</motion.div>
+							subCategories.length > 0 ? (
+								<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+									{subCategories.map((sub, idx) => (
+										<motion.div
+											key={sub.id}
+											variants={fadeUp}
+											initial="hidden"
+											animate="show"
+											custom={idx}
+										>
+											<CategoryCard category={sub} />
+										</motion.div>
+									))}
+								</div>
+							) : (
+								<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white border border-slate-200 rounded-xl md:rounded-2xl p-6 md:p-10 text-center w-full">
+									<p className="text-slate-700 font-extrabold text-base md:text-lg">{t('no_products')}</p>
+								</motion.div>
+							)
 						) : (
 							<motion.div
 								layout
@@ -716,7 +774,7 @@ export default function CategoryPage() {
                    px-2 py-1.5 text-xs font-extrabold text-slate-700
                    hover:bg-slate-50 disabled:opacity-40 transition
                    sm:gap-2 sm:rounded-xl sm:px-3 sm:py-2 sm:text-sm"
-										aria-label="السابق"
+										aria-label={t('previous')}
 									>
 										<ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
 									</button>
@@ -747,7 +805,7 @@ export default function CategoryPage() {
 															: "text-slate-700 hover:bg-slate-50",
 													].join(" ")}
 													aria-current={p === page ? "page" : undefined}
-													aria-label={`الصفحة ${p}`}
+													aria-label={`${t('page_singular')} ${p}`}
 												>
 													{p}
 												</motion.button>
@@ -765,7 +823,7 @@ export default function CategoryPage() {
                    px-2 py-1.5 text-xs font-extrabold text-slate-700
                    hover:bg-slate-50 disabled:opacity-40 transition
                    sm:gap-2 sm:rounded-xl sm:px-3 sm:py-2 sm:text-sm"
-										aria-label="التالي"
+										aria-label={t('next')}
 									>
 										<ChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
 									</button>

@@ -19,6 +19,7 @@ import LanguageSelector from "./LanguageSelector";
 import { FaBarsStaggered } from "react-icons/fa6";
 import CurrencySelector from "./Currency/CurrencySelector";
 import { useSession } from "next-auth/react";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 function cn(...c: (string | false | null | undefined)[]) {
 	return c.filter(Boolean).join(" ");
@@ -30,6 +31,7 @@ export default function SearchNavbar() {
 
 	const { fullName } = useAuth();
 	const { socialMedia, parentCategories, loadingCategories } = useAppContext();
+	const { t } = useLanguage();
 
 	// ✅ guard against undefined / wrong type
 	const socials = useMemo(
@@ -51,7 +53,7 @@ export default function SearchNavbar() {
 						{/* Menu button */}
 						<button
 							onClick={() => setMenuOpen(true)}
-							aria-label="فتح القائمة"
+							aria-label={t('menu')}
 							className={cn(
 								"md:hidden shrink-0 relative",
 								"rounded-xl ",
@@ -103,8 +105,8 @@ export default function SearchNavbar() {
 								className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg bg-gray-100 text-pro px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-extrabold shadow-sm hover:opacity-95 active:scale-[0.99] transition"
 							>
 								<FaRegUser className="" size={15} />
-								<span className="max-md:hidden">تسجيل دخول / انشاء حساب</span>
-								<span className="md:hidden">دخول</span>
+								<span className="max-md:hidden">{t('login')}</span>
+								<span className="md:hidden">{t('login_short')}</span>
 							</Link>
 						) : (
 							<DropdownUser />
@@ -167,8 +169,8 @@ export default function SearchNavbar() {
 										<Image src="/images/logo11.png" alt="logo" fill className="object-contain p-1.5" />
 									</div>
 									<div>
-										<h2 className="text-lg md:text-xl font-extrabold text-gray-900">القائمة</h2>
-										<p className="text-xs text-gray-500">تسوق بسهولة حسب الفئة</p>
+										<h2 className="text-lg md:text-xl font-extrabold text-gray-900">{t('menu')}</h2>
+										<p className="text-xs text-gray-500">{t('footer_text')}</p>
 									</div>
 								</div>
 
@@ -186,11 +188,11 @@ export default function SearchNavbar() {
 							 <div className="flex flex-col px-2">
 								{/* Language Selector for Mobile */}
 							<div className="md:hidden flex items-center justify-between">
-								<p>اللغة</p>
+								<p>{t('language')}</p>
 								<LanguageSelector />
 							</div>
 							<div className="md:hidden flex items-center justify-between">
-								<p>العمله</p>
+								<p>{t('currency')}</p>
 								<CurrencySelector/>
 							</div>
 							 </div>
@@ -199,7 +201,7 @@ export default function SearchNavbar() {
 							<div className="  p-2 space-y-5 !pl-4 ">
 								{/* Search inside drawer for mobile */}
 								<div className="md:hidden">
-									<p className="text-sm font-extrabold text-gray-800 mb-2">ابحث عن منتج</p>
+									<p className="text-sm font-extrabold text-gray-800 mb-2">{t('search')}</p>
 									<div className="flex items-center gap-2 " > 
 										<SearchGrowWrap inDrawer>
 											<SearchComponent setMenuOpen={setMenuOpen} />
@@ -262,7 +264,7 @@ export default function SearchNavbar() {
 								{/* Empty state */}
 								{!loadingCategories && (!parentCategories || parentCategories.length === 0) && (
 									<div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-gray-500">
-										لا توجد أقسام حالياً
+										{t('no_categories')}
 									</div>
 								)}
 

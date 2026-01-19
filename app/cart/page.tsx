@@ -20,6 +20,7 @@ import { Box, FormControl, InputLabel, Select, MenuItem, FormHelperText, Circula
 import { motion } from "framer-motion";
 import { Save, CheckCircle, Warning, Info, Refresh } from "@mui/icons-material";
 import { StickerFormSkeleton } from "../../components/skeletons/HomeSkeletons";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 interface StickerFormProps {
 	cartItemId?: number;
@@ -329,6 +330,7 @@ function missingRequiredFields(item: any) {
 }
 
 export default function CartPage() {
+	const { t } = useLanguage();
 	const router = useRouter();
 	const { cart, cartCount, removeFromCart, updateQuantity, loading, subtotal, total } = useCart();
 	const [code, setCode] = useState("");
@@ -460,9 +462,9 @@ ${errors.join("\n")}
 		return (
 			<div className="p-10 text-center flex flex-col items-center justify-center min-h-[60vh]" >
 				<Image src="/images/cart2.webp" alt="empty cart" width={300} height={250} />
-				<h2 className="text-2xl font-bold mb-6 text-gray-700">العربة فارغة</h2>
+				<h2 className="text-2xl font-bold mb-6 text-gray-700">{t('empty_cart')}</h2>
 				<Link href="/" className="bg-pro text-white py-3 px-8 rounded-2xl hover:bg-pro-max transition text-lg font-bold">
-					العودة للتسوق
+					{t('continue_shopping')}
 				</Link>
 			</div>
 		);
@@ -472,10 +474,10 @@ ${errors.join("\n")}
 		<div className="container pb-8 !pt-5">
 			<div className="flex items-center gap-2 text-sm mb-2">
 				<Link href="/" aria-label="go to home" className="text-pro-max font-bold">
-					الرئيسيه
+					{t('home')}
 				</Link>
 				<MdKeyboardArrowLeft />
-				<h6 className="text-gray-600 font-bold">عربة التسوق</h6>
+				<h6 className="text-gray-600 font-bold">{t('cart')}</h6>
 			</div>
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
@@ -516,21 +518,21 @@ ${errors.join("\n")}
 														<h3 className="font-extrabold text-[15px] text-slate-900">{item.product.name}</h3>
 
 														{hasTierQty && (
-															<p className="text-xs font-extrabold text-slate-600 mt-1">كمية المقاس: {n(item?.quantity)} قطعة</p>
+															<p className="text-xs font-extrabold text-slate-600 mt-1">{t('item_qty').replace('{qty}', String(n(item?.quantity)))}</p>
 														)}
 
 														<div className="mt-2 flex flex-wrap items-center gap-2">
 															<span className="text-sm font-extrabold text-slate-900">
-																{money(n(item._unit))} <span className="text-xs">جنية</span>
+																{money(n(item._unit))} <span className="text-xs">{t('currency')}</span>
 															</span>
 
 															{item._real?.discount && n(item._real?.original_unit_after_options) > n(item._unit) && (
 																<>
 																	<span className="text-xs font-extrabold text-slate-500 line-through">
-																		{money(n(item._real?.original_unit_after_options))} جنية
+																		{money(n(item._real?.original_unit_after_options))} {t('currency')}
 																	</span>
 																	<span className="text-[11px] font-extrabold px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-																		خصم
+																		{t('discount')}
 																	</span>
 																</>
 															)}
@@ -544,7 +546,7 @@ ${errors.join("\n")}
 													<button
 														onClick={() => {
 															if (item.quantity >= 10) {
-																toast.error("الحد الأقصى 10 قطع فقط لهذا المنتج", { icon: "معلومة", duration: 4000 });
+																toast.error(t('max_qty_reached').replace('{qty}', '10'), { icon: "معلومة", duration: 4000 });
 															} else {
 																updateQuantity(item.cart_item_id, item.quantity + 1);
 															}
@@ -570,14 +572,14 @@ ${errors.join("\n")}
 												<button
 													onClick={async () => {
 														const result = await Swal.fire({
-															title: "هل أنت متأكد؟",
-															text: "سيتم حذف هذا المنتج من السلة نهائيًا!",
+															title: t('are_you_sure'),
+															text: t('remove_confirm_text'),
 															icon: "warning",
 															showCancelButton: true,
 															confirmButtonColor: "#d33",
 															cancelButtonColor: "#3085d6",
-															confirmButtonText: "نعم، احذفه",
-															cancelButtonText: "لا، ألغِ الأمر",
+															confirmButtonText: t('yes_remove'),
+															cancelButtonText: t('cancel'),
 															reverseButtons: true,
 															customClass: {
 																popup: "animate__animated animate__fadeInDown",
@@ -627,7 +629,7 @@ ${errors.join("\n")}
 							}}
 						/>
 
-						<h4 className="text-md font-extrabold text-pro my-5">ملخص الطلب</h4>
+						<h4 className="text-md font-extrabold text-pro my-5">{t('cart_summary')}</h4>
 
 						<TotalOrder
 							items_count={cartCount}
@@ -654,7 +656,7 @@ ${errors.join("\n")}
 							}}
 							endIcon={<KeyboardBackspaceIcon className="mx-2" />}
 						>
-							تابع عملية الشراء
+							{t('checkout')}
 						</Button>
 					</div>
 				</div>
@@ -1459,6 +1461,7 @@ function TotalOrder({
 	couponDiscount?: number;
 	couponNewTotal?: number | null;
 }) {
+	const { t } = useLanguage();
 	const shippingFree = true;
 	const shippingFee = shippingFree ? 0 : 48;
 
@@ -1482,47 +1485,47 @@ function TotalOrder({
 	return (
 		<div className="my-4 gap-2 flex flex-col">
 			<div className="flex text-sm items-center justify-between text-black">
-				<p className="font-semibold">المجموع ({items?.length} عناصر)</p>
+				<p className="font-semibold">{t('summary_total').replace('{count}', String(items?.length)).replace('{items}', t('items'))}</p>
 				<p>
 					{formattedSubtotal}
-					<span className="text-sm ms-1">جنية</span>
+					<span className="text-sm ms-1">{t('currency')}</span>
 				</p>
 			</div>
 
 
 			{(n(couponDiscount) > 0 || (couponNewTotal !== null && couponNewTotal !== undefined)) && (
 				<div className="flex items-center justify-between text-sm">
-					<p className="text-emerald-800 font-semibold">خصم الكوبون</p>
+					<p className="text-emerald-800 font-semibold">{t('coupon_discount')}</p>
 					<p className="font-extrabold text-emerald-700">
 						- {formattedCoupon}
-							<span className="text-sm ms-1">جنية</span>
+							<span className="text-sm ms-1">{t('currency')}</span>
 					</p>
 				</div>
 			)}
 
 			<div className="flex items-center justify-between text-sm">
-				<p>ضريبة القيمة المضافة (15%)</p>
+				<p>{t('tax')}</p>
 				<p className="font-semibold">
 					{formattedTax}
-					<span className="text-sm ms-1">جنية</span>
+					<span className="text-sm ms-1">{t('currency')}</span>
 				</p>
 			</div>
 
 			<div className="flex items-center justify-between text-sm">
-				<p>الإجمالي بدون الضريبة</p>
+				<p>{t('total_without_tax')}</p>
 				<p className="font-semibold">
 					{formattedTotalWithoutTax}
-					<span className="text-sm ms-1">جنية</span>
+					<span className="text-sm ms-1">{t('currency')}</span>
 				</p>
 			</div>
 
 			<div className="flex items-center justify-between pb-3 pt-2">
 				<div className="flex gap-1 items-center">
-					<p className=" text-nowrap text-md text-pro font-semibold">الإجمالي :</p>
+					<p className=" text-nowrap text-md text-pro font-semibold">{t('total_colon')}</p>
 				</div>
 				<p className="text-[15px] text-pro font-bold">
 					{formattedGrandTotal}
-					<span> جنية</span>
+					<span> {t('currency')}</span>
 				</p>
 			</div>
 		</div>

@@ -1,8 +1,7 @@
-"use client";
-
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 type FaqItem = {
 	id: number;
@@ -11,26 +10,27 @@ type FaqItem = {
 };
 
 export default function WhyAndFaqs() {
+	const { t, language } = useLanguage();
 	const whyChooseUs = useMemo(
 		() => [
 			{
-				title: "جودة مضمونة",
-				desc: "منتجات مختارة بعناية ومعايير فحص قبل الشحن.",
+				title: t('guaranteed_quality'),
+				desc: t('guaranteed_quality_desc'),
 			},
 			{
-				title: "شحن سريع",
-				desc: "تجهيز سريع للطلبات وتوصيل موثوق.",
+				title: t('fast_shipping'),
+				desc: t('fast_shipping_desc'),
 			},
 			{
-				title: "دفع آمن",
-				desc: "بوابات دفع موثوقة مع حماية بياناتك.",
+				title: t('secure_payment'),
+				desc: t('secure_payment_desc'),
 			},
 			{
-				title: "دعم مميز",
-				desc: "فريق خدمة عملاء جاهز لمساعدتك دائمًا.",
+				title: t('distinguished_support'),
+				desc: t('distinguished_support_desc'),
 			},
 		],
-		[]
+		[t]
 	);
 
 	// ✅ FAQs from API
@@ -56,7 +56,10 @@ export default function WhyAndFaqs() {
 
 				const res = await fetch(`${base}/faqs`, {
 					method: "GET",
-					headers: { Accept: "application/json" },
+					headers: { 
+						Accept: "application/json",
+						"Accept-Language": language
+					},
 					cache: "no-store",
 				});
 
@@ -75,7 +78,7 @@ export default function WhyAndFaqs() {
 				if (!mounted) return;
 				setFaqs([]);
 				setOpenFaq(null);
-				setFaqsError(e?.message || "Failed to load FAQs");
+				setFaqsError(e?.message || t('error_loading'));
 			} finally {
 				if (!mounted) return;
 				setFaqsLoading(false);
@@ -87,50 +90,50 @@ export default function WhyAndFaqs() {
 		return () => {
 			mounted = false;
 		};
-	}, []);
+	}, [language, t]);
 
 	// ✅ Testimonials (static for now)
 	const testimonials = useMemo(
 		() => [
 			{
-				name: "سارة",
-				city: "الرياض",
+				name: t('testimonial_1_name'),
+				city: t('testimonial_1_city'),
 				rating: 5,
-				text: "المنتجات ممتازة والتوصيل كان سريع جدًا. تجربة شراء سهلة وسلسة.",
+				text: t('testimonial_1_text'),
 			},
 			{
-				name: "محمد",
-				city: "جدة",
+				name: t('testimonial_2_name'),
+				city: t('testimonial_2_city'),
 				rating: 5,
-				text: "جودة عالية وسعر مناسب. وخدمة العملاء ردّت بسرعة وساعدتني.",
+				text: t('testimonial_2_text'),
 			},
 			{
-				name: "نورة",
-				city: "الدمام",
+				name: t('testimonial_3_name'),
+				city: t('testimonial_3_city'),
 				rating: 4,
-				text: "التغليف مرتب والطلب وصل بدون أي مشاكل. أكيد هأعيد الطلب مرة ثانية.",
+				text: t('testimonial_3_text'),
 			},
 		],
-		[]
+		[t]
 	);
 
 	// ✅ Why Tala (highlights)
 	const whyTala = useMemo(
 		() => [
 			{
-				title: "اختيار ذكي",
-				desc: "منتجات مختارة بعناية تناسب احتياجك اليومي.",
+				title: t('smart_choice'),
+				desc: t('smart_choice_desc'),
 			},
 			{
-				title: "ثقة وشفافية",
-				desc: "معلومات واضحة وسياسات سهلة ومباشرة.",
+				title: t('trust_transparency'),
+				desc: t('trust_transparency_desc'),
 			},
 			{
-				title: "تجربة سلسة",
-				desc: "من التصفح للدفع للتوصيل… كل شيء مصمم لراحتك.",
+				title: t('seamless_experience'),
+				desc: t('seamless_experience_desc'),
 			},
 		],
-		[]
+		[t]
 	);
 
 	const Stars = ({ value }: { value: number }) => {
@@ -154,10 +157,10 @@ export default function WhyAndFaqs() {
 					<div className="flex items-end justify-between gap-6 flex-wrap">
 						<div>
 							<h2 className="text-xl md:text-3xl font-extrabold">
-								لماذا تالا؟
+								{t('why_tala')}
 							</h2>
 							<p className="mt-2 text-white/80 text-sm md:text-base max-w-2xl">
-								لأننا نهتم بالتفاصيل… ونخلي تجربة الشراء أسهل وأجمل.
+								{t('why_tala_desc')}
 							</p>
 						</div>
 
@@ -166,13 +169,13 @@ export default function WhyAndFaqs() {
 								href="/category"
 								className="inline-flex items-center justify-center rounded-2xl px-4 py-3 font-extrabold bg-white text-[#14213d] hover:bg-white/90 transition"
 							>
-								ابدأ التسوق
+								{t('start_shopping')}
 							</Link>
 							<Link
-								href="/contact"
+								href="/contactUs"
 								className="inline-flex items-center justify-center rounded-2xl px-4 py-3 font-extrabold border border-white/20 bg-white/10 hover:bg-white/15 transition"
 							>
-								تواصل معنا
+								{t('contact_us')}
 							</Link>
 						</div>
 					</div>
@@ -202,10 +205,10 @@ export default function WhyAndFaqs() {
 					<div className="flex items-end justify-between gap-6 flex-wrap">
 						<div>
 							<h2 className="text-xl md:text-3xl font-extrabold text-[#14213d]">
-								الأسئلة الشائعة
+								{t('faq')}
 							</h2>
 							<p className="mt-2 text-slate-600 text-sm md:text-base max-w-2xl">
-								إجابات سريعة لأكثر الأسئلة تكرارًا.
+								{t('faqs_subtitle')}
 							</p>
 						</div>
 					</div>
@@ -219,12 +222,12 @@ export default function WhyAndFaqs() {
 						</div>
 					) : faqsError ? (
 						<div className="mt-8 rounded-2xl border border-rose-200 bg-rose-50 p-5">
-							<p className="font-extrabold text-rose-700">تعذّر تحميل الأسئلة الشائعة</p>
+							<p className="font-extrabold text-rose-700">{t('failed_load_faqs')}</p>
 							<p className="mt-1 text-sm text-rose-700/80">{faqsError}</p>
 						</div>
 					) : faqs.length === 0 ? (
 						<div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-							<p className="font-bold text-slate-600">لا توجد أسئلة شائعة حالياً.</p>
+							<p className="font-bold text-slate-600">{t('no_faqs_available')}</p>
 						</div>
 					) : (
 						<div className="mt-8 flex flex-col gap-3">
@@ -280,10 +283,10 @@ export default function WhyAndFaqs() {
 					<div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-50" />
 					<div className="relative">
 						<h2 className="text-xl md:text-3xl font-extrabold text-[#14213d]">
-							آراء العملاء
+							{t('testimonials_title')}
 						</h2>
 						<p className="mt-2 text-slate-600 text-sm md:text-base max-w-2xl">
-							بعض من تقييمات عملائنا اللي نفخر بيها 💛
+							{t('testimonials_subtitle')}
 						</p>
 
 						<div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">

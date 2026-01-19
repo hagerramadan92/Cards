@@ -10,6 +10,7 @@ import { Cairo } from "next/font/google";
 import LayoutShell from "./LayoutShell";
 import '@/lib/fontawesome'
 import { AuthProvider } from "@/components/LoginEmail/AuthProvider";
+import { LanguageProvider } from "@/src/context/LanguageContext";
 
 
 const cairo = Cairo({
@@ -92,6 +93,7 @@ export default function RootLayout({
 		<html lang="ar" dir="rtl" className={cairo.className}>
 
 			<body className="bg-white">
+				<LanguageProvider>
 				<AuthProvider>
 				<AppProvider>
 					<ToastProvider>
@@ -106,6 +108,8 @@ export default function RootLayout({
 					</ToastProvider>
 				</AppProvider>
 				</AuthProvider>
+				</LanguageProvider>
+				
 			</body>
 		</html>
 	);

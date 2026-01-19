@@ -1,20 +1,28 @@
+// lib/api.ts
+
 export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-function getLanguageHeader(): string {
+// دالة محسنة للحصول على header اللغة مع إمكانية تمرير اللغة
+function getLanguageHeader(language?: string): string {
   if (typeof window !== "undefined") {
-    return localStorage.getItem("language") || "ar";
+    return language || localStorage.getItem("language") || "ar";
   }
-  return "ar";
+  return language || "ar";
 }
 
-export async function fetchApi(endpoint: string, options: RequestInit = {}) {
+// دالة fetchApi محسنة لدعم اللغة ديناميكياً
+export async function fetchApi(
+  endpoint: string, 
+  options: RequestInit = {}, 
+  language?: string
+) {
   try {
     const res = await fetch(`${API_URL}/${endpoint}`, {
       ...options,
       method: options.method || "GET",
       headers: {
         Accept: "application/json",
-        "Accept-Language": getLanguageHeader(),
+        "Accept-Language": getLanguageHeader(language),
         ...options.headers,
       },
       mode: "cors",
@@ -33,6 +41,68 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
     throw err;
   }
 }
+
+// دالة fetchHomeData محسنة لدعم اللغة
+export async function fetchHomeData(language?: string) {
+  try {
+    // تمرير اللغة إلى fetchApi
+    const data = await fetchApi("home", {}, language);
+    return data;
+  } catch (err) {
+    console.error("Error fetching home data:", err);
+    throw err;
+  }
+}
+
+// دالة لإنشاء API client مع إدارة اللغة
+export const createApiClient = () => {
+  let currentLanguage = "ar";
+  
+  if (typeof window !== "undefined") {
+    currentLanguage = localStorage.getItem("language") || "ar";
+    
+    // تحديث اللغة عند تغييرها
+    window.addEventListener("languageChanged", (e: any) => {
+      if (e.detail?.language) {
+        currentLanguage = e.detail.language;
+        console.log("API client language updated to:", currentLanguage);
+      }
+    });
+  }
+  
+  return {
+    setLanguage: (lang: string) => {
+      currentLanguage = lang;
+    },
+    
+    get: (endpoint: string, options?: RequestInit) => {
+      return fetchApi(endpoint, { ...options, method: "GET" }, currentLanguage);
+    },
+    
+    post: (endpoint: string, data: any, options?: RequestInit) => {
+      return fetchApi(endpoint, {
+        ...options,
+        method: "POST",
+        body: JSON.stringify(data),
+      }, currentLanguage);
+    },
+    
+    put: (endpoint: string, data: any, options?: RequestInit) => {
+      return fetchApi(endpoint, {
+        ...options,
+        method: "PUT",
+        body: JSON.stringify(data),
+      }, currentLanguage);
+    },
+    
+    delete: (endpoint: string, options?: RequestInit) => {
+      return fetchApi(endpoint, { ...options, method: "DELETE" }, currentLanguage);
+    },
+  };
+};
+
+
+// fetchApi2 - للإشارة إلى روابط كاملة (full URLs)
 export async function fetchApi2(endpoint: string, options: RequestInit = {}) {
   try {
     const res = await fetch(`${endpoint}`, {
@@ -60,12 +130,6 @@ export async function fetchApi2(endpoint: string, options: RequestInit = {}) {
   }
 }
 
-export async function fetchHomeData() {
-  try {
-    const data = await fetchApi("home");
-    return data;
-  } catch (err) {
-    console.error("Error fetching home data:", err);
-    throw err;
-  }
-}
+
+// إنشاء نسخة افتراضية
+export const apiClient = createApiClient();

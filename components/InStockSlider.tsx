@@ -7,6 +7,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import { ProductI } from "@/Types/ProductsI";
 import { ProductCardSkeleton } from "@/components/skeletons/HomeSkeletons";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 interface InStockSliderProps {
 	inStock: ProductI[];
@@ -28,6 +29,7 @@ export default function InStockSlider({
 }: InStockSliderProps) {
 	const prevRef = useRef<HTMLButtonElement>(null);
 	const nextRef = useRef<HTMLButtonElement>(null);
+	const { t } = useLanguage();
 
 	return (
 		<div className="relative w-full">
@@ -42,7 +44,7 @@ export default function InStockSlider({
 						<button
 							ref={nextRef}
 							className="w-9 h-9 rounded-full border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center transition"
-							aria-label="التالي"
+							aria-label={t('next')}
 						>
 							<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -51,7 +53,7 @@ export default function InStockSlider({
 						<button
 							ref={prevRef}
 							className="w-9 h-9 rounded-full border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center transition"
-							aria-label="السابق"
+							aria-label={t('previous')}
 						>
 							<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -66,7 +68,7 @@ export default function InStockSlider({
 					<button
 						ref={prevRef}
 						className="w-9 h-9 rounded-full border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center transition"
-						aria-label="السابق"
+						aria-label={t('previous')}
 					>
 						<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -75,7 +77,7 @@ export default function InStockSlider({
 					<button
 						ref={nextRef}
 						className="w-9 h-9 rounded-full border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center transition"
-						aria-label="التالي"
+						aria-label={t('next')}
 					>
 						<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

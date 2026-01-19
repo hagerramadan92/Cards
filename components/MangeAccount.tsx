@@ -12,8 +12,10 @@ import {
 	HiOutlineKey,
 } from "react-icons/hi2";
 import { FiChevronDown } from "react-icons/fi";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function MangeAccount() {
+	const { t } = useLanguage();
 	const [showChangePassword, setShowChangePassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [isFetching, setIsFetching] = useState(true);
@@ -34,7 +36,7 @@ export default function MangeAccount() {
 		EG: {
 			pattern: /^01[0-9]{9}$/,
 			example: "01012345678",
-			message: "رقم الهاتف غير صحيح (مثال: 01012345678)",
+			message: `${t('invalid_phone')} (e.g., 01012345678)`,
 			flag: "eg",
 			name: "مصر",
 			code: "+20",
@@ -42,7 +44,7 @@ export default function MangeAccount() {
 		SA: {
 			pattern: /^05[0-9]{8}$/,
 			example: "0512345678",
-			message: "رقم الهاتف غير صحيح (مثال: 0512345678)",
+			message: `${t('invalid_phone')} (e.g., 0512345678)`,
 			flag: "sa",
 			name: "السعودية",
 			code: "+966",
@@ -210,8 +212,8 @@ export default function MangeAccount() {
 			if (!data.status) {
 				Swal.fire({
 					icon: "error",
-					title: "خطأ",
-					text: data.message || "حدث خطأ أثناء تحميل البيانات",
+					title: t('error'),
+					text: data.message || t('error_loading'),
 				});
 				return;
 			}
@@ -225,8 +227,8 @@ export default function MangeAccount() {
 		} catch {
 			Swal.fire({
 				icon: "error",
-				title: "خطأ في الاتصال",
-				text: "تعذر الاتصال بالسيرفر",
+				title: t('connect_error'),
+				text: t('error_loading'),
 			});
 		} finally {
 			setIsFetching(false);
@@ -239,8 +241,8 @@ export default function MangeAccount() {
 		if (!token) {
 			Swal.fire({
 				icon: "warning",
-				title: "يجب تسجيل الدخول",
-				text: "فضلاً قم بتسجيل الدخول أولاً",
+				title: t('please_login'),
+				text: t('please_login'),
 			});
 			router.push("/login");
 			return;
@@ -257,8 +259,8 @@ export default function MangeAccount() {
 			if (!token) {
 				Swal.fire({
 					icon: "warning",
-					title: "يجب تسجيل الدخول",
-					text: "فضلاً قم بتسجيل الدخول أولاً",
+					title: t('please_login'),
+					text: t('please_login'),
 				});
 				router.push("/login");
 				return;
@@ -284,22 +286,22 @@ export default function MangeAccount() {
 			if (!data.status) {
 				Swal.fire({
 					icon: "error",
-					title: "خطأ",
-					text: data.message || "حدث خطأ أثناء حفظ البيانات",
+					title: t('error'),
+					text: data.message || t('error_loading'),
 				});
 				return;
 			}
 
 			Swal.fire({
 				icon: "success",
-				title: "تم الحفظ بنجاح",
-				text: "تم تحديث بياناتك بنجاح",
+				title: t('success_save'),
+				text: t('success_save'),
 			});
 		} catch (error) {
 			Swal.fire({
 				icon: "error",
-				title: "خطأ في الاتصال",
-				text: "تعذر الاتصال بالسيرفر",
+				title: t('connect_error'),
+				text: t('error_loading'),
 			});
 		} finally {
 			setIsLoading(false);
@@ -370,7 +372,7 @@ export default function MangeAccount() {
 			<section className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
 				<div className="p-5 md:p-6 border-b border-slate-200">
 					<h2 className="text-xl md:text-2xl font-semibold text-slate-900">
-						التفاصيل الخاصة بي
+						{t('my_details')}
 					</h2>
 				</div>
 
@@ -378,16 +380,16 @@ export default function MangeAccount() {
 					<form className="space-y-5">
 						{/* Full Name */}
 						<Field
-							label="الاسم الكامل"
-							placeholder="أدخل الاسم الكامل"
+							label={t('full_name')}
+							placeholder={t('enter_full_name')}
 							value={fullName}
 							onChange={setFullName}
 							type="text"
 						/>
 						{/* Nickname */}
 						<Field
-							label="الاسم المستعار"
-							placeholder="أدخل الاسم المستعار"
+							label={t('nickname')}
+							placeholder={t('enter_nickname')}
 							value={nickname}
 							onChange={setNickname}
 							type="text"
@@ -395,8 +397,8 @@ export default function MangeAccount() {
 
 						{/* Email */}
 						<Field
-							label="البريد الإلكتروني"
-							placeholder="أدخل البريد الإلكتروني"
+							label={t('email')}
+							placeholder={t('enter_email')}
 							value={email}
 							onChange={setEmail}
 							type="email"
@@ -404,7 +406,7 @@ export default function MangeAccount() {
 
 						{/* Phone Number */}
 						<div className="space-y-2">
-							<label className="block text-sm font-medium text-slate-700">رقم الهاتف</label>
+							<label className="block text-sm font-medium text-slate-700">{t('phone_number')}</label>
 							<div className="relative flex" dir="ltr">
 								{/* Country Dropdown - Left side */}
 								<div className="relative flex-shrink-0 w-20" ref={phoneCountryRef}>
@@ -424,7 +426,7 @@ export default function MangeAccount() {
 												</span>
 											</div>
 										) : (
-											<span className="text-xs">اختر</span>
+											<span className="text-xs">{t('select')}</span>
 										)}
 										<FiChevronDown className={`text-slate-400 text-xs transition-transform ${phoneCountryOpen ? "rotate-180" : ""}`} />
 									</button>
@@ -462,7 +464,7 @@ export default function MangeAccount() {
 										placeholder={
 											phoneCountry && phonePatterns[phoneCountry]
 												? ` ${phonePatterns[phoneCountry].example}`
-												: "أدخل رقم الهاتف"
+												: t('enter_phone_number')
 										}
 										inputMode="numeric"
 										className="w-full rounded-r-lg rounded-l-none border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
@@ -484,7 +486,7 @@ export default function MangeAccount() {
 							/>
 							<label htmlFor="emailMenu" className="flex-1 cursor-pointer">
 								<div className="text-sm  text-slate-600 mb-1">
-								الاشتراك بالقائمة البريديّة.
+								{t('email_subscription')}
 								</div>
 								
 							</label>
@@ -498,7 +500,7 @@ export default function MangeAccount() {
 								disabled={isLoading}
 								className="w-full md:w-auto md:min-w-[200px] rounded-lg bg-pro-max px-6 py-3 text-sm font-bold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
 							>
-								{isLoading ? "جاري الحفظ..." : "حفظ "}
+								{isLoading ? t('saving') : t('save')}
 							</button>
 						</div>
 					</form>

@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { FiSearch } from "react-icons/fi";
 import { HiOutlineSquares2X2, HiOutlineFolderOpen } from "react-icons/hi2";
 import { MdOutlineKeyboardArrowLeft } from "react-icons/md";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 interface Category {
 	id: number;
@@ -83,6 +84,8 @@ function CategoryCard({ category }: { category: Category }) {
 /* -------------------- Page -------------------- */
 export default function CategoriesPage() {
 	const [categories, setCategories] = useState<Category[]>([]);
+	const { language, getLanguageHeaders } = useLanguage();
+
 	const [loading, setLoading] = useState(true);
 
 	const [q, setQ] = useState("");
@@ -96,7 +99,11 @@ export default function CategoriesPage() {
 		const fetchCategories = async () => {
 			try {
 				setLoading(true);
-				const res = await fetch(`${baseUrl}/categories`, { cache: "no-store" });
+				 const res = await fetch(`${baseUrl}/categories`, {
+          method: "GET",
+          headers: getLanguageHeaders(),
+          cache: "no-store",
+        });
 				const json = await res.json();
 				if (json?.status) setCategories(json.data || []);
 			} catch (e) {

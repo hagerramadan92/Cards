@@ -12,6 +12,7 @@ import { FiCheckCircle } from "react-icons/fi";
 
 import OrderProgress from "@/components/OrderProgress";
 import { useCart } from "@/src/context/CartContext";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 type AnyObj = Record<string, any>;
 
@@ -88,7 +89,7 @@ function parseOptions(raw: any) {
 	return [];
 }
 
-function computeOrderItemPricing(orderItem: AnyObj) {
+function computeOrderItemPricing(orderItem: AnyObj, t: any) {
 	const product = orderItem?.product || {};
 	const qty = Math.max(1, n(orderItem?.quantity || 1));
 
@@ -100,7 +101,7 @@ function computeOrderItemPricing(orderItem: AnyObj) {
 	// size tiers (if any)
 	let sizeTierUnit: number | null = null;
 	const sizes = Array.isArray(product?.sizes) ? product.sizes : [];
-	const selectedSize = options.find((o: AnyObj) => String(o.option_name || "").includes("المقاس"))?.option_value;
+	const selectedSize = options.find((o: AnyObj) => String(o.option_name || "").includes(t('size')))?.option_value;
 
 	if (selectedSize && sizes.length) {
 		const sizeObj = sizes.find((s: AnyObj) => String(s.name).trim() === String(selectedSize).trim());
@@ -137,25 +138,25 @@ function computeOrderItemPricing(orderItem: AnyObj) {
 		if (match) extra += n(match.additional_price);
 
 		// color additional
-		if (name === "اللون") {
+		if (name === t('color')) {
 			const c = colors.find((x: AnyObj) => String(x.name).trim() === value);
 			if (c) extra += n(c.additional_price);
 		}
 
 		// material additional
-		if (name === "الخامة") {
+		if (name === t('material')) {
 			const m = materials.find((x: AnyObj) => String(x.name).trim() === value);
 			if (m) extra += n(m.additional_price);
 		}
 
 		// printing method price
-		if (name === "طريقة الطباعة") {
+		if (name === t('printing_method')) {
 			const pm = printingMethods.find((x: AnyObj) => String(x.name).trim() === value);
 			if (pm) extra += n(pm.pivot_price ?? pm.base_price);
 		}
 
 		// print location price
-		if (name === "مكان الطباعة") {
+		if (name === t('print_location')) {
 			const loc = printLocations.find((x: AnyObj) => String(x.name).trim() === value);
 			if (loc) extra += n(loc.pivot_price ?? loc.additional_price);
 		}
@@ -167,19 +168,19 @@ function computeOrderItemPricing(orderItem: AnyObj) {
 	return { unit, line, options, qty, base, extra };
 }
 
-function mapPaymentLabel(method: string) {
+function mapPaymentLabel(method: string, t: any) {
 	const map: Record<string, string> = {
-		cash_on_delivery: "الدفع عند الاستلام",
-		credit_card: "الدفع بالبطاقة",
+		cash_on_delivery: t('cash_on_delivery') || "الدفع عند الاستلام",
+		credit_card: t('credit_card') || "الدفع بالبطاقة",
 		applePay: "Apple Pay",
 		stcPay: "STC Pay",
 		tamara: "Tamara",
 		tabby: "Tabby",
 	};
-	return map[method] || method || "طريقة دفع";
+	return map[method] || method || t('payment_method');
 }
 
-function SummaryBlock({ summary }: { summary: CheckoutSummaryV1 | null }) {
+function SummaryBlock({ summary, t }: { summary: CheckoutSummaryV1 | null; t: any }) {
 	if (!summary) return null;
 
 	const shippingFree = n(summary.shipping_fee) <= 0;
@@ -188,57 +189,57 @@ function SummaryBlock({ summary }: { summary: CheckoutSummaryV1 | null }) {
 	return (
 		<div className="my-2 gap-2 flex flex-col">
 			<div className="flex text-sm items-center justify-between text-black">
-				<p className="font-semibold">المجموع ({n(summary.items_length)} عناصر)</p>
+				<p className="font-semibold">{t('summary_total').replace('{count}', String(n(summary.items_length))).replace('{items}', t('items'))}</p>
 				<p>
 					{money(n(summary.subtotal))}
-					<span className="text-sm ms-1">ريال</span>
+					<span className="text-sm ms-1">{t('currency')}</span>
 				</p>
 			</div>
 
 			<div className="flex items-center justify-between">
-				<p className="text-sm">إجمالي رسوم الشحن</p>
+				<p className="text-sm">{t('shipping_fee')}</p>
 				{shippingFree ? (
-					<p className="font-semibold text-green-600">مجانا</p>
+					<p className="font-semibold text-green-600">{t('free')}</p>
 				) : (
 					<p className="text-md">
-						{money(n(summary.shipping_fee))} <span className="text-sm ms-1">ريال</span>
+						{money(n(summary.shipping_fee))} <span className="text-sm ms-1">{t('currency')}</span>
 					</p>
 				)}
 			</div>
 
 			{hasCoupon && (
 				<div className="flex items-center justify-between text-sm">
-					<p className="text-emerald-800 font-semibold">خصم الكوبون</p>
+					<p className="text-emerald-800 font-semibold">{t('coupon_discount')}</p>
 					<p className="font-extrabold text-emerald-700">
 						- {money(n(summary.coupon_discount))}
-						<span className="text-sm ms-1">ريال</span>
+						<span className="text-sm ms-1">{t('currency')}</span>
 					</p>
 				</div>
 			)}
 
 			<div className="flex items-center justify-between text-sm">
-				<p>ضريبة القيمة المضافة ({Math.round(n(summary.tax_rate) * 100) || 15}%)</p>
+				<p>{t('vat_rate')} ({Math.round(n(summary.tax_rate) * 100) || 15}%)</p>
 				<p className="font-semibold">
 					{money(n(summary.tax_amount))}
-					<span className="text-sm ms-1">ريال</span>
+					<span className="text-sm ms-1">{t('currency')}</span>
 				</p>
 			</div>
 
 			<div className="flex items-center justify-between text-sm">
-				<p>الإجمالي بدون الضريبة</p>
+				<p>{t('total_excl_vat')}</p>
 				<p className="font-semibold">
 					{money(n(summary.total_without_tax))}
-					<span className="text-sm ms-1">ريال</span>
+					<span className="text-sm ms-1">{t('currency')}</span>
 				</p>
 			</div>
 
 			<div className="flex items-center justify-between pb-3 pt-2">
 				<div className="flex gap-1 items-center">
-					<p className=" text-nowrap text-md text-pro font-semibold">الإجمالي :</p>
+					<p className=" text-nowrap text-md text-pro font-semibold">{t('total_colon')}</p>
 				</div>
 				<p className="text-[15px] text-pro font-bold">
 					{money(n(summary.total_with_shipping))}
-					<span> ريال</span>
+					<span> {t('currency')}</span>
 				</p>
 			</div>
 		</div>
@@ -246,11 +247,12 @@ function SummaryBlock({ summary }: { summary: CheckoutSummaryV1 | null }) {
 }
 
 export default function OrderCompletePage() {
+	const { t } = useLanguage();
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const orderId = searchParams.get("orderId"); // ✅ from url
 
-	const steps = ["تم الطلب", "جاري التنفيذ", "جاري التوصيل", "تم التوصيل"];
+	const steps = [t('order_status_pending'), t('order_status_processing'), "جاري التوصيل", t('order_status_completed')];
 	const statusSteps: Record<string, number> = {
 		pending: 0,
 		processing: 1,
@@ -324,14 +326,14 @@ export default function OrderCompletePage() {
 		const items = Array.isArray(order?.items) ? order!.items : [];
 
 		const computedItems = items.map((it: AnyObj) => {
-			const pr = computeOrderItemPricing(it);
+			const pr = computeOrderItemPricing(it, t);
 			return { ...it, _unit: pr.unit, _line: pr.line, _opts: pr.options, _qty: pr.qty };
 		});
 
 		const subtotal = computedItems.reduce((acc: number, it: AnyObj) => acc + n(it._line), 0);
 
 		return { items: computedItems, subtotal, total: subtotal };
-	}, [order]);
+	}, [order, t]);
 
 	const copyOrderNumber = async () => {
 		const value = String(order?.order_number || "");
@@ -341,13 +343,13 @@ export default function OrderCompletePage() {
 			await navigator.clipboard.writeText(value);
 			Swal.fire({
 				icon: "success",
-				title: "تم النسخ",
-				text: "تم نسخ رقم الطلب بنجاح",
+				title: t('copied'),
+				text: t('order_number_copied'),
 				timer: 1400,
 				showConfirmButton: false,
 			});
 		} catch {
-			Swal.fire("تنبيه", "تعذر النسخ تلقائيًا، انسخ يدويًا.", "warning");
+			Swal.fire(t('error'), t('connect_error'), "warning");
 		}
 	};
 
@@ -363,11 +365,11 @@ export default function OrderCompletePage() {
 						className="text-pro-max font-extrabold flex items-center gap-1 hover:opacity-80"
 					>
 						<MdKeyboardArrowLeft size={18} />
-						رجوع
+						{t('back')}
 					</button>
 
 					<span className="text-slate-300">/</span>
-					<span className="text-slate-600 font-semibold">إتمام الطلب</span>
+					<span className="text-slate-600 font-semibold">{t('checkout')}</span>
 				</div>
 
 				{orderId && (
@@ -388,22 +390,22 @@ export default function OrderCompletePage() {
 						</>
 					) : !order ? (
 						<div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-							<p className="font-extrabold text-slate-900 text-lg">تعذر تحميل بيانات الطلب</p>
-							<p className="text-slate-600 mt-2">تأكد من وجود orderId في الرابط وأنك مسجل دخول.</p>
+							<p className="font-extrabold text-slate-900 text-lg">{t('failed_load_order')}</p>
+							<p className="text-slate-600 mt-2">{t('check_order_id')}</p>
 
 							<div className="mt-4 flex gap-2">
 								<button
 									onClick={() => router.refresh()}
 									className="rounded-2xl px-4 py-2 font-extrabold border border-slate-200 bg-slate-50 hover:bg-slate-100"
 								>
-									تحديث
+									{t('refresh')}
 								</button>
 
 								<Link
 									href="/myAccount/orders"
 									className="rounded-2xl px-4 py-2 font-extrabold bg-pro text-white hover:opacity-90"
 								>
-									طلباتي
+									{t('orders')}
 								</Link>
 							</div>
 						</div>
@@ -419,14 +421,14 @@ export default function OrderCompletePage() {
 
 										<div>
 											<div className="flex items-center gap-1 text-2xl font-extrabold text-slate-900">
-												<span>شكرًا</span>
+												<span>{t('thank_you')}</span>
 												<span className="text-emerald-600">{order.customer_name}</span>
 												<span>!</span>
 											</div>
-											<p className="text-slate-500 font-semibold mt-1">تم استلام طلبك بنجاح 🎉</p>
+											<p className="text-slate-500 font-semibold mt-1">{t('order_received')}</p>
 											{order?.created_at && (
 												<p className="text-xs text-slate-500 font-semibold mt-1">
-													تاريخ الإنشاء:{" "}
+													{t('created_at_label')}{" "}
 													<span className="font-extrabold text-slate-700">{order.created_at}</span>
 												</p>
 											)}
@@ -436,7 +438,7 @@ export default function OrderCompletePage() {
 									<div className="flex flex-col items-end gap-2">
 										<div className="flex items-center gap-2">
 											<span className="text-xs font-extrabold rounded-full px-3 py-1 border border-slate-200 bg-slate-50 text-slate-700">
-												رقم الطلب
+												{t('order_id')}
 											</span>
 
 											<span className="font-extrabold text-slate-900">{order.order_number}</span>
@@ -445,7 +447,7 @@ export default function OrderCompletePage() {
 												onClick={copyOrderNumber}
 												className="rounded-2xl border border-slate-200 bg-white px-3 py-2 hover:bg-slate-50"
 												aria-label="copy order number"
-												title="نسخ رقم الطلب"
+												title={t('copy_order_number')}
 											>
 												<TbCopy size={18} className="text-slate-700" />
 											</button>
@@ -458,7 +460,7 @@ export default function OrderCompletePage() {
 													: "bg-emerald-50 border-emerald-200 text-emerald-700"
 											}`}
 										>
-											{isCancelled ? "تم إلغاء الطلب" : order.status || "قيد المتابعة"}
+											{isCancelled ? t('order_status_rejected') : order.status || "قيد المتابعة"}
 										</span>
 									</div>
 								</div>
@@ -466,7 +468,7 @@ export default function OrderCompletePage() {
 								{/* Progress */}
 								<div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-5">
 									{isCancelled ? (
-										<p className="text-rose-700 font-extrabold">تم إلغاء هذا الطلب</p>
+										<p className="text-rose-700 font-extrabold">{t('order_status_rejected')}</p>
 									) : (
 										<OrderProgress steps={steps} currentStep={currentStep} />
 									)}
@@ -475,7 +477,7 @@ export default function OrderCompletePage() {
 
 							{/* Shipping Address */}
 							<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6">
-								<h5 className="font-extrabold text-xl text-slate-900 mb-3">عنوان الشحن</h5>
+								<h5 className="font-extrabold text-xl text-slate-900 mb-3">{t('shipping_address')}</h5>
 
 								{order?.full_address ? (
 									<div className="text-slate-700 font-semibold space-y-1">
@@ -495,14 +497,14 @@ export default function OrderCompletePage() {
 
 							{/* Payment */}
 							<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6">
-								<h5 className="font-extrabold text-xl text-slate-900 mb-3">طريقة الدفع</h5>
+								<h5 className="font-extrabold text-xl text-slate-900 mb-3">{t('payment_method')}</h5>
 								<div className="flex items-center justify-between gap-3">
 									<div className="flex items-center gap-3">
 										<div className="w-12 h-12 rounded-2xl border border-slate-200 bg-white flex items-center justify-center overflow-hidden">
 											<Image src="/images/cod.png" alt="payment method" width={44} height={28} />
 										</div>
 										<p className="text-lg text-slate-900 font-extrabold">
-											{mapPaymentLabel(order.payment_method_label)}
+											{mapPaymentLabel(order.payment_method_label, t)}
 										</p>
 									</div>
 
@@ -518,13 +520,13 @@ export default function OrderCompletePage() {
 							<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6">
 								<div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
 									<div className="text-slate-700 font-semibold">
-										<span>إذا كنت بحاجة إلى أي دعم</span>{" "}
+										<span>{t('need_support')}</span>{" "}
 										<span className="text-slate-300 mx-1">|</span>{" "}
 										<Link
 											href="/myAccount/help"
 											className="underline font-extrabold text-slate-900"
 										>
-											مركز المساعدة
+											{t('help_center')}
 										</Link>
 									</div>
 
@@ -532,7 +534,7 @@ export default function OrderCompletePage() {
 										href="/"
 										className="rounded-2xl bg-pro text-white px-5 py-2 font-extrabold hover:opacity-90"
 									>
-										إضافة طلب جديد
+										{t('add_new_order')}
 									</Link>
 								</div>
 							</div>
@@ -544,7 +546,7 @@ export default function OrderCompletePage() {
 				<div className="col-span-1 space-y-4 lg:sticky lg:top-[140px] h-fit">
 					{/* Items */}
 					<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6">
-						<h2 className="font-extrabold text-xl text-slate-900 mb-4">تفاصيل الطلب</h2>
+						<h2 className="font-extrabold text-xl text-slate-900 mb-4">{t('order_details')}</h2>
 
 						{loading ? (
 							<div className="space-y-3">
@@ -556,7 +558,7 @@ export default function OrderCompletePage() {
 								{computed.items.map((it: AnyObj, idx: number) => {
 									const p = it.product || {};
 									const img = p.image || "/images/not.jpg";
-									const name = it.product_name || p.name || "منتج";
+									const name = it.product_name || p.name || t('product_singular');
 									const qty = it._qty || 1;
 									const opts = Array.isArray(it._opts) ? it._opts : [];
 
@@ -569,10 +571,10 @@ export default function OrderCompletePage() {
 
 												<div className="flex-1">
 													<p className="font-extrabold text-slate-900">{name}</p>
-													<p className="text-sm text-slate-600 font-semibold mt-1">الكمية: {qty}</p>
+													<p className="text-sm text-slate-600 font-semibold mt-1">{t('quantity')}: {qty}</p>
 
 													<p className="mt-2 font-extrabold text-slate-900">
-														{money(n(it._line))} <span className="text-xs text-slate-600">ر.س</span>
+														{money(n(it._line))} <span className="text-xs text-slate-600">{t('currency')}</span>
 													</p>
 
 													{opts.length > 0 && (
@@ -586,7 +588,7 @@ export default function OrderCompletePage() {
 																</span>
 															))}
 															{opts.length > 6 && (
-																<span className="text-xs font-extrabold text-slate-500">+{opts.length - 6} المزيد</span>
+																<span className="text-xs font-extrabold text-slate-500">+{opts.length - 6} {t('more')}</span>
 															)}
 														</div>
 													)}
@@ -598,7 +600,7 @@ export default function OrderCompletePage() {
 
 								{!computed.items.length && (
 									<div className="rounded-3xl border border-slate-200 bg-white p-4 text-center">
-										<p className="text-slate-600 font-extrabold">لا توجد عناصر</p>
+										<p className="text-slate-600 font-extrabold">{t('no_items')}</p>
 									</div>
 								)}
 							</div>
@@ -607,16 +609,16 @@ export default function OrderCompletePage() {
 
 					{/* ✅ Summary FROM sessionStorage (checkout_summary_v1) */}
 					<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6">
-						<h2 className="font-extrabold text-xl text-slate-900 mb-4">ملخص الطلب</h2>
+						<h2 className="font-extrabold text-xl text-slate-900 mb-4">{t('order_summary')}</h2>
 
 						{loading ? (
 							<SkeletonCard />
 						) : checkoutSummary ? (
-							<SummaryBlock summary={checkoutSummary} />
+							<SummaryBlock summary={checkoutSummary} t={t} />
 						) : (
 							<div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
 								<p className="font-extrabold text-amber-800 text-sm">
-									ملخص الطلب غير موجود (checkout_summary_v1). ارجع للسلة ثم ادخل صفحة الدفع/الإتمام مرة أخرى.
+									{t('order_summary_not_found')}
 								</p>
 							</div>
 						)}

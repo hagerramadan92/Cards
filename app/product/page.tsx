@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import { FormControl, Select, MenuItem, Button } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 type Meta = {
 	current_page: number;
@@ -81,7 +82,7 @@ function getPages(current: number, total: number): PageToken[] {
 
 export default function AllProductsPage() {
 	const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
+	const { language, getLanguageHeaders } = useLanguage();
 	// ✅ server data
 	const [products, setProducts] = useState<ProductI[]>([]);
 	const [meta, setMeta] = useState<Meta>({
@@ -142,6 +143,8 @@ export default function AllProductsPage() {
 
 				const res = await fetch(`${API_URL}/products?${params.toString()}`, {
 					signal: controller.signal,
+					method: "GET",
+					headers: getLanguageHeaders(),
 					cache: "no-store",
 				});
 

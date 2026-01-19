@@ -15,8 +15,10 @@ import Logo from "../../components/Logo";
 import LoginWithEmail from "@/components/LoginEmail/LoginWithEmail";
 import LoginWithFaceBook from "@/components/login-facebook/LoginWithFaceBook";
 import LoginWithX from "@/components/login-facebook/LoginWithX";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function Page() {
+	const { t, language } = useLanguage();
 	const [email, setEmail] = useState("");
 	const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({});
 	const [password, setPassword] = useState("");
@@ -31,7 +33,7 @@ export default function Page() {
 
 	const validateInput = (input: string) => {
 		const trimmed = input.trim();
-		if (!trimmed) return "من فضلك أدخل البريد الإلكتروني أو رقم الهاتف";
+		if (!trimmed) return t('enter_email_or_phone');
 
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (emailRegex.test(trimmed)) return "";
@@ -39,18 +41,13 @@ export default function Page() {
 		const phoneRegex = /^(?:\+?20|0)?1[0-9]{9}$/;
 		if (phoneRegex.test(trimmed)) return "";
 
-		return "من فضلك أدخل بريد إلكتروني أو رقم هاتف صالح";
+		return t('enter_valid_email_or_phone');
 	};
 
 	const canSubmit = useMemo(() => {
 		return email.trim().length > 0 && password.trim().length > 0 && !pending;
 	}, [email, password, pending]);
-	function getLanguage(): string {
-		if (typeof window !== "undefined") {
-			return localStorage.getItem("language") || "ar";
-		}
-		return "ar";
-	}
+
 	const handleSubmit = async (e?: React.FormEvent) => {
 		e?.preventDefault();
 		if (pending) return;
@@ -60,13 +57,13 @@ export default function Page() {
 		const emailError = validateInput(email);
 		if (emailError) {
 			setErrors((p) => ({ ...p, email: emailError }));
-			Swal.fire({ icon: "error", title: "خطأ", text: emailError, confirmButtonText: "حسناً" });
+			Swal.fire({ icon: "error", title: t('error'), text: emailError, confirmButtonText: t('close') });
 			return;
 		}
 
 		if (!password.trim()) {
-			setErrors((p) => ({ ...p, password: "كلمة المرور مطلوبة" }));
-			Swal.fire({ icon: "error", title: "خطأ", text: "كلمة المرور مطلوبة", confirmButtonText: "حسناً" });
+			setErrors((p) => ({ ...p, password: t('password_required') }));
+			Swal.fire({ icon: "error", title: t('error'), text: t('password_required'), confirmButtonText: t('close') });
 			return;
 		}
 
@@ -75,9 +72,7 @@ export default function Page() {
 
 			const res = await fetch(`${API_URL}/auth/login`, {
 				method: "POST",
-				// credentials: "include", 
-				headers: { "Content-Type": "application/json", Accept: "application/json", "Accept-Language": getLanguage(),  },
-
+				headers: { "Content-Type": "application/json", Accept: "application/json", "Accept-Language": language },
 				body: JSON.stringify({ email, password }),
 			});
 
@@ -96,16 +91,16 @@ export default function Page() {
 					loginContext(token, userData.name, userData.email, userData.image, userData.fullName);
 				}
 
-				Swal.fire({ icon: "success", title: "تم تسجيل الدخول بنجاح", timer: 1400, showConfirmButton: false });
+				Swal.fire({ icon: "success", title: t('login_success'), timer: 1400, showConfirmButton: false });
 				router.push("/");
 			} else {
-				const msg = data.message || "حدث خطأ أثناء تسجيل الدخول";
+				const msg = data.message || t('login_error');
 				setErrors((p) => ({ ...p, form: msg }));
-				Swal.fire({ icon: "error", title: "خطأ", text: msg, confirmButtonText: "موافق" });
+				Swal.fire({ icon: "error", title: t('error'), text: msg, confirmButtonText: t('close') });
 			}
 		} catch {
-			setErrors((p) => ({ ...p, form: "فشل الاتصال بالخادم" }));
-			Swal.fire({ icon: "error", title: "خطأ", text: "فشل الاتصال بالخادم", confirmButtonText: "موافق" });
+			setErrors((p) => ({ ...p, form: t('server_error') }));
+			Swal.fire({ icon: "error", title: t('error'), text: t('server_error'), confirmButtonText: t('close') });
 		} finally {
 			setPending(false);
 		}
@@ -142,7 +137,7 @@ export default function Page() {
 					{/* Header */}
 					<div className="p-7 pb-5 bg-gradient-to-l from-slate-900 to-slate-800 text-white">
 						<h1 className="text-xl text-center md:text-2xl font-extrabold leading-snug">
-							تسجيل الدخول
+							{t('login')}
 						</h1>
 					</div>
 
@@ -158,7 +153,7 @@ export default function Page() {
 							{/* Email / Phone */}
 							<div>
 								<label className="block text-sm font-extrabold text-slate-800 mb-2">
-									البريد الإلكتروني أو رقم الهاتف
+									{t('email_or_phone')}
 								</label>
 
 								<div className="relative">
@@ -173,7 +168,7 @@ export default function Page() {
 											setEmail(e.target.value);
 											if (errors.email) setErrors((p) => ({ ...p, email: "" }));
 										}}
-										placeholder="example@email.com  "
+										placeholder={t('email_or_phone_placeholder')}
 										className={[
 											fieldBase,
 											"pr-11",
@@ -190,7 +185,7 @@ export default function Page() {
 							{/* Password */}
 							<div>
 								<label className="block text-sm font-extrabold text-slate-800 mb-2">
-									كلمة المرور
+									{t('password')}
 								</label>
 
 								<div className="relative">
@@ -205,7 +200,7 @@ export default function Page() {
 											setPassword(e.target.value);
 											if (errors.password) setErrors((p) => ({ ...p, password: "" }));
 										}}
-										placeholder="••••••••"
+										placeholder={t('password_placeholder')}
 										className={[
 											fieldBase,
 											"pr-11 pl-12",
@@ -217,7 +212,7 @@ export default function Page() {
 										type="button"
 										onClick={() => setShowPassword((p) => !p)}
 										className="absolute left-3 top-1/2 -translate-y-1/2 rounded-xl px-2 py-2 text-slate-600 hover:bg-slate-100 transition"
-										aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+										aria-label={showPassword ? t('hide_password') : t('show_password')}
 									>
 										{showPassword ? <BiSolidShow size={22} /> : <BiSolidHide size={22} />}
 									</button>
@@ -231,11 +226,11 @@ export default function Page() {
 							{/* Links row */}
 							<div className="flex items-center justify-between pt-1">
 								<Link href="/login/forgetPassword" className="text-sm font-extrabold text-pro hover:opacity-80 transition">
-									نسيت كلمة المرور؟
+									{t('forgot_password')}
 								</Link>
 
 								<Link href="/signup" className="text-sm font-extrabold text-slate-700 hover:text-slate-900 transition">
-									ليس لدي حساب
+									{t('no_account_yet')}
 								</Link>
 							</div>
 
@@ -244,7 +239,7 @@ export default function Page() {
 								<div className={`${pending ? "opacity-80 pointer-events-none" : ""}`}>
 									<ButtonComponent
 										type="submit"
-										title={pending ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
+										title={pending ? t('logging_in') : t('login_short')}
 										onClick={handleSubmit as any}
 									/>
 								</div>
@@ -255,7 +250,7 @@ export default function Page() {
 						{/* Divider */}
 						<div className="my-6 flex items-center gap-3">
 							<div className="h-px flex-1 bg-slate-200" />
-							<span className="text-xs font-extrabold text-slate-500">أو</span>
+							<span className="text-xs font-extrabold text-slate-500">{t('or')}</span>
 							<div className="h-px flex-1 bg-slate-200" />
 						</div>
 						<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -271,7 +266,7 @@ export default function Page() {
 
 				{/* Footer note */}
 				<p className="text-center text-xs text-slate-500 font-semibold mt-4">
-					بتسجيل الدخول أنت توافق على الشروط وسياسة الخصوصية.
+					{t('login_agreement_note')}
 				</p>
 			</motion.div>
 		</div>

@@ -5,6 +5,7 @@ import { AddressI } from "@/Types/AddressI";
 import { useState, useEffect } from "react";
 import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
 import Swal from "sweetalert2";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 function Sk({ className = "" }: { className?: string }) {
 	return (
@@ -45,6 +46,7 @@ function AddressListSkeleton({ count = 4 }: { count?: number }) {
 }
 
 export default function Page() {
+	const { t } = useLanguage();
 	const [selectedAddress, setSelectedAddress] = useState<number | null>(null);
 	const [open, setOpen] = useState(false);
 	const [editingAddress, setEditingAddress] = useState<AddressI | null>(null);
@@ -98,19 +100,19 @@ export default function Page() {
 
 	const handleDelete = async (id: number) => {
 		if (!token) {
-			Swal.fire("تنبيه", "يجب تسجيل الدخول", "warning");
+			Swal.fire(t('error'), t('please_login'), "warning");
 			return;
 		}
 
 		const result = await Swal.fire({
-			title: "هل أنت متأكد؟",
-			text: "لن تتمكن من التراجع عن الحذف!",
+			title: t('are_you_sure'),
+			text: t('delete_confirm_text'),
 			icon: "warning",
 			showCancelButton: true,
 			confirmButtonColor: "#d33",
 			cancelButtonColor: "#3085d6",
-			confirmButtonText: "نعم، احذف",
-			cancelButtonText: "إلغاء",
+			confirmButtonText: t('yes_delete'),
+			cancelButtonText: t('cancel'),
 		});
 
 		if (!result.isConfirmed) return;
@@ -125,14 +127,12 @@ export default function Page() {
 			});
 
 			const data = await res.json().catch(() => null);
-			if (!res.ok || !data?.status) throw new Error(data?.message || "حدث خطأ");
-
 			setAddresses((prev) => prev.filter((a) => a.id !== id));
 			if (selectedAddress === id) setSelectedAddress(null);
 
-			Swal.fire("تم الحذف!", "تم حذف العنوان بنجاح.", "success");
+			Swal.fire(t('deleted_success'), t('address_deleted'), "success");
 		} catch (err: any) {
-			Swal.fire("خطأ", err?.message || "حدث خطأ أثناء الحذف", "error");
+			Swal.fire(t('error'), err?.message || t('error_loading'), "error");
 		}
 	};
 
@@ -148,10 +148,10 @@ export default function Page() {
 				<div className="flex items-start md:items-center justify-between gap-3">
 					<div>
 						<h2 className="text-slate-900 font-extrabold text-xl md:text-2xl">
-							إدارة العناوين
+							{t('manage_addresses')}
 						</h2>
 						<p className="mt-1 text-sm text-slate-500">
-							أضف عنوانًا جديدًا أو عدّل عناوينك الحالية بسهولة.
+							{t('addresses_description')}
 						</p>
 					</div>
 
@@ -163,7 +163,7 @@ export default function Page() {
 						className="inline-flex items-center gap-2 rounded-xl bg-pro px-4 py-3 text-sm font-extrabold text-white hover:opacity-95 active:scale-[0.99] transition"
 					>
 						<FiPlus size={18} />
-						إضافة عنوان
+						{t('add_address')}
 					</button>
 				</div>
 			</div>
@@ -201,7 +201,7 @@ export default function Page() {
 											{item.city} - {item.area}
 										</h4>
 										<p className="text-xs md:text-sm font-semibold text-slate-500">
-											{item.label || "عنوان"}
+											{item.label || t('address_label')}
 										</p>
 									</div>
 
@@ -238,7 +238,7 @@ export default function Page() {
 									{active && (
 										<div className="pt-3">
 											<span className="inline-flex rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 px-3 py-1 text-xs font-extrabold">
-												العنوان المحدد
+												{t('selected_address')}
 											</span>
 										</div>
 									)}
@@ -249,9 +249,9 @@ export default function Page() {
 				</div>
 			) : (
 				<div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-6 text-center">
-					<p className="text-slate-700 font-extrabold">لا يوجد عناوين لعرضها</p>
+					<p className="text-slate-700 font-extrabold">{t('no_addresses')}</p>
 					<p className="mt-2 text-sm text-slate-500">
-						اضغط على "إضافة عنوان" لإضافة عنوانك الأول.
+						{t('add_first_address')}
 					</p>
 				</div>
 			)}

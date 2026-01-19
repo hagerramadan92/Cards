@@ -6,10 +6,12 @@ import NoOrders from "./NoOrders";
 import { useAuth } from "@/src/context/AuthContext";
 import FavoriteSkeleton from "@/components/skeletons/favorite";
 import Image from "next/image";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 type ViewType = "cards" | "carts";
 
 export default function Favorite() {
+	const { t } = useLanguage();
 	const { favoriteProducts, setFavoriteProducts, favoriteProductsLoading } = useAuth();
 	const [viewType, setViewType] = useState<ViewType>("cards");
 
@@ -25,16 +27,16 @@ export default function Favorite() {
 				<div className="flex items-center justify-between gap-3 mb-4">
 					<div>
 						<h2 className="text-xl md:text-2xl font-semibold text-slate-900">
-							منتجاتي المفضلة
+							{t('my_favorites')}
 						</h2>
 						<p className="mt-1 text-sm text-slate-500">
-							كل المنتجات التي قمت بحفظها للعودة إليها لاحقًا.
+							{t('favorites_description')}
 						</p>
 					</div>
 
 					{favoriteProducts.length > 0 && (
 						<span className="rounded-xl text-nowrap bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200">
-							{favoriteProducts.length} منتج
+							{favoriteProducts.length} {t('product_singular')}
 						</span>
 					)}
 				</div>
@@ -49,7 +51,7 @@ export default function Favorite() {
 								: "bg-slate-100 text-slate-700 hover:bg-slate-200"
 						}`}
 					>
-						بطاقات
+						{t('cards_view')}
 					</button>
 					<button
 						onClick={() => setViewType("carts")}
@@ -59,14 +61,14 @@ export default function Favorite() {
 								: "bg-slate-100 text-slate-700 hover:bg-slate-200"
 						}`}
 					>
-						عربات
+						{t('list_view')}
 					</button>
 				</div>
 			</div>
 
 			{/* Empty State */}
 			{favoriteProducts.length === 0 ? (
-				<NoOrders title="لا يوجد منتجات مفضلة." />
+				<NoOrders title={t('no_favorites')} />
 			) : (
 				<>
 					{/* Cards View */}
@@ -123,7 +125,7 @@ export default function Favorite() {
 													onClick={() => removeFavoriteLocally(product.id)}
 													className="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors text-sm font-semibold"
 												>
-													إزالة
+													{t('remove')}
 												</button>
 											</div>
 										</div>
