@@ -21,8 +21,8 @@ function cn(...c: (string | false | undefined | null)[]) {
 export default function CategoriesSlider({
 	categories,
 	inSlide,
-	title = "الأقسام",
-	subtitle = "اختر القسم اللي يناسبك",
+	title,
+	subtitle,
 }: CategoriesSliderProps) {
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
 	const [canScrollStart, setCanScrollStart] = useState(false);
@@ -202,7 +202,7 @@ export default function CategoriesSlider({
 						>
 							<div
 								className={cn(
-									"group flex flex-col items-center justify-between gap-2 p-3 md:p-4",
+									"group flex flex-col items-center justify-between gap-2 p-2",
 									"rounded-lg md:rounded-xl overflow-hidden",
 									"shadow-md hover:shadow-lg",
 									"transition-all duration-300",
@@ -212,7 +212,7 @@ export default function CategoriesSlider({
 								{/* Category Image */}
 								<div
 									className={cn(
-										"relative w-full border-box flex-1",
+										"relative border-box flex-1 w-[140px] h-[48px]",
 										"rounded-md overflow-hidden"
 									)}
 								>
@@ -220,15 +220,14 @@ export default function CategoriesSlider({
 										src={cat.image || "/images/cat1.png"}
 										alt={cat.name}
 										fill
-										sizes="(max-width: 768px) 80px, 112px"
-										className="object-cover transition duration-300 group-hover:scale-[1.06] w-[142px] h-[50px]"
+										className="object-contain transition duration-300 group-hover:scale-[1.06]  w-[140px] h-[48px]"
 									/>
 									{/* overlay gradient */}
 									<div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition" />
 								</div>
 
 								{/* Category Name */}
-								<p className="text-[11px] md:text-[13px] font-extrabold text-slate-700 text-center leading-tight line-clamp-2 group-hover:text-pro transition px-1 flex-shrink-0">
+								<p className="text-[11px] md:text-[13px] font-extrabold pb-1 sm:pb-2 text-slate-700 text-center leading-tight line-clamp-2 group-hover:text-pro transition px-1 flex-shrink-0">
 								{cat.name.length > 15 ? `${cat.name.substring(0, 15)}...` : cat.name}
 								</p>
 							</div>

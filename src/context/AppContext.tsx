@@ -24,6 +24,7 @@ interface HomeData {
 	sub_categories: SubCategoriesI[];
 	sliders: BannerI[];
 	sub_categories_pagination : any
+	appear_in_home_categories: any
 }
 
 interface AppContextType {
@@ -31,6 +32,7 @@ interface AppContextType {
 	parentCategories: CategoryI[];
 	childCategories: CategoryI[];
 	socialMedia: SocialMediaI[];
+	appear_in_home_categories: any
 	paymentMethods: any
 	loading: boolean;
 	error: string | null;
@@ -43,6 +45,7 @@ const AppContext = createContext<AppContextType>({
 	parentCategories: [],
 	childCategories: [],
 	socialMedia: [],
+	appear_in_home_categories: [],
 	paymentMethods: [],
 	loading: true,
 	error: null,
@@ -57,7 +60,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 	const [loadingCategories, setLoadingCategories] = useState<any>([]);
 	const [childCategories, setChildCategories] = useState<CategoryI[]>([]);
 	const [socialMedia, setSocialMedia] = useState<SocialMediaI[]>([]);
-	const [paymentMethods, setPaymentMethods] = useState<any>([]);
+	const [appear_in_home_categories, setAppear_in_home_categories] = useState<any>([]);
+		const [paymentMethods, setPaymentMethods] = useState<any>([]);
 
 
 	const [loading, setLoading] = useState(true);
@@ -121,7 +125,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 				loading,
 				error,
 				loadingHome,
-				loadingCategories
+				loadingCategories,
+				appear_in_home_categories
 			}}
 		>
 			{children}

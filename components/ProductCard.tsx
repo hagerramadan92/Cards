@@ -281,50 +281,17 @@ export default function ProductCard({
 			<motion.div
 				whileHover={{ y: -3 }}
 				transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-				className="relative flex flex-col rounded-lg md:rounded-3xl border border-slate-200 bg-white overflow-hidden
-                    shadow-sm hover:border-gray-200 transition"
+				className="relative flex flex-col rounded-lg md:rounded-xl border border-slate-200 bg-white overflow-hidden
+                    shadow-sm hover:border-gray-200 transition w-[188px]"
 			>
 				{/* Image */}
-				<div className={`relative w-full h-[150px] md:h-[240px] bg-gray-50`}>
+				<div className={`relative w-[188px] h-[105px] md:h-[105px] bg-gray-50`}>
 					{/* Flag - Top Left */}
-					<div className="absolute start-2 md:start-3 top-2 md:top-3 z-30">
-						<div className=" w-7 h-7 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-md border border-slate-200/50 hover:bg-white transition-colors">
+					<div className="absolute start-2 top-2 z-30">
+						{/* <div className=" w-5 h-5 rounded-full  backdrop-blur-sm flex items-center justify-center ">
 							<Image src="/images/flag.svg" alt="flag" width={20} height={20} className="w-full h-full" />
-						</div>
-					</div>
-
-					{/* VIP Diamond Icon */}
-					<div className="absolute start-2 px-1 bg-white md:start-3 bottom-2 md:bottom-3 z-20 flex items-center rounded-full gap-0 shadow-lg">
-						{/* <PiDiamondFill className="w-4 h-4 md:w-5 md:h-5 text-pro" /> */}
-						<Image
-							src="/images/diamond.svg"
-							alt="diamond"
-							width={20}
-							height={20}
-							className="w-4 h-4 md:w-5 md:h-5 "
-						/>
-						<span className="text-[10px] md:text-xs font-bold px-1.5 py-0.5 text-pro-max ">
-							{id}
-						</span>
-					</div>
-					<Link href={`/product/${id}`} className="block h-full">
-						<div className="relative h-full overflow-hidden">
-							<ImageComponent image={image || '/images/c1.png'} />
-							<div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition" />
-						</div>
-					</Link>
-
-					{/* Top actions - Right side (Favorite and Add to Cart) */}
-					<div className="absolute top-1 md:top-3 end-1 md:end-3 z-30 flex flex-col items-center gap-2">
-						{/* Favorite */}
-						<HearComponent
-							onToggleLike={() => toggleFavorite(id)}
-							liked={computedIsFavorite}
-							ClassName="text-pro "
-							ClassNameP="!w-9 !h-9"
-						/>
-						{/* Add to Cart */}
-						{inStock && (
+						</div> */}
+							{inStock && (
 							<motion.button
 								aria-label="add to cart"
 								onClick={(e) => {
@@ -337,7 +304,7 @@ export default function ProductCard({
 								whileTap={!isAdding ? { scale: 0.92 } : undefined}
 								className="z-20"
 							>
-								<div className="w-9 h-9 rounded-full flex items-center justify-center shadow-lg ring-1 ring-black/5 bg-pro text-white">
+								<div className="w-8 h-8 rounded-full flex items-center justify-center shadow-lg ring-1 ring-black/5 bg-white text-pro">
 									{isAdding ? (
 										<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
 									) : (
@@ -346,6 +313,67 @@ export default function ProductCard({
 								</div>
 							</motion.button>
 						)}
+					</div>
+
+					{/* VIP Diamond Icon */}
+					<div className="absolute start-2 px-0.5 bg-white  bottom-[-17px] z-20 flex items-center rounded-full gap-0 shadow-lg">
+						{/* <PiDiamondFill className="w-4 h-4 md:w-5 md:h-5 text-pro" /> */}
+						<Image
+							src="/images/diamond.svg"
+							alt="diamond"
+							width={20}
+							height={20}
+							className="w-4 h-4 md:w-5 md:h-5 "
+						/>
+						<span className="text-sm font-bold pe-2 py-0.5 text-pro-max ">
+							{id}
+						</span>
+					</div>
+					<Link href={`/product/${id}`} className="block h-full">
+						<div className="relative h-full overflow-hidden">
+							<ImageComponent image={image || '/images/c1.png'} />
+							<div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition" />
+						</div>
+					</Link>
+
+					{/* Top actions - Right side (Favorite and Add to Cart) */}
+					<div className="absolute top-2 end-2 z-30 flex flex-col items-center gap-2">
+						<div className=" w-5 h-5 rounded-full  backdrop-blur-sm flex items-center justify-center ">
+							<Image src="/images/flag.svg" alt="flag" width={20} height={20} className="w-full h-full" />
+						</div>
+					
+						</div>
+						<div className="absolute bottom-[-17px] end-2 z-30 flex flex-col items-center gap-2">
+						{/* Add to Cart */}
+						{/* {inStock && (
+							<motion.button
+								aria-label="add to cart"
+								onClick={(e) => {
+									e.preventDefault();
+									e.stopPropagation();
+									handleAddToCart();
+								}}
+								disabled={isAdding}
+								whileHover={!isAdding ? { scale: 1.06 } : undefined}
+								whileTap={!isAdding ? { scale: 0.92 } : undefined}
+								className="z-20"
+							>
+								<div className="w-8 h-8 rounded-full flex items-center justify-center shadow-lg ring-1 ring-black/5 bg-pro text-white">
+									{isAdding ? (
+										<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+									) : (
+										<IoMdCart className="w-5 h-5" />
+									)}
+								</div>
+							</motion.button>
+						)} */}
+							{/* Favorite */}
+						<HearComponent
+							onToggleLike={() => toggleFavorite(id)}
+							liked={computedIsFavorite}
+							ClassName="text-pro "
+							ClassNameP="!w-8 !h-8"
+						/>
 					</div>
 
 					{/* Discount - Bottom Right */}
@@ -372,7 +400,7 @@ export default function ProductCard({
 				</div>
 
 				{/* Content */}
-				<div className="p-4 space-y-3">
+				<div className="p-2 space-y-3 mt-4">
 					<Link href={`/product/${id}`}>
 						<h3 className="text-sm md:text-[16px] font-extrabold text-gray-900 line-clamp-1 hover:text-pro transition">
 							{name}

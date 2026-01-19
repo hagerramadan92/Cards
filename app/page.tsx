@@ -21,7 +21,7 @@ import WhyAndFaqs from "../components/WhyAndFaqs";
 import FastBuy from "@/components/HomeSection/FastBuy";
 
 export default function Home() {
-	const { homeData, loadingCategories, parentCategories, loadingHome } =
+	const { homeData, loadingCategories, parentCategories, loadingHome, appear_in_home_categories } =
 		useAppContext();
 
 	// ✅ local copy so we can append pages
@@ -34,11 +34,12 @@ export default function Home() {
 
 	// ✅ load-more UI state
 	const [loadingMore, setLoadingMore] = useState(false);
-
+	const [appear_in_home_categories2, setAppear_in_home_categories2] = useState<any[]>([]);
 	// ✅ keep local state synced when context homeData updates (first load / refresh)
 	useEffect(() => {
 		setCategories2(homeData?.sub_categories || []);
 		setPaginationState(homeData?.sub_categories_pagination || null);
+		setAppear_in_home_categories2(homeData?.appear_in_home_categories || []);
 	}, [homeData?.sub_categories, homeData?.sub_categories_pagination]);
 
 	const loadMore = useCallback(async () => {
@@ -100,6 +101,7 @@ export default function Home() {
 		return () => {
 			mounted = false;
 		};
+	 
 	}, []);
 
 	const sliderSrc = useMemo(
@@ -124,7 +126,7 @@ export default function Home() {
 					
 				</div>
 					 <div className="md:flex hidden">
-						<FastBuy/>
+						<FastBuy categories={parentCategories}/>
 					 </div>
 						
 
@@ -132,23 +134,26 @@ export default function Home() {
 					{loadingCategories ? (
 						<CategoriesSliderSkeleton />
 					) : (
-						<CategoriesSlider categories={parentCategories} />
+						<CategoriesSlider categories={parentCategories} title="الفئات الاكثر شعبية"/>
 					)}
 				</div>
-				<div className="container max-md:overflow-hidden w-full  ">
+				{/* <div className="container max-md:overflow-hidden w-full  ">
 					{loadingCategories ? (
 						<CategoriesSliderSkeleton />
 					) : (
 						<CategoriesSlider categories={parentCategories} />
 					)}
-				</div>
-				<div className="container max-md:overflow-hidden w-full  ">
+				</div> */}
+				{appear_in_home_categories2.map((categoriess , index)=>(
+					<div className="container max-md:overflow-hidden w-full  " key={index}>
 					{loadingCategories ? (
 						<CategoriesSliderSkeleton />
 					) : (
-						<CategoriesSlider categories={parentCategories} />
+						<CategoriesSlider categories={categoriess.children} title={categoriess.name}/>
 					)}
 				</div>
+				))}
+				
 
 				{/* ✅ SECTIONS */}
 				<div className="container flex flex-col gap-10 mt-20">

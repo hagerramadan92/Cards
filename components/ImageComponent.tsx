@@ -6,7 +6,7 @@ interface ImgProp {
 export default function ImageComponent({ image }: ImgProp) {
 	return (
 		<>
-
+ 
 			<div className="relative w-full h-full ">
 				<Image
 					src={image}

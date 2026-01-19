@@ -104,7 +104,7 @@ export default function InStockSlider({
 					640: { slidesPerView: 2, slidesPerGroup: 2 },
 					768: { slidesPerView: 3, slidesPerGroup: 3 },
 					1024: { slidesPerView: 4, slidesPerGroup: 4 },
-					1280: { slidesPerView: 5, slidesPerGroup: 5 },
+					1280: { slidesPerView: 6, slidesPerGroup: 6 },
 				}}
 			>
 				{isLoading
@@ -114,7 +114,7 @@ export default function InStockSlider({
 						</SwiperSlide>
 					))
 					: inStock.map((product) => (
-						<SwiperSlide key={product.id}>
+						<SwiperSlide key={product.id} style={{width: "188px !important"}}>
 							{typeof CardComponent === "function" ? (
 								// if passed as render function
 								// @ts-ignore

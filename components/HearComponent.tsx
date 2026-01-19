@@ -35,7 +35,7 @@ export default function HearComponent({
 			whileTap={{ scale: 0.92 }}
 			className={[
 				"relative grid place-items-center",
-				"w-8 h-8 md:w-11 md:h-11 rounded-full",
+				"w-5 h-5  p-0 rounded-full",
 				"bg-white/90 backdrop-blur border border-slate-200",
 				"shadow-sm ring-1 ring-black/5",
 				"transition-colors",
@@ -57,7 +57,7 @@ export default function HearComponent({
 							return (
 								<motion.i
 									key={i}
-									className="absolute left-1/2 top-1/2 h-1.5 w-1.5 rounded-full bg-pro"
+									className="absolute left-1/2 top-1/2 h-1.5 w-1.5 rounded-xl bg-pro"
 									style={{ transform: "translate(-50%, -50%)" }}
 									initial={{ scale: 0, opacity: 0 }}
 									animate={{
