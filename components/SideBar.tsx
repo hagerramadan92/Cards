@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/src/context/AuthContext";
+import { useLanguage } from "@/src/context/LanguageContext";
 import {
 	User,
 	ShoppingBag,
@@ -33,6 +34,7 @@ export default function SideBar({ active }: SideBarProps) {
 	const pathname = usePathname();
 	const router = useRouter();
 	const { userImage, logout, fullName, authToken } = useAuth();
+	const { language } = useLanguage();
 	const [uploading, setUploading] = useState(false);
 
 	const handleImageChange = () => {
@@ -76,6 +78,8 @@ export default function SideBar({ active }: SideBarProps) {
 					method: 'POST',
 					headers: {
 						Authorization: `Bearer ${authToken}`,
+						"Accept-Language": language,
+						Accept: "application/json",
 					},
 					body: formData,
 				});

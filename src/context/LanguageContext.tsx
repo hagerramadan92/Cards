@@ -23,7 +23,7 @@ interface LanguageContextType {
   detectBrowserLanguage: () => string | null;
   getLanguageHeaders: () => HeadersInit;
   updateAllRequestsLanguage: (langCode: string) => void;
-  t: (key: TranslationKey) => string;
+  t: (key: TranslationKey, variables?: Record<string, any>) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -319,9 +319,15 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       detectBrowserLanguage,
       getLanguageHeaders,
       updateAllRequestsLanguage,
-      t: (key: TranslationKey) => {
+      t: (key: TranslationKey, variables?: Record<string, any>) => {
         const langData = translations[language as keyof typeof translations] || translations.ar;
-        return langData[key as keyof typeof langData] || key;
+        let text = langData[key as keyof typeof langData] || key;
+        if (variables) {
+          Object.entries(variables).forEach(([k, v]) => {
+            text = text.replace(`{${k}}`, String(v));
+          });
+        }
+        return text;
       }
     }}>
       {children}

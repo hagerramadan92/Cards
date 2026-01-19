@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useLanguage } from "@/src/context/LanguageContext";
 import Image from "next/image";
 import Loading from "@/app/loading";
 import OrderProgress from "./OrderProgress";
@@ -251,6 +252,7 @@ function OrderDetailsSkeleton() {
 export default function OrderDetailsPage({ orderId }: Props) {
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { language } = useLanguage();
   const [apiToken, setApiToken] = useState<string | null>(null);
 
   const [currentStep, setCurrentStep] = useState(0);
@@ -282,6 +284,8 @@ export default function OrderDetailsPage({ orderId }: Props) {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${apiToken}`,
+            "Accept-Language": language,
+            Accept: "application/json"
           },
           cache: "no-store",
         });

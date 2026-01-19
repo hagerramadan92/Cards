@@ -46,7 +46,7 @@ function AddressListSkeleton({ count = 4 }: { count?: number }) {
 }
 
 export default function Page() {
-	const { t } = useLanguage();
+	const { t, language } = useLanguage();
 	const [selectedAddress, setSelectedAddress] = useState<number | null>(null);
 	const [open, setOpen] = useState(false);
 	const [editingAddress, setEditingAddress] = useState<AddressI | null>(null);
@@ -71,6 +71,7 @@ export default function Page() {
 				const res = await fetch(`${base_url}/addresses`, {
 					headers: {
 						Accept: "application/json",
+						"Accept-Language": language,
 						Authorization: `Bearer ${token}`,
 					},
 					cache: "no-store",
@@ -122,6 +123,7 @@ export default function Page() {
 				method: "DELETE",
 				headers: {
 					Authorization: `Bearer ${token}`,
+					"Accept-Language": language,
 					Accept: "application/json",
 				},
 			});

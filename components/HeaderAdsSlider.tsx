@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { useLanguage } from "@/src/context/LanguageContext";
 import { Autoplay } from "swiper/modules";
 
 import "swiper/css";
@@ -48,13 +49,9 @@ function HeaderAdsSkeleton() {
 		</div>
 	);
 }
-function getLanguage(): string {
-		if (typeof window !== "undefined") {
-			return localStorage.getItem("language") || "ar";
-		}
-		return "ar";
-	}
+
 export default function HeaderAdsSlider() {
+	const { language } = useLanguage();
 	const [ads, setAds] = useState<Ad[]>([]);
 	const [loading, setLoading] = useState(true);
 
@@ -67,7 +64,7 @@ export default function HeaderAdsSlider() {
 			try {
 				setLoading(true);
 				const res = await fetch(`${apiBase}/ads`, {
-					headers: { "Accept-Language": getLanguage() },
+					headers: { "Accept-Language": language },
 					cache: "no-store"
 				});
 				const json = (await res.json()) as ApiResponse;

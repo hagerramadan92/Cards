@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { useSession, signOut as nextAuthSignOut } from "next-auth/react";
 import { ProductI } from "../../Types/ProductsI";
+import { useLanguage } from "./LanguageContext";
 
 const AuthContext = createContext<any | undefined>(undefined);
 
@@ -18,6 +19,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userImage, setUserImage] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string | null>(null);
+  
+  const { language } = useLanguage();
 
   const [favoriteProducts, setFavoriteProducts] = useState<ProductI[]>([]);
   const [favoriteProductsLoading, setFavoriteProductsLoading] =
@@ -67,12 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [session, status]); // intentionally not depending on userName/authToken to avoid cascades
 
   /* ---------------------- FETCH FAVORITES (MERGED: PRODUCTS + IDS) ---------------------- */
-  	function getLanguage(): string {
-		if (typeof window !== "undefined") {
-			return localStorage.getItem("language") || "ar";
-		}
-		return "ar";
-	}
+
   useEffect(() => {
     let cancelled = false;
 
@@ -91,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           headers: {
             Accept: "application/json",
             Authorization: `Bearer ${authToken}`,
-            "Accept-Language": getLanguage(),
+            "Accept-Language": language,
           },
           cache: "no-store",
         });

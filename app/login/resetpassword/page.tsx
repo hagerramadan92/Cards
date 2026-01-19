@@ -6,10 +6,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { BiSolidHide, BiSolidShow } from "react-icons/bi";
 import { FiLock, FiArrowRight, FiShield } from "react-icons/fi";
 import Link from "next/link";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { t, language } = useLanguage();
 
   const email = searchParams.get("email") || "";
   const otp = searchParams.get("code") || "";
@@ -44,19 +46,14 @@ export default function ResetPasswordPage() {
     if (/[0-9]/.test(p)) score++;
     if (/[^A-Za-z0-9]/.test(p)) score++;
 
-    const label = score <= 1 ? "ضعيفة" : score === 2 ? "متوسطة" : score === 3 ? "جيدة" : "قوية";
+    const label = score <= 1 ? t('strength_weak') : score === 2 ? t('strength_medium') : score === 3 ? t('strength_good') : t('strength_strong');
     return { score, label };
   }, [password]);
 
   const canSubmit = useMemo(() => {
     return password.trim().length > 0 && confirmPassword.trim().length > 0 && !loading;
   }, [password, confirmPassword, loading]);
-function getLanguage(): string {
-		if (typeof window !== "undefined") {
-			return localStorage.getItem("language") || "ar";
-		}
-		return "ar";
-	}
+
   const handleResetPassword = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (loading) return;
@@ -66,14 +63,14 @@ function getLanguage(): string {
 
     const newErrors: typeof errors = {};
 
-    if (!password.trim()) newErrors.password = "كلمة المرور مطلوبة";
-    else if (password.length < 8) newErrors.password = "كلمة المرور يجب أن تكون 8 أحرف على الأقل";
+    if (!password.trim()) newErrors.password = t('password_required');
+    else if (password.length < 8) newErrors.password = t('password_min_length');
 
-    if (!confirmPassword.trim()) newErrors.confirmPassword = "تأكيد كلمة المرور مطلوب";
-    else if (confirmPassword !== password) newErrors.confirmPassword = "كلمة المرور غير متطابقة";
+    if (!confirmPassword.trim()) newErrors.confirmPassword = t('confirm_password_required');
+    else if (confirmPassword !== password) newErrors.confirmPassword = t('passwords_not_match');
 
     if (!email || !otp) {
-      newErrors.form = "بيانات الرابط غير مكتملة (email / code)";
+      newErrors.form = t('invalid_reset_link');
     }
 
     if (Object.keys(newErrors).length) {
@@ -83,7 +80,7 @@ function getLanguage(): string {
     }
 
     if (!API_URL) {
-      setMessage("error", "NEXT_PUBLIC_API_URL غير موجود");
+      setMessage("error", "NEXT_PUBLIC_API_URL missing");
       return;
     }
 
@@ -92,7 +89,11 @@ function getLanguage(): string {
 
       const res = await fetch(`${API_URL}/auth/reset-password`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" , "Accept-Language": getLanguage()},
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Accept-Language": language
+        },
         body: JSON.stringify({
           email,
           otp,
@@ -118,8 +119,8 @@ function getLanguage(): string {
         router.push("/login");
       }, 900);
     } catch {
-      setMessage("error", "فشل الاتصال بالخادم");
-      setErrors((p) => ({ ...p, form: "فشل الاتصال بالخادم" }));
+      setMessage("error", t('server_error'));
+      setErrors((p) => ({ ...p, form: t('server_error') }));
     } finally {
       setLoading(false);
     }
@@ -149,10 +150,10 @@ function getLanguage(): string {
           {/* Header */}
           <div className="p-7 pb-5 bg-gradient-to-l from-slate-900 to-slate-800 text-white">
             <h1 className="text-xl text-center md:text-2xl font-extrabold leading-snug">
-              إعادة تعيين كلمة المرور
+              {t('reset_password_title')}
             </h1>
             <p className="text-center text-white/80 mt-2 text-sm font-semibold">
-              اختر كلمة مرور جديدة لحسابك
+              {t('choose_new_password')}
             </p>
           </div>
 
@@ -180,7 +181,7 @@ function getLanguage(): string {
             {invalidLink ? (
               <div className="space-y-4">
                 <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700 text-sm font-bold">
-                  الرابط غير صحيح أو منتهي. ارجع لصفحة "نسيت كلمة المرور" واطلب كود جديد.
+                  {t('invalid_reset_link')}
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -189,14 +190,14 @@ function getLanguage(): string {
                     className="inline-flex items-center gap-2 text-sm font-extrabold text-pro hover:opacity-80 transition"
                   >
                     <FiArrowRight />
-                    الرجوع لنسيت كلمة المرور
+                    {t('back_to_forget_password')}
                   </Link>
 
                   <Link
                     href="/login"
                     className="text-sm font-extrabold text-slate-700 hover:text-slate-900 transition"
                   >
-                    تسجيل الدخول
+                    {t('login_short')}
                   </Link>
                 </div>
               </div>
@@ -204,13 +205,13 @@ function getLanguage(): string {
               <form className="space-y-4" onSubmit={handleResetPassword}>
                 {/* email preview */}
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                  <p className="text-xs font-bold text-slate-500">الحساب:</p>
+                  <p className="text-xs font-bold text-slate-500">{t('account')}:</p>
                   <p className="text-sm font-extrabold text-slate-900 truncate">{email}</p>
                 </div>
 
                 {/* password */}
                 <div>
-                  <label className="block text-sm font-extrabold text-slate-800 mb-2">كلمة المرور الجديدة</label>
+                  <label className="block text-sm font-extrabold text-slate-800 mb-2">{t('new_password')}</label>
 
                   <div className="relative">
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
@@ -232,7 +233,7 @@ function getLanguage(): string {
                       type="button"
                       onClick={() => setShowPassword((p) => !p)}
                       className="absolute left-3 top-1/2 -translate-y-1/2 rounded-xl px-2 py-2 text-slate-600 hover:bg-slate-100 transition"
-                      aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+                      aria-label={showPassword ? t('hide_password') : t('show_password')}
                     >
                       {showPassword ? <BiSolidShow size={22} /> : <BiSolidHide size={22} />}
                     </button>
@@ -242,7 +243,7 @@ function getLanguage(): string {
                   <div className="mt-2 flex items-center justify-between">
                     <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
                       <FiShield />
-                      قوة كلمة المرور: <span className="text-slate-800">{strength.label}</span>
+                      {t('password_strength')} <span className="text-slate-800">{strength.label}</span>
                     </div>
                     <div className="flex gap-1">
                       {Array.from({ length: 4 }).map((_, i) => (
@@ -262,7 +263,7 @@ function getLanguage(): string {
 
                 {/* confirm */}
                 <div>
-                  <label className="block text-sm font-extrabold text-slate-800 mb-2">تأكيد كلمة المرور</label>
+                  <label className="block text-sm font-extrabold text-slate-800 mb-2">{t('confirm_password')}</label>
 
                   <div className="relative">
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
@@ -284,7 +285,7 @@ function getLanguage(): string {
                       type="button"
                       onClick={() => setShowConfirm((p) => !p)}
                       className="absolute left-3 top-1/2 -translate-y-1/2 rounded-xl px-2 py-2 text-slate-600 hover:bg-slate-100 transition"
-                      aria-label={showConfirm ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+                      aria-label={showConfirm ? t('hide_password') : t('show_password')}
                     >
                       {showConfirm ? <BiSolidShow size={22} /> : <BiSolidHide size={22} />}
                     </button>
@@ -306,7 +307,7 @@ function getLanguage(): string {
                     "disabled:opacity-60 disabled:cursor-not-allowed",
                   ].join(" ")}
                 >
-                  {loading ? "جاري إعادة التعيين..." : "إعادة تعيين كلمة المرور"}
+                  {loading ? t('resetting') : t('reset_password_title')}
                 </button>
 
                 {/* links */}
@@ -316,14 +317,14 @@ function getLanguage(): string {
                     className="inline-flex items-center gap-2 text-sm font-extrabold text-slate-700 hover:text-slate-900 transition"
                   >
                     <FiArrowRight />
-                    رجوع
+                    {t('back')}
                   </Link>
 
                   <Link
                     href="/login"
                     className="text-sm font-extrabold text-pro hover:opacity-80 transition"
                   >
-                    تسجيل الدخول
+                    {t('login_short')}
                   </Link>
                 </div>
               </form>
@@ -332,7 +333,7 @@ function getLanguage(): string {
         </div>
 
         <p className="text-center text-xs text-slate-500 font-semibold mt-4">
-          استخدم كلمة مرور قوية وتجنب تكرار كلمات المرور القديمة.
+          {t('usage_policy_note')}
         </p>
       </motion.div>
     </div>

@@ -3,8 +3,10 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function ChangePassword() {
+	const { t, language } = useLanguage();
 	const [oldPassword, setOldPassword] = useState("");
 	const [newPassword, setNewPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
@@ -19,22 +21,22 @@ export default function ChangePassword() {
 		e.preventDefault();
 
 		if (!oldPassword || !newPassword || !confirmPassword) {
-			toast.error("جميع الحقول مطلوبة");
+			toast.error(t("all_fields_required"));
 			return;
 		}
 
 		if (newPassword.length < 8) {
-			toast.error("كلمة السر الجديدة يجب أن تكون 8 أحرف على الأقل");
+			toast.error(t("password_min_length"));
 			return;
 		}
 
 		if (newPassword !== confirmPassword) {
-			toast.error("كلمة السر الجديدة وتأكيدها غير متطابقين");
+			toast.error(t("passwords_not_match"));
 			return;
 		}
 
 		if (oldPassword === newPassword) {
-			toast.error("كلمة السر الجديدة يجب أن تكون مختلفة عن القديمة");
+			toast.error(t("new_password_diff"));
 			return;
 		}
 
@@ -49,6 +51,8 @@ export default function ChangePassword() {
 					headers: {
 						"Content-Type": "application/json",
 						Authorization: `Bearer ${token}`,
+						"Accept-Language": language,
+						Accept: "application/json"
 					},
 					body: JSON.stringify({
 						old_password: oldPassword,
@@ -61,16 +65,16 @@ export default function ChangePassword() {
 			const data = await res.json().catch(() => null);
 
 			if (res.ok && data?.status) {
-				toast.success(data?.message || "تم تغيير كلمة السر بنجاح");
+				toast.success(data?.message || t("change_password_success"));
 				setOldPassword("");
 				setNewPassword("");
 				setConfirmPassword("");
 			} else {
-				toast.error(data?.message || "فشل تغيير كلمة السر");
+				toast.error(data?.message || t("change_password_error"));
 			}
 		} catch (err) {
 			console.error(err);
-			toast.error("خطأ في الاتصال، حاول مرة أخرى");
+			toast.error(t("send_error"));
 		} finally {
 			setLoading(false);
 		}
@@ -81,47 +85,53 @@ export default function ChangePassword() {
 			<div className="flex items-start justify-between gap-3">
 				<div>
 					<h4 className="text-base md:text-lg font-extrabold text-slate-900">
-						تغيير كلمة السر
+						{t("change_password_title")}
 					</h4>
 					<p className="mt-1 text-sm text-slate-500">
-						يفضّل أن تكون كلمة السر قوية (8 أحرف على الأقل).
+						{t("change_password_subtitle")}
 					</p>
 				</div>
 
 				<span className="hidden md:inline-flex rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600 ring-1 ring-slate-200">
-					أمان الحساب
+					{t("account_security")}
 				</span>
 			</div>
 
 			<form onSubmit={handleSubmit} className="grid gap-4">
 				{/* Old password */}
 				<PasswordField
-					label="كلمة السر القديمة"
-					placeholder="أدخل كلمة السر الحالية"
+					label={t("old_password_label")}
+					placeholder={t("old_password_placeholder")}
 					value={oldPassword}
 					onChange={setOldPassword}
 					show={showOld}
 					onToggle={() => setShowOld((v) => !v)}
+					hideText={t("hide_password")}
+					showText={t("show_password")}
 				/>
 
 				{/* New password */}
 				<PasswordField
-					label="كلمة السر الجديدة"
-					placeholder="أدخل كلمة سر جديدة (8 أحرف على الأقل)"
+					label={t("new_password")}
+					placeholder={t("new_password_placeholder")}
 					value={newPassword}
 					onChange={setNewPassword}
 					show={showNew}
 					onToggle={() => setShowNew((v) => !v)}
+					hideText={t("hide_password")}
+					showText={t("show_password")}
 				/>
 
 				{/* Confirm */}
 				<PasswordField
-					label="تأكيد كلمة السر الجديدة"
-					placeholder="أعد كتابة كلمة السر الجديدة"
+					label={t("confirm_password_label")}
+					placeholder={t("confirm_password_placeholder")}
 					value={confirmPassword}
 					onChange={setConfirmPassword}
 					show={showConfirm}
 					onToggle={() => setShowConfirm((v) => !v)}
+					hideText={t("hide_password")}
+					showText={t("show_password")}
 				/>
 
 				{/* actions */}
@@ -136,15 +146,15 @@ export default function ChangePassword() {
 						{loading ? (
 							<>
 								<span className="inline-block h-5 w-5 rounded-full border-2 border-white/80 border-t-transparent animate-spin" />
-								جاري التغيير...
+								{t("changing_password")}
 							</>
 						) : (
-							"تغيير كلمة السر"
+							t("change_password_title")
 						)}
 					</button>
 
 					<p className="text-xs text-slate-500">
-						* يجب أن تحتوي كلمة السر الجديدة على 8 أحرف على الأقل.
+						{t("password_min_8")}
 					</p>
 				</div>
 			</form>
@@ -159,6 +169,8 @@ function PasswordField({
 	onChange,
 	show,
 	onToggle,
+	hideText,
+	showText,
 }: {
 	label: string;
 	placeholder: string;
@@ -166,6 +178,8 @@ function PasswordField({
 	onChange: (v: string) => void;
 	show: boolean;
 	onToggle: () => void;
+	hideText: string;
+	showText: string;
 }) {
 	return (
 		<div className="space-y-2">
@@ -185,7 +199,7 @@ function PasswordField({
 				<button
 					type="button"
 					onClick={onToggle}
-					aria-label={show ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+					aria-label={show ? hideText : showText}
 					className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition"
 				>
 					{show ? <FiEyeOff size={20} /> : <FiEye size={20} />}

@@ -247,7 +247,7 @@ function SummaryBlock({ summary, t }: { summary: CheckoutSummaryV1 | null; t: an
 }
 
 export default function OrderCompletePage() {
-	const { t } = useLanguage();
+	const { t, language } = useLanguage();
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const orderId = searchParams.get("orderId"); // ✅ from url
@@ -297,6 +297,7 @@ export default function OrderCompletePage() {
 				const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/order/${orderId}`, {
 					headers: {
 						Authorization: `Bearer ${token}`,
+						"Accept-Language": language,
 						Accept: "application/json",
 					},
 					cache: "no-store",

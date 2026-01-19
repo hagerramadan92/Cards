@@ -13,9 +13,10 @@ import {
 } from "react-icons/hi2";
 import { FiChevronDown } from "react-icons/fi";
 import { useLanguage } from "@/src/context/LanguageContext";
+import { TranslationKey } from "@/src/translations";
 
 export default function MangeAccount() {
-	const { t } = useLanguage();
+	const { t, language } = useLanguage();
 	const [showChangePassword, setShowChangePassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [isFetching, setIsFetching] = useState(true);
@@ -32,149 +33,149 @@ export default function MangeAccount() {
 	const router = useRouter();
 
 	// Phone country patterns
-	const phonePatterns: Record<string, { pattern: RegExp; example: string; message: string; flag: string; name: string; code: string }> = {
+	const phonePatterns: Record<string, { pattern: RegExp; example: string; messageKey: TranslationKey; flag: string; nameKey: TranslationKey; code: string }> = {
 		EG: {
 			pattern: /^01[0-9]{9}$/,
 			example: "01012345678",
-			message: `${t('invalid_phone')} (e.g., 01012345678)`,
+			messageKey: "phone_invalid_with_example",
 			flag: "eg",
-			name: "مصر",
+			nameKey: "egypt",
 			code: "+20",
 		},
 		SA: {
 			pattern: /^05[0-9]{8}$/,
 			example: "0512345678",
-			message: `${t('invalid_phone')} (e.g., 0512345678)`,
+			messageKey: "phone_invalid_with_example",
 			flag: "sa",
-			name: "السعودية",
+			nameKey: "saudi_arabia",
 			code: "+966",
 		},
 		AE: {
 			pattern: /^05[0-9]{8}$/,
 			example: "0512345678",
-			message: "رقم الهاتف غير صحيح (مثال: 0512345678)",
+			messageKey: "phone_invalid_with_example",
 			flag: "ae",
-			name: "الإمارات",
+			nameKey: "uae",
 			code: "+971",
 		},
 		KW: {
 			pattern: /^[569][0-9]{7}$/,
 			example: "51234567",
-			message: "رقم الهاتف غير صحيح (مثال: 51234567)",
+			messageKey: "phone_invalid_with_example",
 			flag: "kw",
-			name: "الكويت",
+			nameKey: "kuwait",
 			code: "+965",
 		},
 		QA: {
 			pattern: /^[3-7][0-9]{7}$/,
 			example: "33123456",
-			message: "رقم الهاتف غير صحيح (مثال: 33123456)",
+			messageKey: "phone_invalid_with_example",
 			flag: "qa",
-			name: "قطر",
+			nameKey: "qatar",
 			code: "+974",
 		},
 		BH: {
 			pattern: /^[3-9][0-9]{7}$/,
 			example: "36123456",
-			message: "رقم الهاتف غير صحيح (مثال: 36123456)",
+			messageKey: "phone_invalid_with_example",
 			flag: "bh",
-			name: "البحرين",
+			nameKey: "bahrain",
 			code: "+973",
 		},
 		OM: {
 			pattern: /^[79][0-9]{8}$/,
 			example: "912345678",
-			message: "رقم الهاتف غير صحيح (مثال: 912345678)",
+			messageKey: "phone_invalid_with_example",
 			flag: "om",
-			name: "عمان",
+			nameKey: "oman",
 			code: "+968",
 		},
 		JO: {
 			pattern: /^07[789][0-9]{7}$/,
 			example: "0791234567",
-			message: "رقم الهاتف غير صحيح (مثال: 0791234567)",
+			messageKey: "phone_invalid_with_example",
 			flag: "jo",
-			name: "الأردن",
+			nameKey: "jordan",
 			code: "+962",
 		},
 		LB: {
 			pattern: /^[0-9]{8}$/,
 			example: "12345678",
-			message: "رقم الهاتف غير صحيح (مثال: 12345678)",
+			messageKey: "phone_invalid_with_example",
 			flag: "lb",
-			name: "لبنان",
+			nameKey: "lebanon",
 			code: "+961",
 		},
 		IQ: {
 			pattern: /^07[0-9]{9}$/,
 			example: "07912345678",
-			message: "رقم الهاتف غير صحيح (مثال: 07912345678)",
+			messageKey: "phone_invalid_with_example",
 			flag: "iq",
-			name: "العراق",
+			nameKey: "iraq",
 			code: "+964",
 		},
 		YE: {
 			pattern: /^7[0-9]{8}$/,
 			example: "712345678",
-			message: "رقم الهاتف غير صحيح (مثال: 712345678)",
+			messageKey: "phone_invalid_with_example",
 			flag: "ye",
-			name: "اليمن",
+			nameKey: "yemen",
 			code: "+967",
 		},
 		SY: {
 			pattern: /^9[0-9]{8}$/,
 			example: "912345678",
-			message: "رقم الهاتف غير صحيح (مثال: 912345678)",
+			messageKey: "phone_invalid_with_example",
 			flag: "sy",
-			name: "سوريا",
+			nameKey: "syria",
 			code: "+963",
 		},
 		PS: {
 			pattern: /^05[0-9]{8}$/,
 			example: "0512345678",
-			message: "رقم الهاتف غير صحيح (مثال: 0512345678)",
+			messageKey: "phone_invalid_with_example",
 			flag: "ps",
-			name: "فلسطين",
+			nameKey: "palestine",
 			code: "+970",
 		},
 		MA: {
 			pattern: /^06[0-9]{8}$/,
 			example: "0612345678",
-			message: "رقم الهاتف غير صحيح (مثال: 0612345678)",
+			messageKey: "phone_invalid_with_example",
 			flag: "ma",
-			name: "المغرب",
+			nameKey: "morocco",
 			code: "+212",
 		},
 		DZ: {
 			pattern: /^05[0-9]{8}$/,
 			example: "0512345678",
-			message: "رقم الهاتف غير صحيح (مثال: 0512345678)",
+			messageKey: "phone_invalid_with_example",
 			flag: "dz",
-			name: "الجزائر",
+			nameKey: "algeria",
 			code: "+213",
 		},
 		TN: {
 			pattern: /^[2-9][0-9]{7}$/,
 			example: "21234567",
-			message: "رقم الهاتف غير صحيح (مثال: 21234567)",
+			messageKey: "phone_invalid_with_example",
 			flag: "tn",
-			name: "تونس",
+			nameKey: "tunisia",
 			code: "+216",
 		},
 		LY: {
 			pattern: /^9[0-9]{8}$/,
 			example: "912345678",
-			message: "رقم الهاتف غير صحيح (مثال: 912345678)",
+			messageKey: "phone_invalid_with_example",
 			flag: "ly",
-			name: "ليبيا",
+			nameKey: "libya",
 			code: "+218",
 		},
 		SD: {
 			pattern: /^9[0-9]{8}$/,
 			example: "912345678",
-			message: "رقم الهاتف غير صحيح (مثال: 912345678)",
+			messageKey: "phone_invalid_with_example",
 			flag: "sd",
-			name: "السودان",
+			nameKey: "sudan",
 			code: "+249",
 		},
 	};
@@ -182,12 +183,7 @@ export default function MangeAccount() {
 	function cn(...c: (string | false | undefined | null)[]) {
 		return c.filter(Boolean).join(" ");
 	}
-		function getLanguage(): string {
-		if (typeof window !== "undefined") {
-			return localStorage.getItem("language") || "ar";
-		}
-		return "ar";
-	}
+
 
 	useEffect(() => {
 		function handleClickOutside(event: MouseEvent) {
@@ -203,7 +199,11 @@ export default function MangeAccount() {
 		setIsFetching(true);
 		try {
 			const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
-				headers: { Authorization: `Bearer ${token}` , "Accept-Language": getLanguage(),  },
+				headers: { 
+					Authorization: `Bearer ${token}`, 
+					"Accept-Language": language,
+					Accept: "application/json"
+				},
 				cache: "no-store",
 			});
 
@@ -271,6 +271,8 @@ export default function MangeAccount() {
 				headers: {
 					"Content-Type": "application/json",
 					Authorization: `Bearer ${token}`,
+					"Accept-Language": language,
+					Accept: "application/json"
 				},
 				body: JSON.stringify({
 					name: fullName,
@@ -448,7 +450,7 @@ export default function MangeAccount() {
 													)}
 												>
 													<span className={`fi fi-${code.toLowerCase()}`}></span>
-													<span className="flex-1">{country.name}</span>
+													<span className="flex-1">{t(country.nameKey)}</span>
 													<span className="text-xs text-slate-500">{country.code}</span>
 												</button>
 											))}

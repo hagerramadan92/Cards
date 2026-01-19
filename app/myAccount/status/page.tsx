@@ -2,9 +2,11 @@
 
 import { useAuth } from "@/src/context/AuthContext";
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function StatusPage() {
 	const { authToken } = useAuth();
+	const { language } = useLanguage();
 	const [status, setStatus] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 
@@ -17,7 +19,11 @@ export default function StatusPage() {
 
 			try {
 				const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
-					headers: { Authorization: `Bearer ${authToken}` },
+					headers: { 
+						Authorization: `Bearer ${authToken}` ,
+						"Accept-Language": language,
+						Accept: "application/json"
+					},
 					cache: "no-store",
 				});
 

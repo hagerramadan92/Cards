@@ -7,7 +7,10 @@ import { FiMail, FiKey, FiArrowRight } from "react-icons/fi";
 import Link from "next/link";
 import ButtonComponent from "../../../components/ButtonComponent";
 
+import { useLanguage } from "@/src/context/LanguageContext";
+
 export default function ForgetPasswordPage() {
+	const { t, language } = useLanguage();
 	const router = useRouter();
 
 	const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -30,14 +33,9 @@ export default function ForgetPasswordPage() {
 	const canVerify = useMemo(() => finalCode.length === 6 && !loading, [finalCode, loading]);
 
 	const setMessage = (type: "error" | "success" | "info", text: string) => setMsg({ type, text });
-function getLanguage(): string {
-		if (typeof window !== "undefined") {
-			return localStorage.getItem("language") || "ar";
-		}
-		return "ar";
-	}
+
 	const handleSendCode = async () => {
-		if (!email.trim()) return setMessage("error", "من فضلك أدخل بريدك الإلكتروني");
+		if (!email.trim()) return setMessage("error", t('please_enter_email'));
 
 		try {
 			setLoading(true);
@@ -45,7 +43,11 @@ function getLanguage(): string {
 
 			const res = await fetch(`${API_URL}/auth/send-otp`, {
 				method: "POST",
-				headers: { "Content-Type": "application/json", Accept: "application/json"  , "Accept-Language": getLanguage()},
+				headers: { 
+					"Content-Type": "application/json", 
+					Accept: "application/json",
+					"Accept-Language": language
+				},
 
 				body: JSON.stringify({ email }),
 			});
@@ -53,16 +55,16 @@ function getLanguage(): string {
 			const data = await res.json();
 
 			if (res.ok) {
-				setMessage("success", "تم إرسال كود التحقق إلى بريدك الإلكتروني");
+				setMessage("success", t('otp_sent_success'));
 				setCodeSent(true);
 				setOtpDigits(Array(6).fill(""));
 				// focus first digit
 				setTimeout(() => otpRefs.current?.[0]?.focus(), 50);
 			} else {
-				setMessage("error", data.message || "حدث خطأ أثناء الإرسال");
+				setMessage("error", data.message || t('send_error'));
 			}
 		} catch {
-			setMessage("error", "فشل الاتصال بالخادم");
+			setMessage("error", t('server_error'));
 		} finally {
 			setLoading(false);
 		}
@@ -72,7 +74,7 @@ function getLanguage(): string {
 		if (!API_URL) return setMessage("error", "NEXT_PUBLIC_API_URL غير موجود");
 
 		if (finalCode.length !== 6) {
-			setMessage("error", "الرجاء إدخال الكود المكون من 6 أرقام");
+			setMessage("error", t('otp_confirm_error'));
 			return;
 		}
 
@@ -82,7 +84,11 @@ function getLanguage(): string {
 
 			const res = await fetch(`${API_URL}/auth/verify-otp`, {
 				method: "POST",
-				headers: { "Content-Type": "application/json", Accept: "application/json" },
+				headers: { 
+					"Content-Type": "application/json", 
+					Accept: "application/json",
+					"Accept-Language": language
+				},
  
 				body: JSON.stringify({ email, otp: finalCode }),
 			});
@@ -90,16 +96,16 @@ function getLanguage(): string {
 			const data = await res.json();
 
 			if (!res.ok) {
-				setMessage("error", data.message || "الكود غير صحيح");
+				setMessage("error", data.message || t('otp_wrong'));
 				return;
 			}
 
-			setMessage("success", "تم التحقق بنجاح ✅ جاري الانتقال لإعادة تعيين كلمة المرور...");
+			setMessage("success", t('otp_verify_success'));
 			router.push(
 				`/login/resetpassword?email=${encodeURIComponent(email)}&code=${encodeURIComponent(finalCode)}`
 			);
 		} catch {
-			setMessage("error", "فشل الاتصال بالخادم");
+			setMessage("error", t('server_error'));
 		} finally {
 			setLoading(false);
 		}
@@ -168,10 +174,10 @@ function getLanguage(): string {
 					{/* Header */}
 					<div className="p-7 pb-5 bg-gradient-to-l from-slate-900 to-slate-800 text-white">
 						<h1 className="text-xl text-center md:text-2xl font-extrabold leading-snug">
-							نسيت كلمة المرور
+							{t('forget_password_title')}
 						</h1>
 						<p className="text-center text-white/80 mt-2 text-sm font-semibold">
-							{!codeSent ? "أدخل بريدك لإرسال كود التحقق" : "أدخل كود التحقق المكون من 6 أرقام"}
+							{!codeSent ? t('enter_email_to_send_otp') : t('enter_otp_6_digits')}
 						</p>
 					</div>
 
@@ -199,7 +205,7 @@ function getLanguage(): string {
 							<div className="space-y-4">
 								<div>
 									<label className="block text-sm font-extrabold text-slate-800 mb-2">
-										البريد الإلكتروني
+										{t('email')}
 									</label>
 
 									<div className="relative">
@@ -220,7 +226,7 @@ function getLanguage(): string {
 
 								<div className={`${loading ? "opacity-80 pointer-events-none" : ""}`}>
 									<ButtonComponent
-										title={loading ? "جاري الإرسال..." : "إرسال كود"}
+										title={loading ? t('sending') : t('send_message')}
 										onClick={handleSendCode as any}
 									/>
 								</div>
@@ -231,7 +237,7 @@ function getLanguage(): string {
 										className="inline-flex items-center gap-2 text-sm font-extrabold text-slate-700 hover:text-slate-900 transition"
 									>
 										<FiArrowRight />
-										رجوع لتسجيل الدخول
+										{t('back_to_login')}
 									</Link>
 								</div>
 							</div>
@@ -239,7 +245,7 @@ function getLanguage(): string {
 							<div className="space-y-4">
 								<div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 flex items-center justify-between">
 									<div className="min-w-0">
-										<p className="text-xs font-bold text-slate-500">سيتم التحقق على البريد:</p>
+										<p className="text-xs font-bold text-slate-500">{t('verification_on_email')}</p>
 										<p className="text-sm font-extrabold text-slate-900 truncate">{email}</p>
 									</div>
 									<button
@@ -251,13 +257,13 @@ function getLanguage(): string {
 										}}
 										className="text-xs font-extrabold text-pro hover:opacity-80 transition"
 									>
-										تعديل
+										{t('edit')}
 									</button>
 								</div>
 
 								<div>
 									<label className="block text-sm font-extrabold text-slate-800 mb-2">
-										كود التحقق
+										{t('otp_label')}
 									</label>
 
 									<div className="flex justify-center gap-2" dir="ltr">
@@ -288,7 +294,7 @@ function getLanguage(): string {
 
 									<div className="mt-3 flex items-center justify-between text-xs font-bold text-slate-500">
 										<span className="inline-flex items-center gap-1">
-											<FiKey /> أدخل 6 أرقام
+											<FiKey /> {t('enter_6_digits')}
 										</span>
 										<button
 											type="button"
@@ -296,7 +302,7 @@ function getLanguage(): string {
 											disabled={loading}
 											className="text-pro hover:opacity-80 transition disabled:opacity-60"
 										>
-											إعادة إرسال الكود
+											{t('resend_otp')}
 										</button>
 									</div>
 								</div>
@@ -310,7 +316,7 @@ function getLanguage(): string {
 										"disabled:opacity-60 disabled:cursor-not-allowed",
 									].join(" ")}
 								>
-									{loading ? "جاري التحقق..." : "تأكيد الكود"}
+									{loading ? t('verifying') : t('confirm_otp')}
 								</button>
 
 								<div className="flex items-center justify-between">
@@ -323,14 +329,14 @@ function getLanguage(): string {
 										}}
 										className="text-sm font-extrabold text-slate-700 hover:text-slate-900 transition"
 									>
-										رجوع
+										{t('back')}
 									</button>
 
 									<Link
 										href="/login"
 										className="text-sm font-extrabold text-pro hover:opacity-80 transition"
 									>
-										تسجيل الدخول
+										{t('login_short')}
 									</Link>
 								</div>
 							</div>
@@ -339,7 +345,7 @@ function getLanguage(): string {
 				</div>
 
 				<p className="text-center text-xs text-slate-500 font-semibold mt-4">
-					لو لم يصلك البريد، تأكد من Inbox و Spam.
+					{t('otp_spam_note')}
 				</p>
 			</motion.div>
 		</div>

@@ -404,7 +404,7 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 	const { updateCartItem } = useCart();
 	const { authToken: token, user, userId } = useAuth() as any;
 	const { socialMedia } = useAppContext() as any;
-	const { direction, t } = useLanguage();
+	const { direction, language, t } = useLanguage();
 	const isRTL = direction === "rtl";
 
 	const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -799,7 +799,11 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 
 			const res = await fetch(`${API_URL}/upload-image`, {
 				method: "POST",
-				headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+				headers: { 
+					Authorization: `Bearer ${token}`,
+					"Accept-Language": language,
+					Accept: "application/json"
+				},
 				body: fd,
 			});
 
@@ -1552,7 +1556,12 @@ export default function ProductPageClient() {
 		try {
 			const res = await fetch(`${API_URL}/favorites/toggle`, {
 				method: "POST",
-				headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+				headers: { 
+					"Content-Type": "application/json", 
+					Authorization: `Bearer ${token}`,
+					"Accept-Language": language,
+					Accept: "application/json"
+				},
 				body: JSON.stringify({ product_id: product.id }),
 			});
 

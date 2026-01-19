@@ -61,7 +61,7 @@ export default function AddressForm({
 	initialData,
 	onSuccess,
 }: AddressFormProps) {
-	const { t } = useLanguage();
+	const { t, language } = useLanguage();
 	const base_url = process.env.NEXT_PUBLIC_API_URL;
 	const [loading, setLoading] = useState(false);
 	const [mounted, setMounted] = useState(false);
@@ -160,6 +160,7 @@ export default function AddressForm({
 					Accept: "application/json",
 					"Content-Type": "application/json",
 					Authorization: `Bearer ${token}`,
+					"Accept-Language": language,
 				},
 				body: JSON.stringify(payload),
 			});

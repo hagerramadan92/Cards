@@ -29,7 +29,7 @@ export default function SearchNavbar() {
 	const [menuOpen, setMenuOpen] = useState(false);
 	const { status } = useSession();
 
-	const { fullName } = useAuth();
+	const { authToken, fullName } = useAuth();
 	const { socialMedia, parentCategories, loadingCategories } = useAppContext();
 	const { t } = useLanguage();
 
@@ -98,18 +98,18 @@ export default function SearchNavbar() {
 							<LanguageSelector />
 						</div>
 						{/* Auth */}
-						{status !== "authenticated" ? (
-							<Link
-								href="/login"
-								className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg bg-gray-100 text-pro px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-extrabold shadow-sm hover:opacity-95 active:scale-[0.99] transition"
-							>
-								<FaRegUser className="" size={15} />
-								<span className="max-md:hidden">{t('login')}</span>
-								<span className="md:hidden">{t('login_short')}</span>
-							</Link>
-						) : (
-							<DropdownUser />
-						)}
+					{status !== "authenticated" && !authToken ? (
+						<Link
+							href="/login"
+							className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg bg-gray-100 text-pro px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-extrabold shadow-sm hover:opacity-95 active:scale-[0.99] transition"
+						>
+							<FaRegUser className="" size={15} />
+							<span className="max-md:hidden">{t('login')}</span>
+							<span className="md:hidden">{t('login_short')}</span>
+						</Link>
+					) : (
+						<DropdownUser />
+					)}
 
 						{/* country & currency - Hide on very small screens if needed, or keep */}
 						<div className="hidden sm:flex items-center gap-2">

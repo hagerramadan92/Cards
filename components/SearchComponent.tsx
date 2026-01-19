@@ -197,15 +197,15 @@ export default function SearchComponent({ className = "", setMenuOpen }: any) {
 									</div>
 								))}
 							</div>
-							<p className="text-center text-xs text-gray-500 mt-3">جارٍ البحث...</p>
+							<p className="text-center text-xs text-gray-500 mt-3">{t('loading')}</p>
 						</div>
 					)}
 
 					{/* Empty */}
 					{!loading && results.length === 0 && (
 						<div className="p-4 text-center">
-							<p className="text-gray-600 font-bold">لا توجد نتائج</p>
-							<p className="text-xs text-gray-500 mt-1">جرّب كلمات مختلفة أو اكتب اسم الكارد</p>
+							<p className="text-gray-600 font-bold">{t('no_results')}</p>
+							<p className="text-xs text-gray-500 mt-1">{t('search_diff')}</p>
 
 							{trimmed && (
 								<button
@@ -213,7 +213,7 @@ export default function SearchComponent({ className = "", setMenuOpen }: any) {
 									onClick={goToSearchPage}
 									className="mt-3 inline-flex items-center justify-center rounded-xl bg-pro text-white px-4 py-2 text-sm font-extrabold hover:opacity-95 transition"
 								>
-									بحث عن “{trimmed}”
+									{t('search')}
 								</button>
 							)}
 						</div>
@@ -251,7 +251,7 @@ export default function SearchComponent({ className = "", setMenuOpen }: any) {
 												</div>
 
 												<span className="text-xs font-bold text-gray-500 shrink-0">
-													عرض
+													{t('show')}
 												</span>
 											</div>
 										</Link>
@@ -269,7 +269,7 @@ export default function SearchComponent({ className = "", setMenuOpen }: any) {
 									onClick={goToSearchPage}
 									className="rounded-xl bg-white px-3 py-2 text-xs font-extrabold text-gray-900 border hover:bg-gray-100 transition"
 								>
-									كل النتائج
+									{t('all_results')}
 								</button>
 							</div>
 						</>

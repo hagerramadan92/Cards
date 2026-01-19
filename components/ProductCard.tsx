@@ -52,7 +52,7 @@ export default function ProductCard({
 	const [showImage, setShowImage] = useState(false);
 	const [isAdding, setIsAdding] = useState(false);
 	const [quickViewOpen, setQuickViewOpen] = useState(false);
-	const { t } = useLanguage();
+	const { t, language } = useLanguage();
 
 	const { authToken: token, favoriteIdsSet, setFavoriteProducts, favoriteProductsLoading } = useAuth();
 		const router = useRouter();
@@ -112,6 +112,8 @@ export default function ProductCard({
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
+					'Accept-Language': language,
+					Accept: 'application/json',
 					Authorization: `Bearer ${token}`,
 				},
 				body: JSON.stringify({ product_id: productId }),

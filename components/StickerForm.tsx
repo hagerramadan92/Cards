@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { useCart } from "@/src/context/CartContext";
 import { useAuth } from "@/src/context/AuthContext";
 import { useAppContext } from "@/src/context/AppContext";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 import {
 	Box, FormControl, InputLabel, Select, MenuItem, FormHelperText,
@@ -46,6 +47,7 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 	const { updateCartItem } = useCart();
 	const { authToken: token, user, userId } = useAuth() as any;
 	const { socialMedia } = useAppContext() as any;
+	const { language } = useLanguage();
 
 	const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -383,7 +385,11 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 
 			const res = await fetch(`${API_URL}/file`, {
 				method: "POST",
-				headers: { Authorization: `Bearer ${token}` },
+				headers: { 
+					Authorization: `Bearer ${token}`,
+					"Accept-Language": language,
+					Accept: "application/json"
+				},
 				body: fd,
 			});
 

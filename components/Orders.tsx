@@ -123,7 +123,7 @@ function paymentStatusUI(status: string, t: any) {
 type FilterType = "all" | "pending" | "waiting" | "completed" | "rejected";
 
 export default function Orders() {
-	const { t } = useLanguage();
+	const { t, language } = useLanguage();
 	const [search, setSearch] = useState<string>("");
 	const [orders, setOrders] = useState<Order[]>([]);
 	const [loading, setLoading] = useState<boolean>(true);
@@ -152,6 +152,8 @@ export default function Orders() {
 					headers: {
 						"Content-Type": "application/json",
 						Authorization: `Bearer ${apiToken}`,
+						"Accept-Language": language,
+						Accept: "application/json"
 					},
 					cache: "no-store",
 				});

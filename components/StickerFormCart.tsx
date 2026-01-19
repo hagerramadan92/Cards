@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { motion } from "framer-motion";
 import { useCart } from "@/src/context/CartContext";
+import { useLanguage } from "@/src/context/LanguageContext";
 import { CheckCircle, Info } from "@mui/icons-material";
 import { StickerFormSkeleton } from "./skeletons/HomeSkeletons";
 
@@ -68,6 +69,7 @@ export default function StickerForm({
 	autoSaveDebounceMs = 700,
 }: StickerFormProps) {
 	const { updateCartItem } = useCart();
+	const { language } = useLanguage();
 
 	const [size, setSize] = useState("اختر");
 	const [color, setColor] = useState("اختر");
@@ -106,7 +108,10 @@ export default function StickerForm({
 					return;
 				}
 
-				const res = await fetch(`${baseUrl}/products/${productId}`, { cache: "no-store" });
+				const res = await fetch(`${baseUrl}/products/${productId}`, { 
+					headers: { "Accept-Language": language },
+					cache: "no-store" 
+				});
 				if (!res.ok) throw new Error("فشل تحميل خيارات المنتج");
 
 				const json = await res.json();

@@ -12,6 +12,7 @@ import OutlinedInput from "@mui/material/OutlinedInput";
 import { FiSearch } from "react-icons/fi";
 import { HiOutlineAdjustmentsHorizontal } from "react-icons/hi2";
 import { ProductI } from "@/Types/ProductsI";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 /* ---------------- Skeleton (Shimmer) ---------------- */
 function Sk({ className = "" }: { className?: string }) {
@@ -62,6 +63,7 @@ function ProductCardSkeleton() {
 export default function SearchPage() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
+	const { language } = useLanguage();
 
 	const query = searchParams.get("q")?.trim() || "";
 	const [localQ, setLocalQ] = useState(query);
@@ -97,7 +99,15 @@ export default function SearchPage() {
     try {
       const res = await fetch(
         `${API_URL}/products?search=${encodeURIComponent(debouncedQ)}`,
-        { cache: "no-store", signal: controller.signal }
+		
+        { 
+          cache: "no-store", 
+          signal: controller.signal,
+          headers: {
+            "Accept-Language": language,
+            Accept: "application/json"
+          }
+        }
       );
 
       const data = await res.json();

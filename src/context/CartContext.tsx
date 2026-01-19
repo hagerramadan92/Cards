@@ -90,7 +90,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 	const [cart, setCart] = useState<CartItem[]>([]);
 	const [loading, setLoading] = useState(true);
 	const { authToken: token } = useAuth();
-	const { language } = useLanguage();
+	const { language, t } = useLanguage();
 	const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 	const [stickerFormValues, setStickerFormValues] = useState<any>({
@@ -179,7 +179,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 			}
 		} catch (err) {
 			console.error("Failed to fetch cart:", err);
-			toast.error("فشل تحميل السلة");
+			toast.error(t("fetch_cart_error"));
 			setCart([]);
 		} finally {
 			setLoading(false);
@@ -227,7 +227,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 			console.error("Failed to fetch cart item options:", err);
 			return null;
 		}
-	}, [token, API_URL]);
+	}, [token, API_URL, language]);
 
 	const loadItemOptions = useCallback(async (cartItemId: number) => {
 		if (!token) return;
@@ -279,12 +279,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 		options: Partial<Omit<AddToCartPayload, "product_id">> = {}
 	): Promise<boolean> => {
 		if (!token) {
-			toast.error("يجب تسجيل الدخول أولاً");
+			toast.error(t("login_required"));
 			return false;
 		}
 
 		if (!productId || productId <= 0) {
-			toast.error("معرف المنتج غير صحيح");
+			toast.error(t("invalid_product_id"));
 			return false;
 		}
 
@@ -319,16 +319,16 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 			const data = await res.json();
 
 			if (res.ok && data.status) {
-				toast.success("تمت الإضافة إلى السلة بنجاح");
+				toast.success(t("add_to_cart_success"));
 				await refreshCart();
 				return data;
 			} else {
-				toast.error(data.message || "فشل إضافة المنتج");
+				toast.error(data.message || t("add_to_cart_error"));
 				return false;
 			}
 		} catch (err) {
 			console.error("Add to cart error:", err);
-			toast.error("خطأ في الاتصال، حاول مرة أخرى");
+			toast.error(t("send_error"));
 			return false;
 		}
 	};
@@ -346,12 +346,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 				headers: {
 					Authorization: `Bearer ${token}`,
 					Accept: "application/json",
+					"Accept-Language": language,
 				},
 			});
-			toast.success("تم الحذف من السلة");
+			toast.success(t("remove_from_cart_success"));
 		} catch (err) {
 			await refreshCart();
-			toast.error("فشل الحذف");
+			toast.error(t("remove_from_cart_error"));
 		}
 	};
 
@@ -359,7 +360,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 		if (!token || quantity < 1) return;
 
 		if (quantity > 10) {
-			toast.error("الحد الأقصى 10 قطع فقط لهذا المنتج", { duration: 4000 });
+			toast.error(t("max_quantity_reached", { qty: 10 }), { duration: 4000 });
 			return;
 		}
 
@@ -381,9 +382,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
 			if (!response.ok || !data.status) {
 				await refreshCart();
-				toast.error("فشل تحديث الكمية");
+				toast.error(t("update_quantity_error"));
 			} else {
-				toast.success(`تم تحديث الكمية إلى ${quantity}`);
+				toast.success(t("update_quantity_success", { quantity }));
 			}
 		} catch (err) {
 			await refreshCart();
@@ -418,12 +419,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 				return true;
 			} else {
 				await refreshCart();
-				toast.error(data.message || "فشل تحديث العنصر");
+				toast.error(data.message || t("update_item_error"));
 				return false;
 			}
 		} catch (err) {
 			await refreshCart();
-			toast.error("خطأ في الاتصال، حاول مرة أخرى");
+			toast.error(t("send_error"));
 			return false;
 		}
 	};
@@ -483,12 +484,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 				headers: {
 					Authorization: `Bearer ${token}`,
 					Accept: "application/json",
+					"Accept-Language": language,
 				},
 			});
-			toast.success("تم تفريغ السلة");
+			toast.success(t("clear_cart_success"));
 		} catch (err) {
 			await refreshCart();
-			toast.error("فشل تفريغ السلة");
+			toast.error(t("clear_cart_error"));
 		}
 	};
 

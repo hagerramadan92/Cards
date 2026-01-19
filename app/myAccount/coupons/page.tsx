@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 type FilterType = "all" | "active" | "used" | "expired";
 
@@ -15,6 +16,7 @@ interface Coupon {
 }
 
 export default function coupons() {
+	const { t } = useLanguage();
 	const [filter, setFilter] = useState<FilterType>("all");
 	// Sample data for visualization - replace with actual API call
 	const [coupons, setCoupons] = useState<Coupon[]>([
@@ -24,7 +26,7 @@ export default function coupons() {
 			discount: "20%",
 			status: "active",
 			expires_at: "2024-12-31",
-			role: "خصم على الطلب الكامل"
+			role: t("active")
 		},
 		{
 			id: 2,
@@ -32,7 +34,7 @@ export default function coupons() {
 			discount: "50 ج.م",
 			status: "active",
 			expires_at: "2024-11-30",
-			role: "خصم على الشحن"
+			role: t("active")
 		},
 		{
 			id: 3,
@@ -40,7 +42,7 @@ export default function coupons() {
 			discount: "10%",
 			status: "used",
 			used_at: "2024-10-15",
-			role: "قسيمة ترحيبية"
+			role: t("used")
 		},
 		{
 			id: 4,
@@ -48,7 +50,7 @@ export default function coupons() {
 			discount: "25%",
 			status: "expired",
 			expires_at: "2024-09-30",
-			role: "خصم صيفي"
+			role: t("expired")
 		},
 	]);
 
@@ -65,7 +67,7 @@ export default function coupons() {
 	return (
 		<div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 md:p-6">
 			<div className="mb-6">
-				<h1 className="text-xl md:text-2xl font-semibold text-slate-900 mb-4">قسائمي</h1>
+				<h1 className="text-xl md:text-2xl font-semibold text-slate-900 mb-4">{t("my_coupons")}</h1>
 				
 				{/* Filters */}
 				<div className="flex flex-wrap gap-2">
@@ -77,7 +79,7 @@ export default function coupons() {
 								: "bg-slate-100 text-slate-700 hover:bg-slate-200"
 						}`}
 					>
-						الكل
+						{t("show")} {t("all_results")}
 					</button>
 					<button
 						onClick={() => handleFilterChange("active")}
@@ -87,7 +89,7 @@ export default function coupons() {
 								: "bg-slate-100 text-slate-700 hover:bg-slate-200"
 						}`}
 					>
-						نشط
+						{t("active")}
 					</button>
 					<button
 						onClick={() => handleFilterChange("used")}
@@ -97,7 +99,7 @@ export default function coupons() {
 								: "bg-slate-100 text-slate-700 hover:bg-slate-200"
 						}`}
 					>
-						مستخدم
+						{t("used")}
 					</button>
 					<button
 						onClick={() => handleFilterChange("expired")}
@@ -107,7 +109,7 @@ export default function coupons() {
 								: "bg-slate-100 text-slate-700 hover:bg-slate-200"
 						}`}
 					>
-						منتهي
+						{t("expired")}
 					</button>
 				</div>
 			</div>
@@ -115,8 +117,8 @@ export default function coupons() {
 			{/* Coupons List or Empty State */}
 			{filteredCoupons.length === 0 ? (
 				<div className="text-center py-12">
-					<p className="text-slate-600 text-lg mb-2">لا توجد قسائم متاحة حالياً</p>
-					<p className="text-slate-500 text-sm">سيتم عرض القسائم المتاحة هنا عند توفرها</p>
+					<p className="text-slate-600 text-lg mb-2">{t("no_coupons_available")}</p>
+					<p className="text-slate-500 text-sm">{t("coupons_will_appear_here")}</p>
 				</div>
 			) : (
 				<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
@@ -150,7 +152,7 @@ export default function coupons() {
 												}
 											`}
 										>
-											{isActive ? "نشط" : isUsed ? "مستخدم" : "منتهي"}
+											{t(coupon.status)}
 										</span>
 									</div>
 
