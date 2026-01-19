@@ -324,35 +324,38 @@ export default function CategoryPage() {
 		<section className="">
 			{/* Full Width Banner */}
 		<div className="relative w-full h-[200px] md:h-[300px] lg:h-[400px] mb-3">
-			<Image
-				src={category.image || "/images/cover.webp"}
-				alt={category.name}
-				fill
-				className="object-cover"
-				priority
-			/>
-			<div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent" />
-			
-			{/* Breadcrumb */}
-			<div className="absolute top-2 left-2 right-2 md:top-4 md:left-4 md:right-4 z-10">
-				<div className="container mx-auto px-2 pt-2">
-					<nav className="flex items-center gap-1 md:gap-2 text-xs md:text-sm text-white/90 flex-wrap">
-						<Link href="/" className="hover:text-white transition">
-							{t('home')}
-						</Link>
-						<span className="text-white/60">›</span>
-						<Link href="/category" className="hover:text-white transition">
-							{t('categories')}
-						</Link>
-						<span className="text-white/60">›</span>
-						<span className="text-white font-semibold line-clamp-1">{category.name}</span>
-					</nav>
-					<h1 className="text-2xl mt-3 font-black text-white mb-2">{category.name}</h1>
-				</div>
-			</div>
-
-			
-		</div>
+  {/* طبقة غامقة فوق الصورة */}
+  <div className="absolute inset-0 bg-black/30 z-10"></div>
+  
+  <Image
+    src={category.image || "/images/cover.webp"}
+    alt={category.name}
+    fill
+    className="object-cover"
+    priority
+  />
+  
+  {/* Gradient overlay */}
+  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent z-20" />
+  
+  {/* Breadcrumb */}
+  <div className="absolute top-2 left-2 right-2 md:top-4 md:left-4 md:right-4 z-30">
+    <div className="container mx-auto px-2 pt-2">
+      <nav className="flex items-center gap-1 md:gap-2 text-xs md:text-sm text-white/90 flex-wrap">
+        <Link href="/" className="hover:text-white transition">
+          {t('home')}
+        </Link>
+        <span className="text-white/60">›</span>
+        <Link href="/category" className="hover:text-white transition">
+          {t('categories')}
+        </Link>
+        <span className="text-white/60">›</span>
+        <span className="text-white font-semibold line-clamp-1">{category.name}</span>
+      </nav>
+      <h1 className="text-2xl mt-3 font-black text-white mb-2">{category.name}</h1>
+    </div>
+  </div>
+</div>
 
 			<div className="container px-4 md:px-0 pt-4 md:pt-2 pb-6 md:py-12">
 				<div className="flex items-center md:justify-between flex-wrap">

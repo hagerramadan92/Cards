@@ -17,6 +17,7 @@ import Swal from "sweetalert2";
 import { useAuth } from "@/src/context/AuthContext";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function DropdownUser() {
   const [open, setOpen] = useState(false);
@@ -24,9 +25,10 @@ export default function DropdownUser() {
 
   const { fullName, userImage, logout } = useAuth();
   const { data: session } = useSession();
+  const { t } = useLanguage();
 
   const displayName = useMemo(
-    () => fullName || session?.user?.name || "مستخدم",
+    () => fullName || session?.user?.name || t("user"),
     [fullName, session?.user?.name]
   );
 
@@ -61,8 +63,8 @@ export default function DropdownUser() {
 
       Swal.fire({
         icon: "success",
-        title: "تم تسجيل الخروج",
-        text: "تم تسجيل الخروج بنجاح!",
+        title: t("logout"),
+        text: t("logout_success"),
         timer: 1500,
         showConfirmButton: false,
       });
@@ -74,18 +76,18 @@ export default function DropdownUser() {
       console.error("Logout error:", err);
       Swal.fire({
         icon: "error",
-        title: "خطأ",
-        text: "فشل تسجيل الخروج، حاول مرة أخرى",
-        confirmButtonText: "حسنًا",
+        title: t("error"),
+        text: t("logout_error"),
+        confirmButtonText: t("ok"),
       });
     }
   };
 
   const items = [
-    { href: "/myAccount", label: "حسابي", icon: <FaUser size={18} /> },
-    { href: "/myAccount/orders", label: "طلباتي", icon: <FaClipboardCheck size={18} /> },
-    { href: "/myAccount/favorites", label: "منتجاتي المفضلة", icon: <FaHeart size={16} /> },
-    { href: "/myAccount/help", label: "مركز المساعدة", icon: <FaQuestionCircle size={18} /> },
+    { href: "/myAccount", label: t("myAccount"), icon: <FaUser size={18} /> },
+    { href: "/myAccount/orders", label: t("orders"), icon: <FaClipboardCheck size={18} /> },
+    { href: "/myAccount/favorites", label: t("favorites"), icon: <FaHeart size={16} /> },
+    { href: "/myAccount/help", label: t("help"), icon: <FaQuestionCircle size={18} /> },
   ];
 
   return (
@@ -116,7 +118,7 @@ export default function DropdownUser() {
 
         {/* name */}
         <div className="flex flex-col items-start leading-tight">
-          <span className="text-[14px] text-slate-500 font-semibold hidden md:block">مرحبا </span>
+          <span className="text-[14px] text-slate-500 font-semibold hidden md:block">{t("welcome2")} </span>
           {/* <span className="text-sm font-extrabold text-slate-900 truncate max-w-[140px]">
             {displayName}
           </span> */}
@@ -166,7 +168,7 @@ export default function DropdownUser() {
                       {displayName}
                     </p>
                     <p className="text-xs text-slate-500 font-semibold truncate">
-                      { "مرحبًا بك في  لايك كارد"}
+                      { t("welcome")}
                     </p>
                   </div>
                 </div>
@@ -188,7 +190,7 @@ export default function DropdownUser() {
                       <span className="text-sm font-bold text-slate-800 whitespace-nowrap">{it.label}</span>
                     </div>
 
-                    <span className="scale-x-[-1] hidden md:block  text-slate-300 group-hover:text-slate-400 transition">
+                    {/* <span className="scale-x-[-1] hidden md:block  text-slate-300 group-hover:text-slate-400 transition">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                         <path
                           d="M9 6l6 6-6 6"
@@ -198,7 +200,7 @@ export default function DropdownUser() {
                           strokeLinejoin="round"
                         />
                       </svg>
-                    </span>
+                    </span> */}
                   </Link>
                 ))}
 
@@ -215,10 +217,10 @@ export default function DropdownUser() {
                     <span className="h-9 w-9 rounded-2xl  border border-rose-200 bg-white flex items-center justify-center text-rose-600">
                       <FaArrowRightFromBracket size={18} />
                     </span>
-                    <span className="text-sm font-extrabold text-rose-700">تسجيل الخروج</span>
+                    <span className="text-sm font-extrabold text-rose-700">{t("logout")}</span>
                   </div>
 
-                  <span className="text-rose-300 scale-x-[-1] hidden md:block">
+                  {/* <span className="text-rose-300 scale-x-[-1] hidden md:block">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                       <path
                         d="M9 6l6 6-6 6"
@@ -228,7 +230,7 @@ export default function DropdownUser() {
                         strokeLinejoin="round"
                       />
                     </svg>
-                  </span>
+                  </span> */}
                 </button>
               </div>
             </div>

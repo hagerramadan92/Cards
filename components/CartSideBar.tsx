@@ -8,11 +8,12 @@ import { useCart } from "@/src/context/CartContext";
 import Image from "next/image";
 import { FiShoppingCart } from "react-icons/fi";
 import { IoMdCart } from "react-icons/io";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function CartSidebar() {
   const [cartOpen, setCartOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
-
+const {t} = useLanguage();
   const { cart , total  } = useCart();
 
 
@@ -45,7 +46,7 @@ const formattedTotal = total.toLocaleString("en-US", {
       >
         <div className="flex relative gap-1">
         
-					<p className=" max-md:hidden ">السلة</p>
+					<p className=" max-md:hidden ">{t("cart")}</p>
           <FiShoppingCart  size={23} strokeWidth={1.3} className="text-pro  "/>
           {/* < /> */}
         

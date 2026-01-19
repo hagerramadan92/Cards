@@ -14,6 +14,7 @@ import "swiper/css/navigation";
 import "swiper/css/free-mode";
 import { usePathname } from "next/navigation";
 import { useAppContext } from "../src/context/AppContext";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 type Status = "idle" | "loading" | "success" | "error";
 
@@ -22,6 +23,7 @@ function cn(...c: (string | false | undefined | null)[]) {
 }
 
 export default function CateNavbar() {
+	const { t } = useLanguage();
 	const { parentCategories, loadingCategories } = useAppContext();
 
 	const items = useMemo(() => parentCategories ?? [], [parentCategories]);
@@ -40,6 +42,7 @@ export default function CateNavbar() {
 }
 
 function CategorySlider({ items }: { items: CategoryI[] }) {
+	const { t } = useLanguage();
 	return (
 		<div className="relative w-full">
 			{/* Edge fade */}
@@ -78,7 +81,7 @@ function CategorySlider({ items }: { items: CategoryI[] }) {
 						nextEl: ".cate-next-1",
 						prevEl: ".cate-prev-1",
 					}}
-					dir="rtl"
+					
 					slidesPerView="auto"
 					spaceBetween={6}
 					freeMode={{ enabled: true, sticky: false, momentumBounce: true }}
@@ -94,7 +97,7 @@ function CategorySlider({ items }: { items: CategoryI[] }) {
 								"bg-slate-100 text-slate-800 hover:bg-slate-200 transition"
 							)}
 						>
-							كل التصنيفات
+							{t("Allcategories")}
 						</Link>
 					</SwiperSlide>
 					<SwiperSlide className="!w-auto">
@@ -105,7 +108,7 @@ function CategorySlider({ items }: { items: CategoryI[] }) {
 								"bg-slate-100 text-slate-800 hover:bg-slate-200 transition"
 							)}
 						>
-							كل المنتجات
+							{t("Allproducts")}
 						</Link>
 					</SwiperSlide>
 

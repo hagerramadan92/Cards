@@ -6,8 +6,8 @@ import { BiChevronDown } from "react-icons/bi";
 import { useLanguage } from "@/src/context/LanguageContext";
 
 const currencies = [
-	{ code: "EGP", name: "جنية", symbol: "ج.م" },
-	{ code: "USD", name: "دولار", symbol: "$" },
+	{ code: "EGP", name: "EGP", symbol: "EG" },
+	{ code: "USD", name: "USD", symbol: "$" },
 ];
 
 export default function CurrencySelector() {
