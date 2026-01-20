@@ -65,7 +65,7 @@ export default function coupons() {
 	};
 
 	return (
-		<div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 md:p-6">
+		<div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 md:p-6 md:mt-0 mt-5">
 			<div className="mb-6">
 				<h1 className="text-xl md:text-2xl font-semibold text-slate-900 mb-4">{t("my_coupons")}</h1>
 				

@@ -122,7 +122,7 @@ export default function Page() {
 	}, [q]);
 
 	return (
-		<div className="space-y-3">
+		<div className="space-y-3 md:mt-0 mt-5">
 		
 
 		{/* Support Tickets Section */}

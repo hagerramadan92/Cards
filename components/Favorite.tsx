@@ -22,7 +22,7 @@ export default function Favorite() {
 	if (favoriteProductsLoading) return <FavoriteSkeleton count={8} />;
 
 	return (
-		<div>
+		<div className="mb-6 md:mt-0 mt-5 shadow-sm rounded-xl border border-slate-200 p-2 md:p-4">
 			<div className="mb-6">
 				<div className="flex items-center justify-between gap-3 mb-4">
 					<div>

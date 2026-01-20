@@ -98,7 +98,12 @@ export default function SearchNavbar() {
 							<LanguageSelector />
 						</div>
 						{/* Auth */}
-					{status !== "authenticated" && !authToken ? (
+					{status === "loading" ? (
+						// عرض مؤشر تحميل أثناء الانتظار
+						<div className="inline-flex items-center justify-center rounded-lg bg-gray-100 px-3 py-2 md:px-4 md:py-2.5">
+							<div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-pro"></div>
+						</div>
+					) :status !== "authenticated" && !authToken ? (
 						<Link
 							href="/login"
 							className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg bg-gray-100 text-pro px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-extrabold shadow-sm hover:opacity-95 active:scale-[0.99] transition"

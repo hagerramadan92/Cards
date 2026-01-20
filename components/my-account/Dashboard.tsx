@@ -46,13 +46,12 @@ function DashboardItemCard({ item }: { item: DashboardItem }) {
 	return (
 		<Link 
 			href={item.href} 
-			className='bg-white rounded-xl border border-slate-200 p-4 flex flex-col items-center justify-center gap-2 shadow-sm hover:shadow-md hover:border-pro transition-all duration-300 group'
+			className='bg-white rounded-xl border border-slate-200 p-3 md:p-4 flex flex-col items-center justify-center gap-2 shadow-sm hover:shadow-md hover:border-pro transition-all duration-300 group'
 		>
 		<Icon 
-			size={24} 
-			className='text-pro-max group-hover:scale-110 transition-transform duration-300' 
+			className='text-pro-max group-hover:scale-110 transition-transform duration-300 w-5 h-5 md:w-6 md:h-6' 
 		/>
-			<span className='text-sm font-semibold text-slate-700 group-hover:text-pro transition-colors'>
+			<span className='text-xs md:text-sm font-semibold text-slate-700 group-hover:text-pro transition-colors text-center'>
 				{item.label}
 			</span>
 		</Link>
@@ -325,104 +324,106 @@ function LevelModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
 	);
 }
 
+
+
 export default function Dashboard() {
 	const [showLevelModal, setShowLevelModal] = useState(false);
 
 	return (
-		<div>
+		<div className=" md:mt-0 mt-5">
 			<div className='bg-white border border-slate-200 rounded-xl shadow-sm'>
-			<h1 className='text-2xl md:text-3xl text-pro font-semibold mb-4 ps-4  pt-4'>
+			<h1 className='text-lg md:text-3xl text-pro font-semibold mb-3 md:mb-4 ps-3 md:ps-4 pt-3 md:pt-4'>
 				لوحة التحكم الخاصة بي
 			</h1>
 
 			{/* Points Card */}
-			<div className='relative gradient-blue-background text-white rounded-lg flex flex-col gap-2 py-4'>
-				<div className='flex items-end gap-0.5 px-2 md:px-6'>
-					<h1 className='text-2xl md:text-3xl font-bold'>0</h1>
-					<span>نقاط</span>
+			<div className='relative gradient-blue-background text-white rounded-lg flex flex-col gap-2 py-3 md:py-4 mx-3 md:mx-4 mb-3 md:mb-4'>
+				<div className='flex items-end gap-0.5 px-3 md:px-6'>
+					<h1 className='text-xl md:text-3xl font-bold'>0</h1>
+					<span className='text-xs md:text-base'>نقاط</span>
 				</div>
 
-				<div className='flex items-center px-2 md:px-6 gap-2'>
-					<div className='flex items-center gap-0.5 mt-2 bg-white rounded-full px-1 py-0.5 w-fit'>
+				<div className='flex items-center px-3 md:px-6 gap-2'>
+					<div className='flex items-center gap-0.5 mt-1 md:mt-2 bg-white rounded-full px-1 py-0.5 w-fit'>
 						<Image
 							src='/images/diamond.svg'
 							alt='blue-points'
-							width={18}
-							height={18}
-							className='w-[18px] h-[18px]'
+							width={16}
+							height={16}
+							className='w-[14px] h-[14px] md:w-[18px] md:h-[18px]'
 						/>
-						<p className='text-xs text-pro font-bold me-1'>الأزرق</p>
+						<p className='text-[10px] md:text-xs text-pro font-bold me-1'>الأزرق</p>
 					</div>
 					<button
 						onClick={() => setShowLevelModal(true)}
-						className='flex items-center gap-0 mt-2 rounded-full px-1 py-0.5 w-fit hover:opacity-80 transition-opacity cursor-pointer'
+						className='flex items-center gap-0 mt-1 md:mt-2 rounded-full px-1 py-0.5 w-fit hover:opacity-80 transition-opacity cursor-pointer'
 					>
-						<p className='text-xs md:text-sm'>تعرف على المميزات</p>
-						<MdKeyboardArrowLeft size={26} />
+						<p className='text-[10px] md:text-sm'>تعرف على المميزات</p>
+						<MdKeyboardArrowLeft className='w-4 h-4 md:w-6 md:h-6' />
 					</button>
 				</div>
 
 				{/* Level Progress Bar */}
-				<div className='flex items-center gap-0.5 px-2'>
+				<div className='flex items-center gap-0.5 px-3 md:px-4 mt-1'>
 					<Image
 						src='/images/diamond.svg'
 						alt='blue-diamond'
-						width={18}
-						height={16}
-						className='w-[18px] h-[16px]'
+						width={16}
+						height={14}
+						className='w-[14px] h-[12px] md:w-[18px] md:h-[16px]'
 					/>
-					<div className='bg-[#0000001c] w-full h-[4px]'></div>
+					<div className='bg-[#0000001c] w-full h-[3px] md:h-[4px]'></div>
 					<Image
 						src='/images/silver-diamond.svg'
 						alt='silver-diamond'
-						width={18}
-						height={21}
-						className='w-[18px] h-[21px]'
+						width={16}
+						height={18}
+						className='w-[14px] h-[16px] md:w-[18px] md:h-[21px]'
 					/>
 				</div>
 
 				{/* Buy and Level Up */}
-				<div className='flex items-center gap-0.5 px-2 md:px-6'>
-					<p className='text-xs md:text-sm opacity-50 me-1 '>
-						اشتري بقيمة 25793 ج.م و وارتقي لـ
+				<div className='flex items-center gap-0.5 px-3 md:px-6 mt-1'>
+					<p className='text-[10px] md:text-sm opacity-50 me-1 line-clamp-1'>
+						اشتري بقيمة 25793 ج.م لترتقي لـ
 					</p>
 					<button
 						onClick={() => setShowLevelModal(true)}
-						className='flex items-center md:gap-0.5 hover:opacity-80 transition-opacity cursor-pointer'
+						className='flex items-center md:gap-0.5 hover:opacity-80 transition-opacity cursor-pointer flex-shrink-0'
 					>
-						<p className='text-xs md:text-sm font-bold whitespace-nowrap'>المستوى الفضي</p>
-						<MdKeyboardArrowLeft size={20} className='hidden sm:block'/>
+						<p className='text-[10px] md:text-sm font-bold whitespace-nowrap'>المستوى الفضي</p>
+						<MdKeyboardArrowLeft size={18} className='hidden sm:block'/>
 					</button>
 				</div>
 
 				{/* Decorative Diamond */}
-				<div className='absolute top-[-28px] end-[28px]'>
+				<div className='absolute top-[-15px] end-[15px] md:top-[-28px] md:end-[28px]'>
 					<Image 
 						src="/images/blue-diamond.svg" 
 						alt="level-up" 
-						width={115} 
-						height={105}
-						className='w-[115px] h-[105px]' 
+						width={80} 
+						height={70}
+						className='w-[60px] h-[55px] md:w-[115px] md:h-[105px]' 
 					/>
 				</div>
 			</div>
 			</div>
 
 			{/* Dashboard Items Grid */}
-			<div className='grid grid-cols-2 md:grid-cols-4 gap-4 mt-6'>
+			<div className='grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mt-4 md:mt-6'>
 				{DASHBOARD_ITEMS.map((item, index) => (
 					<DashboardItemCard key={index} item={item} />
 				))}
 			</div>
 			{/* Finance Section */}
-			<div className='mt-8 bg-white rounded-xl pb-3 border border-slate-200 shadow-sm overflow-hidden'>
+			<div className='mt-6 md:mt-8 bg-white rounded-xl pb-3 border border-slate-200 shadow-sm overflow-hidden'>
 				{/* Header and Balance */}
-				<div className='px-5 py-4 border-b border-slate-100'>
-					<div className='flex items-center justify-between mb-4'>
-						<h2 className='text-base font-semibold text-slate-500'>رصيد لايك كارد</h2>
+				<div className='px-4 py-3 md:px-5 md:py-4 border-b border-slate-100'>
+					<div className='flex items-center justify-between mb-3 md:mb-4'>
+						<h2 className='text-sm md:text-base font-semibold text-slate-500'>رصيد لايك كارد</h2>
 						<Link 
 							href="/myAccount/finance"
-							className='text-sm font-medium text-pro-max hover:text-pro-max transition-colors flex items-center gap-1.5'
+							className='text-xs md:text-sm font-medium text-pro-max hover:text-pro-max transition-colors flex items-center gap-1.5'
 						>
 							عرض المعاملات
 							<MdKeyboardArrowLeft size={18} className='hidden sm:block'/>
@@ -430,8 +431,8 @@ export default function Dashboard() {
 					</div>
 					{/* Current Balance */}
 					<div className='flex items-baseline gap-2'>
-						<p className='text-3xl font-bold text-slate-900'>0.00</p>
-						<p className='text-sm text-slate-500 font-medium'>ج.م</p>
+						<p className='text-2xl md:text-3xl font-bold text-slate-900'>0.00</p>
+						<p className='text-xs md:text-sm text-slate-500 font-medium'>ج.م</p>
 					</div>
 				</div>
 
@@ -443,34 +444,34 @@ export default function Dashboard() {
 					{/* Categories Section */}
 					<Link 
 						href="/myAccount/finance/categories"
-						className='p-2 flex flex-col items-center gap-3 bg-white hover:bg-slate-50 transition-all duration-200 group'
+						className='p-2 flex flex-col items-center gap-2 md:gap-3 bg-white hover:bg-slate-50 transition-all duration-200 group'
 					>
-						<div className='w-7 h-7 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors'>
-							<FaList className='text-pro-max' size={16} />
+						<div className='w-6 h-6 md:w-7 md:h-7 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors'>
+							<FaList className='text-pro-max w-3 h-3 md:w-4 md:h-4' />
 						</div>
-						<span className='text-sm font-semibold text-pro-max group-hover:text-pro-max transition-colors'>القسائم</span>
+						<span className='text-xs md:text-sm font-semibold text-pro-max group-hover:text-pro-max transition-colors'>القسائم</span>
 					</Link>
 
 					{/* Charge Wallet Section */}
 					<Link 
 						href="/myAccount/finance/charge"
-						className='p-2 flex flex-col items-center gap-3 bg-white hover:bg-slate-50 transition-all duration-200 group'
+						className='p-2 flex flex-col items-center gap-2 md:gap-3 bg-white hover:bg-slate-50 transition-all duration-200 group'
 					>
-						<div className='w-7 h-7 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors'>
-							<FaWallet className='text-pro-max' size={16} />
+						<div className='w-6 h-6 md:w-7 md:h-7 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors'>
+							<FaWallet className='text-pro-max w-3 h-3 md:w-4 md:h-4' />
 						</div>
-						<span className='text-sm font-semibold text-pro-max group-hover:text-pro-max transition-colors'>تعبئة الرصيد</span>
+						<span className='text-xs md:text-sm font-semibold text-pro-max group-hover:text-pro-max transition-colors'>تعبئة الرصيد</span>
 					</Link>
 
 					{/* Pay Section */}
 					<Link 
 						href="/myAccount/finance/pay"
-						className='p-2 flex flex-col items-center gap-3 bg-white hover:bg-slate-50 transition-all duration-200 group'
+						className='p-2 flex flex-col items-center gap-2 md:gap-3 bg-white hover:bg-slate-50 transition-all duration-200 group'
 					>
-						<div className='w-7 h-7 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors'>
-							<FaCreditCard className='text-pro-max' size={16} />
+						<div className='w-6 h-6 md:w-7 md:h-7 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors'>
+							<FaCreditCard className='text-pro-max w-3 h-3 md:w-4 md:h-4' />
 						</div>
-						<span className='text-sm font-semibold text-pro-max group-hover:text-pro-max transition-colors'>رابط الدفع</span>
+						<span className='text-xs md:text-sm font-semibold text-pro-max group-hover:text-pro-max transition-colors'>رابط الدفع</span>
 					</Link>
 				</div>
 			</div>

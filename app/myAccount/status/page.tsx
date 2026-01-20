@@ -42,7 +42,7 @@ export default function StatusPage() {
 	}, [authToken]);
 
 	return (
-		<div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+		<div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 md:mt-0 mt-5">
 			<h1 className="text-2xl md:text-3xl font-black text-slate-900 mb-6">الاحالة الخاصة بي</h1>
 			
 			{loading ? (

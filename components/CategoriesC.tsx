@@ -32,6 +32,11 @@ export default function CategoriesSlider({
 	const { direction, t } = useLanguage();
 	const isRTL = direction === 'rtl';
 
+	// Drag to scroll state
+	const [isDragging, setIsDragging] = useState(false);
+	const [startX, setStartX] = useState(0);
+	const [scrollLeftState, setScrollLeftState] = useState(0);
+
 	const items = useMemo(() => categories ?? [], [categories]);
 	// Limit to 8 items for display
 	const displayedItems = useMemo(() => items.slice(0, 12), [items]);
@@ -190,8 +195,37 @@ export default function CategoriesSlider({
 					ref={scrollContainerRef}
 					id="all_cate"
 					dir={isRTL ? "rtl" : "ltr"}
-					className="flex-1 flex overflow-x-auto gap-1 scrollbar-light scroll-smooth"
+					className="flex-1 flex overflow-x-hidden gap-1 scrollbar-light scroll-smooth cursor-grab active:cursor-grabbing select-none"
 					onScroll={checkScrollability}
+					onMouseDown={(e) => {
+						const container = scrollContainerRef.current;
+						if (!container) return;
+						container.style.scrollBehavior = "auto"; // Disable smooth scroll during drag
+						setIsDragging(true);
+						setStartX(e.pageX - container.offsetLeft);
+						setScrollLeftState(container.scrollLeft);
+					}}
+					onMouseLeave={() => {
+						setIsDragging(false);
+						if (scrollContainerRef.current) {
+							scrollContainerRef.current.style.scrollBehavior = "smooth";
+						}
+					}}
+					onMouseUp={() => {
+						setIsDragging(false);
+						if (scrollContainerRef.current) {
+							scrollContainerRef.current.style.scrollBehavior = "smooth";
+						}
+					}}
+					onMouseMove={(e) => {
+						if (!isDragging) return;
+						e.preventDefault();
+						const container = scrollContainerRef.current;
+						if (!container) return;
+						const x = e.pageX - container.offsetLeft;
+						const walk = (x - startX) * 2; // Scroll speed multiplier
+						container.scrollLeft = scrollLeftState - walk;
+					}}
 				>
 					{displayedItems.map((cat) => (
 					<div key={cat.id} className="flex-shrink-0 m-1 md:m-2">
@@ -199,6 +233,10 @@ export default function CategoriesSlider({
 							href={`/category/${cat.id}`}
 							aria-label={`Go to ${cat.name}`}
 							className="fast-buy-item py-0"
+							onClick={(e) => {
+								// Prevent click if we were dragging
+								if (isDragging) e.preventDefault();
+							}}
 						>
 							<div
 								className={cn(
@@ -221,11 +259,12 @@ export default function CategoriesSlider({
 										alt={cat.name}
 										fill
 										className="object-contain transition duration-300 group-hover:scale-[1.06]  w-[140px] h-[48px]"
+										draggable={false}
 									/>
 									{/* overlay gradient */}
 									<div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition" />
 								</div>
-
+ 
 								{/* Category Name */}
 								<p className="text-[11px] md:text-[13px] font-extrabold pb-1 sm:pb-2 text-slate-700 text-center leading-tight line-clamp-2 group-hover:text-pro transition px-1 flex-shrink-0">
 								{cat.name.length > 15 ? `${cat.name.substring(0, 15)}...` : cat.name}

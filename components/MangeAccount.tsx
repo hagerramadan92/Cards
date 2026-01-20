@@ -369,7 +369,7 @@ export default function MangeAccount() {
 	}
 
 	return (
-		<div className="space-y-6 max-w-4xl">
+		<div className="space-y-6 max-w-4xl md:mt-0 mt-5">
 			{/* Account Card */}
 			<section className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
 				<div className="p-5 md:p-6 border-b border-slate-200">

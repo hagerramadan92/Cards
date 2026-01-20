@@ -216,7 +216,7 @@ export default function Orders() {
 	if (loading) return <OrdersSkeleton count={4} />;
 
 	return (
-		<div dir="rtl" className="space-y-5">
+		<div  className="space-y-5 md:mt-0 mt-5">
 			{/* Empty state */}
 			{orders.length === 0 ? (
 				<div className=" mt-12 flex items-center flex-col">
@@ -326,7 +326,7 @@ export default function Orders() {
 										href={`/myAccount/${order.id}`}
 										className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden hover:shadow-md hover:border-pro transition-all duration-200 cursor-pointer"
 									>
-										<div className="p-4 flex items-center gap-4">
+										<div className="p-4 flex  md:items-center gap-2 md:gap-4">
 											{/* Image */}
 											<div className="flex-shrink-0">
 												<Image
@@ -341,17 +341,17 @@ export default function Orders() {
 											{/* Order Info */}
 											<div className="flex-1 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
 												<div className="space-y-2">
-													<p className="text-slate-900 font-bold text-base">
+													<p className="text-slate-900 font-bold text-xs md:text-sm">
 														{t('order_id')}: <span className="font-extrabold">{order.order_number}</span>
 													</p>
-													<p className="text-slate-700 font-semibold text-sm">
+													<p className="text-slate-700 font-semibold text-xs md:text-sm">
 														{t('total_paid')}: <span className="font-extrabold text-pro-max">{order.formatted_total}</span>
 													</p>
 												</div>
 
 												{/* Status */}
 												<div className="flex-shrink-0">
-													<span className={`inline-flex px-4 py-2 rounded-lg text-sm font-bold ${status.cls}`}>
+													<span className={`inline-flex px-4 py-2 rounded-lg text-xs md:text-sm font-bold ${status.cls}`}>
 														{status.label}
 													</span>
 												</div>

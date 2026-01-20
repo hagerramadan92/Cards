@@ -139,13 +139,7 @@ export default function Home() {
 						<CategoriesSlider categories={parentCategories} title={t('popular_categories')}/>
 					)}
 				</div>
-				{/* <div className="container max-md:overflow-hidden w-full  ">
-					{loadingCategories ? (
-						<CategoriesSliderSkeleton />
-					) : (
-						<CategoriesSlider categories={parentCategories} />
-					)}
-				</div> */}
+			
 				{appear_in_home_categories2.map((categoriess , index)=>(
 					<div className="container max-md:overflow-hidden w-full  " key={index}>
 					{loadingCategories ? (

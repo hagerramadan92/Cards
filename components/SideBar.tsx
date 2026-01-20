@@ -225,7 +225,7 @@ export default function SideBar({ active }: SideBarProps) {
 	return (
 		<>
 			{/* Mobile Toggle Button (Visible only on small screens) */}
-			<div className="lg:hidden fixed top-32 right-0 z-[40]">
+			<div className="lg:hidden fixed top-30 right-0 z-[40] mb-90">
 				<button
 					onClick={() => setIsMobileOpen(true)}
 					className="flex items-center gap-2 px-3 py-2 bg-pro-max text-white rounded-l-xl shadow-lg hover:bg-pro-max/90 transition-all font-semibold"
@@ -251,6 +251,7 @@ export default function SideBar({ active }: SideBarProps) {
 			{/* Sidebar Container */}
 			<aside
 				className={`
+					
 					bg-white rounded-2xl shadow-sm border border-slate-200 p-4
 					fixed inset-y-0 right-0 z-[100000] w-[280px] overflow-y-auto duration-300 ease-in-out transform
 					lg:translate-x-0 lg:static lg:w-full lg:z-auto lg:h-fit lg:overflow-visible
@@ -258,7 +259,8 @@ export default function SideBar({ active }: SideBarProps) {
 				`}
 			>
 				{/* Mobile Header (Close Button) */}
-				<div className="lg:hidden flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+				<div className="lg:hidden flex items-center justify-between mt-[2.5rem]
+				 pb-4 border-b border-slate-100">
 					<h3 className="font-bold text-lg text-slate-900">القائمة</h3>
 					<button
 						onClick={() => setIsMobileOpen(false)}
@@ -271,7 +273,7 @@ export default function SideBar({ active }: SideBarProps) {
 				<div className="flex flex-col items-center mb-2">
 					<div className="relative group mb-4">
 						{/* Image Container with Border and Shadow - Medium Size */}
-						<div className="relative w-[100px] h-[100px] rounded-full overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 p-0.5 shadow-md group-hover:shadow-lg transition-all duration-300">
+						<div className="relative w-[80px] h-[80px] md:w-[100px] md:h-[100px] rounded-full overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 p-0.5 shadow-md group-hover:shadow-lg transition-all duration-300">
 							<div className="relative w-full h-full rounded-full overflow-hidden bg-white">
 								<div className="relative w-full h-full">
 									<Image
@@ -336,7 +338,7 @@ export default function SideBar({ active }: SideBarProps) {
 							<>
 								{/* Icon with orange background when active */}
 								<div className={`p-1.25 rounded-lg
-                  ${isActive
+                					  ${isActive
 										? "bg-orange-500   shadow-md"
 										: ""
 									}
@@ -345,12 +347,12 @@ export default function SideBar({ active }: SideBarProps) {
 									<Icon
 										size={18}
 										className={`
-                    transition-colors
-                    ${isActive
+											transition-colors
+											${isActive
 												? "text-white"
 												: "text-slate-400 group-hover:text-slate-600"
 											}
-                  `}
+               	   `}
 									/>
 								</div>
 
@@ -361,7 +363,7 @@ export default function SideBar({ active }: SideBarProps) {
 								<span
 									className={`
 									transition-all duration-300
-                    ${isActive
+                    					${isActive
 											? "opacity-100 translate-x-0 text-pro-max"
 											: "opacity-0 -translate-x-1 text-slate-400 group-hover:opacity-100 group-hover:translate-x-0"
 										}
@@ -378,14 +380,14 @@ export default function SideBar({ active }: SideBarProps) {
 									<button
 										onClick={item.action}
 										className={`
-                    group relative flex items-center ${isDeleteOrLogout ? "gap-0" : "gap-3"} rounded-xl px-4 py-3 w-full
-                    text-[0.95rem] font-semibold transition-all duration-300
-                    focus:outline-none focus-visible:ring-2 focus-visible:ring-pro
-                    ${isLogout
-												? "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
-												: "text-slate-600 hover:bg-red-50 hover:text-red-600"
-											}
-                  `}
+										group relative flex items-center ${isDeleteOrLogout ? "gap-0" : "gap-1"} rounded-xl px-4 py-3 w-full
+										text-[0.95rem] font-semibold transition-all duration-300
+										focus:outline-none focus-visible:ring-2 focus-visible:ring-pro
+										${isLogout
+																	? "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+																	: "text-slate-600 hover:bg-red-50 hover:text-red-600"
+																}
+									`}
 									>
 										{content}
 									</button>
@@ -393,13 +395,13 @@ export default function SideBar({ active }: SideBarProps) {
 									<Link
 										href={item.href}
 										className={`
-                    group relative flex items-center gap-3 rounded-xl px-4 py-3
-                    text-[0.95rem] font-semibold transition-all duration-300
-                    focus:outline-none focus-visible:ring-2 focus-visible:ring-pro
-                    ${isActive
-												? "bg-white text-slate-900 shadow-sm"
-												: "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-											}
+									group relative flex items-center gap-3 rounded-xl md:px-4 md:py-3 p-2
+									text-[0.95rem] font-semibold transition-all duration-300
+									focus:outline-none focus-visible:ring-2 focus-visible:ring-pro
+									${isActive
+																? "bg-white text-slate-900 shadow-sm"
+																: "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+															}
                   `}
 									>
 										{content}
