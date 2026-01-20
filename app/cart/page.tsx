@@ -1483,7 +1483,7 @@ function TotalOrder({
 	const formattedCoupon = n(couponDiscount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 	return (
-		<div className="my-4 gap-2 flex flex-col">
+		<div className="my-1 gap-2 flex flex-col">
 			<div className="flex text-sm items-center justify-between text-black">
 				<p className="font-semibold">{t('summary_total').replace('{count}', String(items?.length)).replace('{items}', t('items'))}</p>
 				<p>
@@ -1503,7 +1503,7 @@ function TotalOrder({
 				</div>
 			)}
 
-			<div className="flex items-center justify-between text-sm">
+			{/* <div className="flex items-center justify-between text-sm">
 				<p>{t('tax')}</p>
 				<p className="font-semibold">
 					{formattedTax}
@@ -1517,7 +1517,7 @@ function TotalOrder({
 					{formattedTotalWithoutTax}
 					<span className="text-sm ms-1">{t('currency')}</span>
 				</p>
-			</div>
+			</div> */}
 
 			<div className="flex items-center justify-between pb-3 pt-2">
 				<div className="flex gap-1 items-center">

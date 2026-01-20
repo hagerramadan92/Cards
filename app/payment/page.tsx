@@ -133,7 +133,7 @@ function SummaryBlock({ summary }: { summary: CheckoutSummaryV1 | null }) {
 				</div>
 			)}
 
-			<div className="flex items-center justify-between text-sm">
+			{/* <div className="flex items-center justify-between text-sm">
 				<p>ضريبة القيمة المضافة ({Math.round(n(summary?.tax_rate) * 100) || 15}%)</p>
 				<p className="font-semibold">
 					{money(summary?.tax_amount)}
@@ -147,7 +147,7 @@ function SummaryBlock({ summary }: { summary: CheckoutSummaryV1 | null }) {
 					{money(summary?.total_without_tax)}
 					<span className="text-sm ms-1">جنية</span>
 				</p>
-			</div>
+			</div> */}
 
 			<div className="flex items-center justify-between pb-3 pt-2">
 				<div className="flex gap-1 items-center">
