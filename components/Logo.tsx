@@ -22,7 +22,7 @@ export default function Logo({
 		
 			href={href}
 			className={`inline-flex items-center gap-2 select-none ${className}`}
-			aria-label="لايك كارد"
+			aria-label=" كارد"
 		>
 			{/* Logo */}
 			<motion.div
@@ -45,18 +45,18 @@ export default function Logo({
 			</motion.div>
 
 			{/* Names */}
-			<div className="hidden sm:flex flex-col leading-tight ">
+			<div className="flex flex-col leading-tight ">
 				<motion.div
 					initial={{ opacity: 0, x: 10 }}
 					animate={{ opacity: 1, x: 0 }}
 					transition={{ duration: 0.45, ease: "easeOut", delay: 0.05 }}
 					className="flex flex-col "
 				>
-					<span className="font-ar whitespace-nowrap  font-extrabold text-slate-900 max-md:text-base text-lg">
+					<span className="font-ar whitespace-nowrap  font-extrabold text-slate-900 md:text-lg text-sm">
 						{t("logo")}
 					</span>
 
-					<span className=" mt-[-3px] whitespace-nowrap font-en font-bold text-slate-500 text-[9px] max-md:text-xs tracking-wide text-pro-max">
+					<span className=" mt-[-1px] md:mt-[-3px] whitespace-nowrap font-en font-bold text-slate-500 text-[7px] md:text-xs tracking-wide text-pro-max">
 						{t("logoTagline")}
 					</span>
 				</motion.div>

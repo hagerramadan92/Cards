@@ -108,13 +108,12 @@ export default function LanguageSelector() {
       }
 
       const data = await response.json();
-      console.log("Language preference updated:", data);
+   
       
       return data;
     } catch (error) {
       console.warn("Could not update server language preference, using client-side only");
-      // لا ترمي الخطأ إذا فشل تحديث الخادم
-      // لأن تغيير اللغة يعمل على العميل على أي حال
+    
     }
   };
 
@@ -125,11 +124,7 @@ export default function LanguageSelector() {
     if (typeof window !== "undefined") {
       const langName = languages.find(l => l.code === langCode)?.name || langCode;
       
-      // استخدم مكتبة toast مثل react-toastify أو sonner
-      console.log(`Language changed to ${langName}`);
-      
-      // أو استخدم alert بسيط للتطوير
-      // alert(`Language changed to ${langName}`);
+
     }
   };
 
