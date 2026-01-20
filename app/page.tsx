@@ -166,30 +166,30 @@ export default function Home() {
 							if (!hasProducts) return null;
 
 							const banner =
-								category.category_banners?.[0]?.image ?? "/images/d4.jpg";
+								category.category_banners?.[0]?.image ?? "/images/cover2.png";
 
 							return (
 								<section
 									key={category.id}
 									className="rounded-[10px_10px_0_0] md:rounded-3xl md:border md:border-gray-100 !bg-gray-50/50 overflow-hidden"
 								>
-									<div className="relative w-full p-3">
-										{/* <Image
+									<div className="relative w-full p-3 h-29">
+										<Image
 											src={banner}
 											alt={category.name}
 											fill
 											className="object-cover"
 											priority={false}
-										/> */}
-										{/* <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" /> */}
+										/>
+										<div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
 										<div className=" flex items-end justify-between">
-											<h2 className="text-dark-gray-pro text-lg md:text-2xl  drop-shadow">
+											<h2 className="text-white text-lg md:text-2xl  drop-shadow">
 												{category.name} 
 											</h2>
 
 											<Link
 												href={`/category/${category.id}`}
-												className="text-pro-max text-sm md:text-base font-semibold px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 transition"
+												className="text-white z-7 text-sm md:text-base font-semibold px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 transition"
 											>
 												{t('view_all')}
 											</Link>
@@ -248,6 +248,7 @@ export default function Home() {
 						</button>
 					</div>
 				)}
+			
  
            
 			</div>

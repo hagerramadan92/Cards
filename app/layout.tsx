@@ -102,7 +102,12 @@ export default function RootLayout({
 							<LayoutShell>{children}</LayoutShell>
 							{/* <div className=" min-h-[80vh] pt-[90px] lg:pt-[140px]"></div> */}
 
-							<Toaster position="top-center" />
+							<Toaster
+								position="top-center"
+								containerStyle={{
+									zIndex: 99999999,
+								}}
+							/>
 							{/* <Footer /> */}
 						</Providers>
 					</ToastProvider>
