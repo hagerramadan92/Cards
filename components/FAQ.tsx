@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { IoIosArrowDown } from "react-icons/io";
 import { FiSearch } from "react-icons/fi";
 import { AnimatePresence, motion } from "framer-motion";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 interface FAQItem {
 	id: number;
@@ -73,11 +74,17 @@ export default function FAQPage() {
 	const [q, setQ] = useState("");
 
 	const base_url = process.env.NEXT_PUBLIC_API_URL;
+	const { language } = useLanguage();
 
 	useEffect(() => {
 		const fetchFAQs = async () => {
 			try {
-				const res = await fetch(`${base_url}/faqs`, { cache: "no-store" });
+				const res = await fetch(`${base_url}/faqs`, {
+					headers: {
+						"Accept-Language": language,
+					},
+					cache: "no-store",
+				});
 				const data = await res.json();
 				if (data?.status) {
 					setFaqs(data.data || []);
@@ -97,7 +104,7 @@ export default function FAQPage() {
 		};
 
 		fetchFAQs();
-	}, [base_url]);
+	}, [base_url, language]);
 
 	const filteredFaqs = useMemo(() => {
 		const s = q.trim();

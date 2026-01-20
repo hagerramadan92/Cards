@@ -17,7 +17,12 @@ interface PageData {
 async function getPageData(slug: string): Promise<PageData | null> {
 	const res = await fetch(
 		`${process.env.NEXT_PUBLIC_API_URL}/static-pages/${slug}`,
-		{ cache: "no-store" }
+		{
+			cache: "no-store",
+			headers: {
+				"Accept-Language": "ar",
+			},
+		}
 	);
 
 	const json = await res.json();

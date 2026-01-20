@@ -35,6 +35,7 @@ const handler = NextAuth({
     async jwt({ token, account }) {
       if (account) {
         token.provider = account.provider;
+        token.provider_id = account.providerAccountId;
       }
       return token;
     },
@@ -44,6 +45,8 @@ const handler = NextAuth({
         email: token.email,
         image: token.picture ?? token.image ?? null,
         provider: token.provider as string,
+        // @ts-ignore
+        provider_id: token.provider_id,
       };
       return session;
     },

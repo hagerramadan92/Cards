@@ -69,6 +69,78 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session, status]); // intentionally not depending on userName/authToken to avoid cascades
 
+  /* ---------------------- SOCIAL LOGIN BACKEND SYNC ---------------------- */
+  useEffect(() => {
+    if (status !== "authenticated" || !session?.user) return;
+
+    const user = session.user as any;
+
+    // We need provider_id to login with backend
+    if (user.provider_id && !authToken) {
+      const syncSocialLogin = async () => {
+        const payload = {
+          provider: (user.provider || "google").toLowerCase(), // ensure lowercase
+          provider_id: String(user.provider_id), // ensure string
+          email: user.email || "",
+          name: user.name || "User",
+        };
+
+        console.log("Attempting social login...", { url: `${process.env.NEXT_PUBLIC_API_URL}/auth/social-login`, payload });
+
+        try {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/social-login`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              "Accept-Language": language || "ar",
+            },
+            body: JSON.stringify(payload),
+          });
+
+          const rawText = await res.text();
+          console.log("Social login raw response:", res.status, rawText);
+
+          if (!rawText) {
+             console.error("Empty response from social login API");
+             return;
+          }
+
+          let data;
+          try {
+             data = JSON.parse(rawText);
+          } catch (e) {
+             console.error("Failed to parse social login JSON:", e);
+             return;
+          }
+          
+          if (data.status && data.data?.token) {
+            const token = data.data.token;
+            console.log("Social login success, token received:", token);
+            
+            // ✅ Explicitly save to localStorage and state
+            localStorage.setItem("auth_token", token);
+            setAuthToken(token);
+
+            login(
+              token,
+              data.data.user.name,
+              data.data.user.email,
+              data.data.user.image,
+              data.data.user.name
+            );
+          } else {
+             console.error("Social login API returned error status or missing token:", data);
+          }
+        } catch (err) {
+          console.error("Social login network error:", err);
+        }
+      };
+
+      syncSocialLogin();
+    }
+  }, [session, status, authToken, language]);
+
   /* ---------------------- FETCH FAVORITES (MERGED: PRODUCTS + IDS) ---------------------- */
 
   useEffect(() => {
@@ -94,16 +166,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           cache: "no-store",
         });
 
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        if (!res.ok) {
+          if (res.status === 401) {
+             setAuthToken(null);
+             localStorage.removeItem("auth_token");
+             setFavoriteProducts([]);
+             return; 
+          }
+           throw new Error(`HTTP error! status: ${res.status}`);
+        }
 
         const dataJson = await res.json();
         const list = Array.isArray(dataJson?.data) ? dataJson.data : [];
 
         // Products with is_favorite flag
-        const favoritesWithFlag: ProductI[] = list.map((fav: any) => ({
-          ...fav.product,
-          is_favorite: true,
-        }));
+        const favoritesWithFlag: ProductI[] = list
+          .filter((fav: any) => fav?.product && fav.product.id)
+          .map((fav: any) => ({
+            ...fav.product,
+            is_favorite: true,
+          }));
 
         // IDs to localStorage (same request)
         const ids = list

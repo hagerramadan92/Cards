@@ -36,6 +36,7 @@ import Swal from "sweetalert2";
 import { MdKeyboardArrowLeft } from "react-icons/md";
 import { useAppContext } from "../../src/context/AppContext";
 import LoadingOverlay from "../../components/LoadingOverlay";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 function n(v: any) {
 	const x = typeof v === "string" ? Number(v) : typeof v === "number" ? v : Number(v ?? 0);
@@ -162,6 +163,7 @@ function SummaryBlock({ summary }: { summary: CheckoutSummaryV1 | null }) {
 }
 
 export default function PaymentPage() {
+	const { language } = useLanguage();
 	const [openModal, setOpenModal] = useState(false);
 	// const [showAddress, setShowAddress] = useState(false);
 	const { paymentMethods } = useAppContext() as any;
@@ -284,6 +286,7 @@ export default function PaymentPage() {
 					Authorization: `Bearer ${token}`,
 					"Content-Type": "application/json",
 					Accept: "application/json",
+					"Accept-Language": language,
 				},
 				body: JSON.stringify(orderData),
 				cache: "no-store",

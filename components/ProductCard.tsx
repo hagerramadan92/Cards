@@ -16,6 +16,7 @@ import ShowImage from './ShowImage';
 import RatingStars from './RatingStars';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/src/context/AuthContext';
+import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickViewModal from './QuickViewModal';
 import Image from 'next/image';
@@ -55,7 +56,8 @@ export default function ProductCard({
 	const { t, language } = useLanguage();
 
 	const { authToken: token, favoriteIdsSet, setFavoriteProducts, favoriteProductsLoading } = useAuth();
-		const router = useRouter();
+	const { data: session } = useSession();
+	const router = useRouter();
 	const computedIsFavorite = useMemo(() => {
 		if (favoriteProductsLoading) {
 			return is_favorite;
@@ -69,7 +71,7 @@ export default function ProductCard({
 	const inStock = (stock ?? 0) > 0;
 
 	const toggleFavorite = async (productId: number) => {
-		if (!token) {
+		if (!token && !session) {
 			toast.error(t('login')); // Use login key as placeholder for "Login required"
 			return;
 		}
@@ -108,32 +110,34 @@ export default function ProductCard({
 		} catch { }
 
 		try {
-			const res = await fetch(`${API_URL}/favorites/toggle`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Accept-Language': language,
-					Accept: 'application/json',
-					Authorization: `Bearer ${token}`,
-				},
-				body: JSON.stringify({ product_id: productId }),
-			});
-
-			const data = await res.json().catch(() => null);
-
-			if (!res.ok || !data?.status) {
-				// ✅ rollback context
-				setFavoriteProducts((prev: ProductI[]) => {
-					if (!next) {
-						if (prev.some((p) => p.id === productId)) return prev;
-						return [...prev, { id: productId } as ProductI];
-					} else {
-						return prev.filter((p) => p.id !== productId);
-					}
+			if (token) {
+				const res = await fetch(`${API_URL}/favorites/toggle`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'Accept-Language': language,
+						Accept: 'application/json',
+						Authorization: `Bearer ${token}`,
+					},
+					body: JSON.stringify({ product_id: productId }),
 				});
 
-				toast.error(data?.message || t('error_loading'));
-				return;
+				const data = await res.json().catch(() => null);
+
+				if (!res.ok || !data?.status) {
+					// ✅ rollback context
+					setFavoriteProducts((prev: ProductI[]) => {
+						if (!next) {
+							if (prev.some((p) => p.id === productId)) return prev;
+							return [...prev, { id: productId } as ProductI];
+						} else {
+							return prev.filter((p) => p.id !== productId);
+						}
+					});
+
+					toast.error(data?.message || t('error_loading'));
+					return;
+				}
 			}
 		} catch {
 			// ✅ rollback context
@@ -153,7 +157,8 @@ export default function ProductCard({
 	const { addToCart } = useCart();
 
 	const handleAddToCart = async () => {
-		if (!token) {
+		// allow if token exists OR session exists
+		if (!token && !session) {
 			toast.error(t('login'));
 			return;
 		}
@@ -163,14 +168,6 @@ export default function ProductCard({
 
 		await addToCart(id, {
 			quantity: 1,
-			// size_id: selectedSizeId ?? null,
-			// color_id: selectedColorId ?? null,
-			// printing_method_id: selectedPrintingMethodId ?? null,
-			// print_locations: selectedPrintLocations.length ? selectedPrintLocations : [],
-			// embroidered_locations: selectedEmbroiderLocations.length ? selectedEmbroiderLocations : [],
-			// selected_options: selectedOptions.length ? selectedOptions : [],
-			// design_service_id: selectedDesignServiceId ?? null,
-			// is_sample: isSample,
 		});
 
 		setIsAdding(false);

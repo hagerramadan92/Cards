@@ -74,10 +74,10 @@ export default function Favorite() {
 					{/* Cards View */}
 					{viewType === "cards" && (
 						<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-5">
-							{favoriteProducts.map((product: any) => (
+							{favoriteProducts.map((product: any, index: number) => (
 								<ProductCard
 									product={product}
-									key={product.id}
+									key={`${product.id}-${index}`}
 									{...product}
 									onFavoriteChange={() => removeFavoriteLocally(product.id)}
 									Bottom="bottom-41"

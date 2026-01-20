@@ -1,6 +1,8 @@
+
 import Image from "next/image";
 import BlogSlider from "./BlogSlider";
 import { Article } from "./BlogCard";
+// import { useLanguage } from "@/src/context/LanguageContext";
 
 type CategoryWithArticles = {
   id: number;
@@ -13,11 +15,16 @@ type CategoryWithArticles = {
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 async function apiGet<T>(path: string): Promise<T | null> {
+	// const { language } = useLanguage();
   if (!API_URL) return null;
-
-  const res = await fetch(`${API_URL}${path}`, { cache: "no-store" });
+ 
+  const res = await fetch(`${API_URL}${path}`, {
+		cache: "no-store",
+		headers: {
+			"Accept-Language": "en",
+		},
+	});
   const json = await res.json().catch(() => null);
   if (!res.ok || !json?.status) return null;
 
@@ -25,6 +32,7 @@ async function apiGet<T>(path: string): Promise<T | null> {
 }
 
 export default async function BlogsPage() {
+	// const { language } = useLanguage();
   const [featuredRes, popularRes, catsRes] = await Promise.all([
     apiGet<{ status: boolean; data: Article[] }>("/articles/featured"),
     apiGet<{ status: boolean; data: Article[] }>("/articles/popular"),
