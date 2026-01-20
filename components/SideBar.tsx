@@ -214,9 +214,59 @@ export default function SideBar({ active }: SideBarProps) {
 		},
 	];
 
+	/* ---------------- MOBILE TOGGLE ---------------- */
+	const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+	// Close mobile sidebar when pathname changes
+	useEffect(() => {
+		setIsMobileOpen(false);
+	}, [pathname]);
+
 	return (
 		<>
-			<aside className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+			{/* Mobile Toggle Button (Visible only on small screens) */}
+			<div className="lg:hidden fixed top-32 right-0 z-[40]">
+				<button
+					onClick={() => setIsMobileOpen(true)}
+					className="flex items-center gap-2 px-3 py-2 bg-pro-max text-white rounded-l-xl shadow-lg hover:bg-pro-max/90 transition-all font-semibold"
+				>
+					<List className="w-5 h-5" />
+					<span className="text-sm">القائمة</span>
+				</button>
+			</div>
+
+			{/* Mobile Overlay */}
+			<AnimatePresence>
+				{isMobileOpen && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						onClick={() => setIsMobileOpen(false)}
+						className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[99999] lg:hidden"
+					/>
+				)}
+			</AnimatePresence>
+
+			{/* Sidebar Container */}
+			<aside
+				className={`
+					bg-white rounded-2xl shadow-sm border border-slate-200 p-4
+					fixed inset-y-0 right-0 z-[100000] w-[280px] overflow-y-auto duration-300 ease-in-out transform
+					lg:translate-x-0 lg:static lg:w-full lg:z-auto lg:h-fit lg:overflow-visible
+					${isMobileOpen ? "translate-x-0" : "translate-x-full"}
+				`}
+			>
+				{/* Mobile Header (Close Button) */}
+				<div className="lg:hidden flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+					<h3 className="font-bold text-lg text-slate-900">القائمة</h3>
+					<button
+						onClick={() => setIsMobileOpen(false)}
+						className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
+					>
+						<FaTimes size={18} />
+					</button>
+				</div>
 				{/* Profile Image Section */}
 				<div className="flex flex-col items-center mb-2">
 					<div className="relative group mb-4">

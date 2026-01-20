@@ -14,13 +14,13 @@ export default function MyAccountLayout({
   const active = pathname.split("/").pop() || "account";
 
   return (
-    <div className="container  flex gap-4 py-6  min-h-[50vh]">
+    <div className="container flex flex-col lg:flex-row gap-4 py-6 min-h-[50vh]">
  
-      <div className=" h-fit sticky top-[160px] max-lg:hidden max-w-[300px] w-full ">
+      <div className="lg:h-fit lg:sticky lg:top-[160px] lg:max-w-[300px] lg:w-full z-30">
         <SideBar active={active} />
       </div>
 
-      <div className="w-full  w-full transition-all duration-300">
+      <div className="w-full transition-all duration-300">
         {children}
       </div>
     </div>
