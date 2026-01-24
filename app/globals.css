@@ -458,3 +458,16 @@
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+#swiper-width{
+  width: 188px !important;
+  margin-left: 60px !important;
+}
+
+@media (max-width: 640px) {
+  #swiper-width{
+    width: 150px !important;
+    margin-left: 80px !important;
+  }
+
+}

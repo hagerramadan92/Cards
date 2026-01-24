@@ -32,7 +32,7 @@ export default function InStockSlider({
 	const { t } = useLanguage();
 
 	return (
-		<div className="relative w-full">
+		<div className="relative w-full ">
 			{/* Header optional */}
 			{title ? (
 				<div className="flex items-center justify-between mb-4">
@@ -103,8 +103,10 @@ export default function InStockSlider({
 				slidesPerView={2}
 				slidesPerGroup={2}
 				breakpoints={{
-					640: { slidesPerView: 2, slidesPerGroup: 2 },
-					768: { slidesPerView: 3, slidesPerGroup: 3 },
+					
+					480: { slidesPerView: 2, slidesPerGroup: 2 },
+					640: { slidesPerView: 2, slidesPerGroup: 2  },
+					768: { slidesPerView: 3, slidesPerGroup: 3},
 					1024: { slidesPerView: 4, slidesPerGroup: 4 },
 					1280: { slidesPerView: 5, slidesPerGroup: 5 },
 				}}
@@ -116,7 +118,7 @@ export default function InStockSlider({
 						</SwiperSlide>
 					))
 					: inStock.map((product) => (
-						<SwiperSlide key={product.id} style={{width: "188px !important" , marginLeft:"20px"}}>
+						<SwiperSlide key={product.id} id="swiper-width" >
 							{typeof CardComponent === "function" ? (
 								// if passed as render function
 								// @ts-ignore
