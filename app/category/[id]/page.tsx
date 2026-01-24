@@ -279,7 +279,7 @@ export default function CategoryPage() {
 		);
 	}
 
-	const gridClass = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 md:gap-6";
+	const gridClass = "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 md:gap-6";
 
 	const sortOptions: { label: string; value: "" | "rating" | "asc" | "desc" }[] = [
 		{ label: t('featured'), value: "" },
@@ -373,9 +373,9 @@ export default function CategoryPage() {
 				{/* Filters and Sort */}
 				{allProducts.length > 0 && (
 					<motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-4 md:mb-6">
-					<div className="flex items-center gap-2 md:gap-2 flex-wrap  md:flex-nowrap">
+					<div className="grid grid-cols-2 gap-2 sm:gap-1">
 						{/* Country Filter */}
-						<FormControl size="small" sx={{ minWidth: { xs: 140, sm: 160, md: 180  },flexShrink: 0 }}>
+						<FormControl size="small" sx={{ minWidth: { xs: 100, sm: 120, md: 180  },flexShrink: 0 }}>
 							<Select
 								value={selectedCountry}
 								onChange={(e) => setSelectedCountry(e.target.value)}
@@ -458,7 +458,7 @@ export default function CategoryPage() {
 						</FormControl>
 
 						{/* Sort (enhanced select) */}
-							<FormControl size="small" sx={{ minWidth: { xs: 140, sm: 160, md: 180 }, flexShrink: 0 }}>
+							<FormControl size="small" sx={{ minWidth: { xs: 100, sm: 120, md: 180 }, flexShrink: 0 }}>
 								<Select
 									value={priceOrder}
 									onChange={(e) => setPriceOrder(e.target.value as any)}
@@ -697,7 +697,7 @@ export default function CategoryPage() {
 						{/* Products or Sub-categories Grid */}
 						{paginatedProducts.length === 0 ? (
 							subCategories.length > 0 ? (
-								<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+								<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
 									{subCategories.map((sub, idx) => (
 										<motion.div
 											key={sub.id}
