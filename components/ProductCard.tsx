@@ -27,6 +27,11 @@ export interface StickerFormHandle {
 	getOptions: () => SelectedOptions;
 	validate: () => boolean;
 }
+const DEFAULT_CARD_WIDTH =
+  "w-[140px] \
+   [@media_(max-width:328px)]:w-[135px] \
+   [@media_(min-width:329px)_and_(max-width:639px)]:w-[160px] \
+   sm:w-[200px] md:w-[218px]";
 export default function ProductCard({
 	product,
 	id,
@@ -49,6 +54,8 @@ export default function ProductCard({
 	selectedOptions: propSelectedOptions = [],
 	selectedDesignServiceId,
 	isSample = false,
+	widthClass = DEFAULT_CARD_WIDTH,
+
 }: any) {
 	const [showImage, setShowImage] = useState(false);
 	const [isAdding, setIsAdding] = useState(false);
@@ -282,12 +289,14 @@ export default function ProductCard({
 			<motion.div
 				whileHover={{ y: -3 }}
 				transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-				className="relative flex flex-col rounded-lg md:rounded-xl border
+				className={`relative flex flex-col rounded-lg md:rounded-xl border
 				 border-slate-200 bg-white overflow-hidden
-                    shadow-sm hover:border-gray-200 transition w-[218px]"
+                    shadow-sm hover:border-gray-200 transition
+					${widthClass} sm:w-[200px] md:w-[218px]`}
 			>
 				{/* Image */}
-				<div className={`relative w-[218px] h-[105px] md:h-[105px] bg-gray-50`}>
+				<div className={`relative ${widthClass} 
+				h-[105px] md:h-[105px] bg-gray-50 sm:w-[200px] md:w-[218px]`}>
 					{/* Flag - Top Left */}
 					<div className="absolute start-2 top-2 z-30">
 						{/* <div className=" w-5 h-5 rounded-full  backdrop-blur-sm flex items-center justify-center ">

@@ -45,7 +45,8 @@ function CategoryCard({ category }: { category: CategoryChild }) {
 			transition={{ type: "spring", stiffness: 260, damping: 18 }}
 			className="group rounded-lg border border-slate-100 cursor-pointer 
 			bg-white mx-auto overflow-hidden shadow-sm 
-			hover:shadow-md w-full h-[120px] sm:h-[140px] md:h-[160px]"
+			hover:shadow-md  w-full h-[120px] sm:h-[140px] md:h-[160px]"
+			
 		>
 			<Link href={`/category/${category.id}`} className="flex flex-col items-center justify-center gap-1 md:gap-2">
 				<div className="relative bg-slate-50 mt-1.5 md:mt-3 w-[85%] h-[80px] md:h-[105px]">
@@ -279,7 +280,7 @@ export default function CategoryPage() {
 		);
 	}
 
-	const gridClass = "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 md:gap-6";
+	const gridClass = "grid grid-cols-2   sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6";
 
 	const sortOptions: { label: string; value: "" | "rating" | "asc" | "desc" }[] = [
 		{ label: t('featured'), value: "" },
@@ -668,7 +669,9 @@ export default function CategoryPage() {
 								animate={{ opacity: 1, y: 0 }}
 								className="mb-4 md:mb-6"
 							>
-								<div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+								<div className="flex gap-2 
+								md:gap-3 overflow-x-auto pb-2 -mx-4
+								px-4 md:mx-0 md:px-0">
 									{subCategories.map((sub) => (
 										<a
 											href={`/category/${sub.slug ?? sub.id}`}
@@ -729,6 +732,7 @@ export default function CategoryPage() {
 										animate="show"
 										exit={{ opacity: 0, scale: 0.98 }}
 										custom={idx}
+									
 									>
 										<ProductCard
 												id={product.id}
@@ -766,8 +770,8 @@ export default function CategoryPage() {
 							<div className="mt-6 md:mt-10 flex items-center justify-center overflow-x-auto">
 								<div
 									className="flex items-center gap-1 rounded-lg md:rounded-xl border border-slate-200 bg-white 
-                 px-2 py-1.5 shadow-sm
-                 sm:gap-2 sm:rounded-2xl sm:px-3 sm:py-2"
+							px-2 py-1.5 shadow-sm
+							sm:gap-2 sm:rounded-2xl sm:px-3 sm:py-2"
 								>
 									{/* Prev */}
 									<button

@@ -99,12 +99,12 @@ export default function InStockSlider({
 					// @ts-ignore
 					swiper.params.navigation.nextEl = nextRef.current;
 				}}
-				spaceBetween={14}
+				spaceBetween={10}
 				slidesPerView={2}
 				slidesPerGroup={2}
 				breakpoints={{
 					
-					480: { slidesPerView: 2, slidesPerGroup: 2 },
+					480: { slidesPerView: 2, slidesPerGroup: 2 , spaceBetween: 0},
 					640: { slidesPerView: 2, slidesPerGroup: 2  },
 					768: { slidesPerView: 3, slidesPerGroup: 3},
 					1024: { slidesPerView: 4, slidesPerGroup: 4 },

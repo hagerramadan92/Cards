@@ -205,6 +205,13 @@ export default function Home() {
 											hiddenArrow={false}
 											CardComponent={(product: any) => (
 												<ProductCard
+												widthClass="
+													w-[120px]
+													[@media_(max-width:468px)]:w-[160px]
+													[@media_(min-width:469px)_and_(max-width:768px)]:w-[180px]
+													sm:w-[170px]
+													md:w-[190px]
+												"
 													{...product}
 													product={{
 														...product,
