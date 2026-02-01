@@ -116,9 +116,9 @@ export default function SearchNavbar() {
 
 						{/* country & currency - Hide on very small screens if needed, or keep */}
 						<div className="hidden sm:flex items-center gap-2">
-							<div className="rounded-full w-[24px] h-[24px] flex items-center justify-center overflow-hidden">
+							{/* <div className="rounded-full w-[24px] h-[24px] flex items-center justify-center overflow-hidden">
 								<Image src="/images/eg.avif" alt="flag" width={20} height={20} className="object-cover w-full h-full" />
-							</div>
+							</div> */}
 							<CurrencySelector />
 						</div>
 
