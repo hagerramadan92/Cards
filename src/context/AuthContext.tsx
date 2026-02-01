@@ -10,6 +10,7 @@ import React, {
 import { useSession, signOut as nextAuthSignOut } from "next-auth/react";
 import { ProductI } from "../../Types/ProductsI";
 import { useLanguage } from "./LanguageContext";
+import toast from "react-hot-toast";
 
 const AuthContext = createContext<any | undefined>(undefined);
 
@@ -20,7 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userImage, setUserImage] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string | null>(null);
   
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
 
   const [favoriteProducts, setFavoriteProducts] = useState<ProductI[]>([]);
   const [favoriteProductsLoading, setFavoriteProductsLoading] =
@@ -101,8 +102,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const rawText = await res.text();
           console.log("Social login raw response:", res.status, rawText);
 
+          // Check if response is not 200 (success)
+          if (!res.ok || res.status !== 200) {
+            console.error("Social login API returned non-200 status:", res.status);
+            
+            let errorMessage = t('login_error') || "حدث خطأ أثناء تسجيل الدخول";
+            
+            // Try to parse error message from response
+            if (rawText) {
+              try {
+                const errorData = JSON.parse(rawText);
+                errorMessage = errorData?.message || errorMessage;
+              } catch (e) {
+                // If parsing fails, use default message
+              }
+            }
+            
+            toast.error(errorMessage);
+            
+            // Sign out from NextAuth session if API failed
+            nextAuthSignOut({ callbackUrl: "/login" });
+            return;
+          }
+
           if (!rawText) {
              console.error("Empty response from social login API");
+             toast.error(t('login_error') || "حدث خطأ أثناء تسجيل الدخول");
+             nextAuthSignOut({ callbackUrl: "/login" });
              return;
           }
 
@@ -111,10 +137,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
              data = JSON.parse(rawText);
           } catch (e) {
              console.error("Failed to parse social login JSON:", e);
+             toast.error(t('login_error') || "حدث خطأ أثناء تسجيل الدخول");
+             nextAuthSignOut({ callbackUrl: "/login" });
              return;
           }
           
-          if (data.status && data.data?.token) {
+          // Only save session if response is 200 and has valid token
+          if (res.ok && res.status === 200 && data.status && data.data?.token) {
             const token = data.data.token;
             console.log("Social login success, token received:", token);
             
@@ -129,11 +158,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               data.data.user.image,
               data.data.user.name
             );
+            
+            // Show success toast
+            toast.success(data.message || t('login_success') || "تم تسجيل الدخول بنجاح");
           } else {
              console.error("Social login API returned error status or missing token:", data);
+             const errorMessage = data?.message || t('login_error') || "حدث خطأ أثناء تسجيل الدخول";
+             toast.error(errorMessage);
+             nextAuthSignOut({ callbackUrl: "/login" });
           }
         } catch (err) {
           console.error("Social login network error:", err);
+          toast.error(t('server_error') || "فشل الاتصال بالخادم");
+          nextAuthSignOut({ callbackUrl: "/login" });
         }
       };
 
@@ -220,7 +257,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     name: string,
     email?: string,
     image?: string,
-    fullNameParam?: string
+    fullNameParam?: string,
+    showToast: boolean = false
   ) => {
     setAuthToken(token);
     setUserName(name);
@@ -233,6 +271,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (email) localStorage.setItem("userEmail", email);
     if (image) localStorage.setItem("userImage", image);
     localStorage.setItem("fullName", fullNameParam || name);
+    
+    // Show success toast if requested
+    if (showToast) {
+      toast.success(t('login_success') || "تم تسجيل الدخول بنجاح");
+    }
   };
 
   /* ------------------------------ API LOGIN ------------------------------ */
@@ -242,8 +285,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     email?: string;
     image?: string;
     fullName?: string;
-  }) => {
+    message?: string;
+  }, showToast: boolean = true) => {
     login(data.token, data.name, data.email, data.image, data.fullName);
+    
+    // Show success toast after login
+    if (showToast) {
+      toast.success(data.message || t('login_success') || "تم تسجيل الدخول بنجاح");
+    }
   };
 
   /* ------------------------------ LOGOUT ------------------------------ */
@@ -277,6 +326,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         favoriteProductsLoading,
         setFavoriteProducts,
         favoriteIdsSet,
+        isLoading: status === "loading",
+        isAuthenticated: !!authToken,
       }}
     >
       {children}

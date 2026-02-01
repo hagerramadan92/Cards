@@ -28,7 +28,7 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-const LANGUAGES_API_ENDPOINT = "https://flash-cardy.renix4tech.com/api/v1/languages";
+const LANGUAGES_API_ENDPOINT = "https://flashicard.renix4tech.com/api/v1/languages";
 
 // استخدام Set مع تحسين لإدارة الـ AbortController
 const activeRequests = new Set<AbortController>();

@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useAuth } from "@/src/context/AuthContext";
 import LoginWithGoogle from "@/components/loginWithGoogle";
 import Swal from "sweetalert2";
+import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import { FiMail, FiLock } from "react-icons/fi";
 import Logo from "../../components/Logo";
@@ -29,7 +30,7 @@ export default function Page() {
 	const { data: session, status } = useSession();
 	const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-	const { login: loginContext } = useAuth();
+	const { setAuthFromApi } = useAuth();
 
 	const validateInput = (input: string) => {
 		const trimmed = input.trim();
@@ -88,19 +89,26 @@ export default function Page() {
 				};
 
 				if (token) {
-					loginContext(token, userData.name, userData.email, userData.image, userData.fullName);
+					setAuthFromApi({
+						token,
+						name: userData.name,
+						email: userData.email,
+						image: userData.image,
+						fullName: userData.fullName,
+						message: data.message,
+					});
 				}
 
-				Swal.fire({ icon: "success", title: t('login_success'), timer: 1400, showConfirmButton: false });
 				router.push("/");
 			} else {
 				const msg = data.message || t('login_error');
 				setErrors((p) => ({ ...p, form: msg }));
-				Swal.fire({ icon: "error", title: t('error'), text: msg, confirmButtonText: t('close') });
+				toast.error(msg);
 			}
 		} catch {
-			setErrors((p) => ({ ...p, form: t('server_error') }));
-			Swal.fire({ icon: "error", title: t('error'), text: t('server_error'), confirmButtonText: t('close') });
+			const errorMsg = t('server_error');
+			setErrors((p) => ({ ...p, form: errorMsg }));
+			toast.error(errorMsg);
 		} finally {
 			setPending(false);
 		}
