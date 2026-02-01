@@ -149,7 +149,7 @@ export default function CurrencySelector() {
 					<>
 						<span className="text-xs font-bold">{currentCurrency.symbol}</span>
 						<span className="hidden sm:inline text-sm font-medium text-gray-700">
-							{currentCurrency.name}
+							{currentCurrency.code}
 						</span>
 						<BiChevronDown
 							className={`w-3 h-3 md:w-4 md:h-4 text-gray-500 transition-transform ${
@@ -180,7 +180,7 @@ export default function CurrencySelector() {
 								}`}
 							>
 								<span className="text-xs font-bold">{curr.symbol}</span>
-								<span>{curr.name}</span>
+								<span>{curr.code}</span>
 								{currency === curr.code && (
 									<span className="ml-auto text-pro">✓</span>
 								)}
