@@ -65,7 +65,7 @@ export default function CurrencySelector() {
 					method: "GET",
 					headers: {
 						Accept: "application/json",
-						"Accept-Language": language || "ar",
+						"Accept-Language": language,
 					},
 					cache: "no-store",
 				});
