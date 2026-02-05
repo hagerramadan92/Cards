@@ -7,6 +7,7 @@ import SliderComponent from "@/components/SliderComponent";
 import { fetchApi, fetchApi2 } from "@/lib/api";
 import { useAppContext } from "@/src/context/AppContext";
 import { BannerI } from "@/Types/BannerI";
+import { CategoryBannerI } from "@/Types/CategoryBannerI";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -165,36 +166,89 @@ export default function Home() {
 								Array.isArray(category.products) && category.products.length > 0;
 							if (!hasProducts) return null;
 
-							const banner =
-								category.category_banners?.[0]?.image ?? "/images/cover2.png";
+							// const banner =
+							// 	category.category_banners?.[0]?.image ?? "/images/cover2.png";
+							 const banners = category.category_banners || [];
+							   const hasBanners = banners.length > 0;
 
 							return (
+								
 								<section
 									key={category.id}
 									className="rounded-[10px_10px_0_0] md:rounded-3xl md:border md:border-gray-100 !bg-gray-50/50 overflow-hidden"
 								>
-									<div className="relative w-full p-3 h-29">
-										<Image
-											src={banner}
-											alt={category.name}
-											fill
-											className="object-cover"
-											priority={false}
-										/>
-										<div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
-										<div className=" flex items-end justify-between">
-											<h2 className="text-white text-lg md:text-2xl  drop-shadow">
+										<div className=" flex items-end justify-between  mb-2">
+											<h2 className=" text-md md:text-2xl ms-1 md:ms-2 drop-shadow whitespace-nowrap">
 												{category.name} 
 											</h2>
 
 											<Link
 												href={`/category/${category.id}`}
-												className="text-white z-7 text-sm md:text-base font-semibold px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 transition"
+												className="text-pro-max  z-7 text-sm md:text-base font-semibold whitespace-nowrap rounded-full bg-white/15 hover:bg-white/25 transition"
 											>
 												{t('view_all')}
 											</Link>
 										</div>
-									</div>
+									
+									  <div className="relative w-full p-3 px-0">
+        
+											{hasBanners ? (
+											<div dir="rtl" className={`grid gap-3 ${banners.length === 1 ? 'grid-cols-1' : 'grid-cols-1'} sm:grid-cols-1  md:grid-cols-${Math.min(banners.length, 4)}`}>
+												{banners.map((banner: CategoryBannerI, index: number) => {
+														const isFirst = index === 0;
+														const isLast = index === banners.length - 1;
+														
+														// تحديد rounded ديناميكي
+														let roundedClass = "";
+														
+														
+														if (isFirst) {
+															roundedClass = "rounded-tr-2xl rounded-tl-2xl md:rounded-tl-none ";
+														}
+														if (isLast) {
+															roundedClass = "rounded-tl-2xl rounded-tr-2xl md:rounded-tr-none ";
+														}
+  
+															return (
+																<div 
+
+																key={banner.id} 
+																className={`relative h-15 md:h-29 overflow-hidden ${roundedClass}`}
+																style={{
+																	// للصور الوسطى: لا rounded
+																	...(index > 0 && index < banners.length - 1 ? {
+																	borderTopRightRadius: 0,
+																	borderTopLeftRadius: 0
+																	} : {})
+																}}
+																>
+																<Image
+																	src={banner.image || "/images/cover2.png"}
+																	alt={banner.alt || category.name}
+																	fill
+																	className="object-center"
+																	priority={index === 0}
+																	
+																/>
+																<div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
+																</div>
+															);
+															})}
+											</div>
+											) : (
+											// إذا لم يكن هناك بانرات، اعرض الصورة الافتراضية
+											<div className="relative h-29 rounded-[10px_10px_0_0] md:rounded-t-3xl overflow-hidden">
+												<Image
+												src="/images/cover2.png"
+												alt={category.name}
+												fill
+												className="object-cover"
+												priority={false}
+												/>
+												<div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
+											</div>
+											)}
+										</div>
 
 									{/* Products */}
 									<div className="md:px-6 md:pb-5">
