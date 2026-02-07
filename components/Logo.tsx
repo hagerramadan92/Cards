@@ -31,14 +31,15 @@ export default function Logo({
 				transition={{ duration: 0.45, ease: "easeOut" }}
 				className="relative"
 			>
-				{/* soft glow */}
-				<div className="relative  ">
+				{/* Size via wrapper scale so Next/Image dimensions are never overridden by CSS */}
+				<div className="relative w-[44px] h-[44px] max-md:scale-[0.795] max-md:origin-left">
 					<Image
 						src="/logo/Logo.png"
 						alt="LikeCard Logo"
 						width={size}
 						height={size}
-						className="object-contain max-md:w-[35px] w-[44px] "
+						className="object-contain"
+						style={{ width: "auto", height: "auto" }}
 						priority
 					/>
 				</div>

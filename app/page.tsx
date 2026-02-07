@@ -1,9 +1,9 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import CategoriesSlider from "@/components/CategoriesC";
 import InStockSlider from "@/components/InStockSlider";
 import ProductCard from "@/components/ProductCard";
-import SliderComponent from "@/components/SliderComponent";
 import { fetchApi, fetchApi2 } from "@/lib/api";
 import { useAppContext } from "@/src/context/AppContext";
 import { BannerI } from "@/Types/BannerI";
@@ -19,8 +19,17 @@ import {
 	HeroSliderSkeleton,
 	CategorySectionSkeleton,
 } from "@/components/skeletons/HomeSkeletons";
-import WhyAndFaqs from "../components/WhyAndFaqs";
-import FastBuy from "@/components/HomeSection/FastBuy";
+
+// Lazy-load heavy/below-fold components for faster initial load
+const SliderComponent = dynamic(
+	() => import("@/components/SliderComponent"),
+	{ loading: () => <HeroSliderSkeleton />, ssr: false }
+);
+
+const FastBuy = dynamic(
+	() => import("@/components/HomeSection/FastBuy").then((m) => m.default),
+	{ ssr: false }
+);
 
 export default function Home() {
 	const { homeData, loadingCategories, parentCategories, loadingHome, appear_in_home_categories } =
@@ -226,9 +235,9 @@ export default function Home() {
 																	src={banner.image || "/images/cover2.png"}
 																	alt={banner.alt || category.name}
 																	fill
+																	sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
 																	className="object-center"
 																	priority={index === 0}
-																	
 																/>
 																<div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
 																</div>
@@ -242,6 +251,7 @@ export default function Home() {
 												src="/images/cover2.png"
 												alt={category.name}
 												fill
+												sizes="(max-width: 768px) 100vw, 1200px"
 												className="object-cover"
 												priority={false}
 												/>

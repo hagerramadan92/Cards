@@ -44,10 +44,28 @@ const nextConfig: NextConfig = {
       hostname:"eg-rv.homzmart.net",
       port:"",
       pathname:"/**"
+    },
+    {
+      protocol: "https",
+      hostname: "static.vecteezy.com",
+      port: "",
+      pathname: "/**",
+    },
+    {
+      protocol: "https",
+      hostname: "flashicard.renix4tech.com",
+      port: "",
+      pathname: "/**",
+    },
+    {
+      protocol: "https",
+      hostname: "i.ibb.co",
+      port: "",
+      pathname: "/**",
     }
   ],
   
-  unoptimized: true,
+  unoptimized: false,
   minimumCacheTTL: 86400,
   formats: ["image/avif", "image/webp"],
 },

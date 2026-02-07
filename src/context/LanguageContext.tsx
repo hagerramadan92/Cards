@@ -200,8 +200,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       setIsLoadingLanguages(true);
       setError(null);
       
-      console.log('Fetching languages with Accept-Language:', language);
-      
       const response = await fetchWithLanguage(LANGUAGES_API_ENDPOINT);
       
       // إذا تم إلغاء الطلب
@@ -210,7 +208,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       }
       
       const result = await response.json();
-      console.log('Languages API Response:', result);
       
       if (result.status && Array.isArray(result.data)) {
         return result.data;

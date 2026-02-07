@@ -103,12 +103,13 @@ export default function DropdownUser() {
         {/* avatar with ring + online dot */}
         <div className="relative">
           <div className="absolute  -inset-1 rounded-full bg-gradient-to-tr from-slate-200 to-slate-100 opacity-0 group-hover:opacity-100 transition" />
-         <div className="w-[30px] h-[30px] md:w-[35px] md:h-[35px] flex items-center justify-center">
+         <div className="relative w-[30px] h-[30px] md:w-[35px] md:h-[35px] flex items-center justify-center">
                 <Image
                   src={displayImage}
                   alt="User"
                   fill
-                  className="relative  rounded-full object-cover "
+                  sizes="(max-width: 768px) 30px, 35px"
+                  className="relative rounded-full object-cover"
                 />
          </div>
          

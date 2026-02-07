@@ -19,6 +19,7 @@ import LanguageSelector from "./LanguageSelector";
 import { FaBarsStaggered } from "react-icons/fa6";
 import CurrencySelector from "./Currency/CurrencySelector";
 import { useLanguage } from "@/src/context/LanguageContext";
+import CurrencyDisplay from "./Currency/CurrencySelector";
 
 function cn(...c: (string | false | null | undefined)[]) {
 	return c.filter(Boolean).join(" ");
@@ -119,7 +120,7 @@ export default function SearchNavbar() {
 							{/* <div className="rounded-full w-[24px] h-[24px] flex items-center justify-center overflow-hidden">
 								<Image src="/images/eg.avif" alt="flag" width={20} height={20} className="object-cover w-full h-full" />
 							</div> */}
-							<CurrencySelector />
+							<CurrencyDisplay />
 						</div>
 
 						

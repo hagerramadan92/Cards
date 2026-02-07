@@ -19,7 +19,11 @@ const cairo = Cairo({
 	display: "swap"
 });
 
+// Required for resolving OG/twitter image URLs. Set NEXT_PUBLIC_SITE_URL in production (e.g. https://yourdomain.com).
+const metadataBaseUrl = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000");
+
 export const metadata: Metadata = {
+	metadataBase: metadataBaseUrl,
 	title: {
 		default: "أكبر منصة بطاقات شحن رقمية",
 		template: "%s | LikeCard",

@@ -258,6 +258,7 @@ export default function CategoriesSlider({
 										src={cat.image || "/images/cat1.png"}
 										alt={cat.name}
 										fill
+										sizes="(max-width: 768px) 140px, 140px"
 										className="object-contain transition duration-300 group-hover:scale-[1.06]  w-[140px] h-[48px]"
 										draggable={false}
 									/>
