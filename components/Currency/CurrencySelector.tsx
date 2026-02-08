@@ -60,7 +60,6 @@ export default function CurrencyDisplay() {
         }
 
         const data: ApiResponse = await res.json();
-			console.log(data);
         if (data?.status && data?.data?.location?.currency) {
           setCurrency(data.data.location.currency);
         } else {

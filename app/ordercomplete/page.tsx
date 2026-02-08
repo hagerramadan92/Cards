@@ -37,10 +37,10 @@ type CheckoutSummaryV1 = {
 
 function SkeletonCard() {
 	return (
-		<div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm animate-pulse">
+		<div className="bg-white border border-slate-200 rounded-3xl p-2 md:p-5 shadow-sm animate-pulse">
 			<div className="h-6 bg-slate-100 rounded-xl w-1/3 mb-4" />
-			<div className="h-20 bg-slate-100 rounded-2xl w-full" />
-			<div className="h-10 bg-slate-100 rounded-2xl w-full mt-4" />
+			<div className="h-20 bg-slate-100 md:rounded-2xl rounded-lg w-full" />
+			<div className="h-10 bg-slate-100 md:rounded-2xl rounded-lg w-full mt-4" />
 		</div>
 	);
 }
@@ -397,14 +397,14 @@ export default function OrderCompletePage() {
 							<div className="mt-4 flex gap-2">
 								<button
 									onClick={() => router.refresh()}
-									className="rounded-2xl px-4 py-2 font-extrabold border border-slate-200 bg-slate-50 hover:bg-slate-100"
+									className="md:rounded-2xl rounded-lg px-4 py-2 font-extrabold border border-slate-200 bg-slate-50 hover:bg-slate-100"
 								>
 									{t('refresh')}
 								</button>
 
 								<Link
 									href="/myAccount/orders"
-									className="rounded-2xl px-4 py-2 font-extrabold bg-pro text-white hover:opacity-90"
+									className="md:rounded-2xl rounded-lg px-4 py-2 font-extrabold bg-pro text-white hover:opacity-90"
 								>
 									{t('orders')}
 								</Link>
@@ -413,15 +413,15 @@ export default function OrderCompletePage() {
 					) : (
 						<>
 							{/* Header */}
-							<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6">
-								<div className="flex items-start justify-between gap-4">
+							<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-2 md:p-6">
+								<div className="flex items-start justify-between gap-4 flex-wrap">
 									<div className="flex items-center gap-3">
-										<div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center">
-											<FiCheckCircle className="text-emerald-600" size={26} />
+										<div className="md:w-14 md:h-14 w-9 h-9 md:rounded-2xl rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center">
+											<FiCheckCircle className="text-emerald-600" size={20} />
 										</div>
 
 										<div>
-											<div className="flex items-center gap-1 text-2xl font-extrabold text-slate-900">
+											<div className="flex items-center gap-1 text-sm md:text-2xl font-extrabold text-slate-900">
 												<span>{t('thank_you')}</span>
 												<span className="text-emerald-600">{order.customer_name}</span>
 												<span>!</span>
@@ -446,7 +446,7 @@ export default function OrderCompletePage() {
 
 											<button
 												onClick={copyOrderNumber}
-												className="rounded-2xl border border-slate-200 bg-white px-3 py-2 hover:bg-slate-50"
+												className="md:rounded-2xl rounded-lg border border-slate-200 bg-white px-3 py-2 hover:bg-slate-50"
 												aria-label="copy order number"
 												title={t('copy_order_number')}
 											>
@@ -467,7 +467,7 @@ export default function OrderCompletePage() {
 								</div>
 
 								{/* Progress */}
-								<div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+								<div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-2 md:p-5">
 									{isCancelled ? (
 										<p className="text-rose-700 font-extrabold">{t('order_status_rejected')}</p>
 									) : (
@@ -476,32 +476,14 @@ export default function OrderCompletePage() {
 								</div>
 							</div>
 
-							{/* Shipping Address */}
-							<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6">
-								<h5 className="font-extrabold text-xl text-slate-900 mb-3">{t('shipping_address')}</h5>
-
-								{order?.full_address ? (
-									<div className="text-slate-700 font-semibold space-y-1">
-										<p className="font-extrabold">{order.full_address.full_name}</p>
-										<p>
-											{order.full_address.city} - {order.full_address.area}
-										</p>
-										<p>{order.full_address.details}</p>
-										{order.full_address.phone && (
-											<p className="text-slate-600">{order.full_address.phone}</p>
-										)}
-									</div>
-								) : (
-									<p className="text-slate-600 font-semibold">لا يوجد عنوان شحن محفوظ.</p>
-								)}
-							</div>
+						
 
 							{/* Payment */}
 							<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6">
-								<h5 className="font-extrabold text-xl text-slate-900 mb-3">{t('payment_method')}</h5>
+								<h5 className="font-extrabold md:text-xl text-md text-slate-900 mb-3">{t('payment_method')}</h5>
 								<div className="flex items-center justify-between gap-3">
 									<div className="flex items-center gap-3">
-										<div className="w-12 h-12 rounded-2xl border border-slate-200 bg-white flex items-center justify-center overflow-hidden">
+										<div className="w-12 h-12 md:rounded-2xl rounded-lg border border-slate-200 bg-white flex items-center justify-center overflow-hidden">
 											<Image src="/images/cod.png" alt="payment method" width={44} height={28} />
 										</div>
 										<p className="text-lg text-slate-900 font-extrabold">
@@ -533,7 +515,7 @@ export default function OrderCompletePage() {
 
 									<Link
 										href="/"
-										className="rounded-2xl bg-pro text-white px-5 py-2 font-extrabold hover:opacity-90"
+										className="md:rounded-2xl rounded-lg bg-pro text-white px-5 py-2 font-extrabold hover:opacity-90"
 									>
 										{t('add_new_order')}
 									</Link>
@@ -547,12 +529,12 @@ export default function OrderCompletePage() {
 				<div className="col-span-1 space-y-4 lg:sticky lg:top-[140px] h-fit">
 					{/* Items */}
 					<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6">
-						<h2 className="font-extrabold text-xl text-slate-900 mb-4">{t('order_details')}</h2>
+						<h2 className="font-extrabold md:text-xl text-md text-slate-900 mb-4">{t('order_details')}</h2>
 
 						{loading ? (
 							<div className="space-y-3">
-								<div className="h-20 bg-slate-100 rounded-2xl animate-pulse" />
-								<div className="h-20 bg-slate-100 rounded-2xl animate-pulse" />
+								<div className="h-20 bg-slate-100 md:rounded-2xl rounded-lg animate-pulse" />
+								<div className="h-20 bg-slate-100 md:rounded-2xl rounded-lg animate-pulse" />
 							</div>
 						) : (
 							<div className="space-y-3">
@@ -566,7 +548,7 @@ export default function OrderCompletePage() {
 									return (
 										<div key={idx} className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
 											<div className="flex items-start gap-3">
-												<div className="relative w-14 h-14 rounded-2xl overflow-hidden border border-slate-200 bg-white shrink-0">
+												<div className="relative w-14 h-14 md:rounded-2xl rounded-lg overflow-hidden border border-slate-200 bg-white shrink-0">
 													<Image src={img} alt={name} fill sizes="56px" className="object-cover" />
 												</div>
 
@@ -610,14 +592,14 @@ export default function OrderCompletePage() {
 
 					{/* ✅ Summary FROM sessionStorage (checkout_summary_v1) */}
 					<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6">
-						<h2 className="font-extrabold text-xl text-slate-900 mb-4">{t('order_summary')}</h2>
+						<h2 className="font-extrabold md:text-xl text-md text-slate-900 mb-4">{t('order_summary')}</h2>
 
 						{loading ? (
 							<SkeletonCard />
 						) : checkoutSummary ? (
 							<SummaryBlock summary={checkoutSummary} t={t} />
 						) : (
-							<div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+							<div className="md:rounded-2xl rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
 								<p className="font-extrabold text-amber-800 text-sm">
 									{t('order_summary_not_found')}
 								</p>

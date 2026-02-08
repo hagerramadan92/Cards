@@ -1,34 +1,6 @@
-/*
-✅ المطلوب تم تنفيذه بالكامل في نفس الصفحة:
-
-1) استخدام نفس Summary القادم من cart بدون إعادة حساب:
-   - قراءة checkout_summary_v1 من sessionStorage (مع fallback للـ localStorage لو احتجت)
-   - عرض نفس البنود الظاهرة في TotalOrder داخل صفحة الدفع (subtotal / shipping / coupon / VAT / total بدون ضريبة / الإجمالي)
-
-2) إرسال coupon_code مع create order:
-   - يتم قراءته من sessionStorage key: "coupon_code"
-   - وأيضًا لو موجود داخل summary كـ coupon_name يتم استخدامه كـ fallback
-
-3) قراءة بيانات summary من sessionStorage key: "checkout_summary_v1"
-   - نفس الـ shape اللي أرسلته
-   - واستخدامه في UI + في orderData (ارسال coupon_code + coupon_value إن وجد)
-
-4) عند إنشاء الطلب:
-   - إرسال البيانات:
-     shipping_address / customer_name / customer_phone / customer_email / payment_method / notes / coupon_code
-   - لو تبي تعتمد على address_id من addresses endpoint (الموجود عندك) تركته كما هو + أضفت shipping_address بشكل نصي كـ fallback من العنوان المختار.
-*/
-
 "use client";
-
-import AddressForm from "@/components/AddressForm";
 import BankPayment from "@/components/BankPayment";
-import CoBon from "@/components/cobon";
-import InvoiceSection from "@/components/InvoiceSection";
-import OrderSummary from "@/components/OrderSummary";
-// import { AddressI } from "@/Types/AddressI";
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { FiPlus } from "react-icons/fi";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Button from "@mui/material/Button";
 import { useRouter } from "next/navigation";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
@@ -37,392 +9,416 @@ import { MdKeyboardArrowLeft } from "react-icons/md";
 import { useAppContext } from "../../src/context/AppContext";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import { useLanguage } from "@/src/context/LanguageContext";
+import Image from "next/image";
+import { MdDelete, MdUpload } from "react-icons/md";
 
 function n(v: any) {
-	const x = typeof v === "string" ? Number(v) : typeof v === "number" ? v : Number(v ?? 0);
-	return Number.isFinite(x) ? x : 0;
+  const x = typeof v === "string" ? Number(v) : typeof v === "number" ? v : Number(v ?? 0);
+  return Number.isFinite(x) ? x : 0;
 }
 
 function money(v: any) {
-	return n(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return n(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 type CheckoutSummaryV1 = {
-	version?: string;
-	created_at?: string;
-
-	items_count?: number;
-	items_length?: number;
-
-	subtotal?: number;
-	total?: number;
-
-	coupon_discount?: number;
-	coupon_name?: string; // like "C612DFD2"
-	coupon_new_total?: number | null;
-
-	shipping_fee?: number;
-	tax_rate?: number;
-
-	total_after_coupon?: number;
-	total_with_shipping?: number;
-	tax_amount?: number;
-	total_without_tax?: number;
-
-	// optional if you later add it
-	coupon_value?: number;
+  version?: string;
+  created_at?: string;
+  items_count?: number;
+  items_length?: number;
+  subtotal?: number;
+  total?: number;
+  coupon_discount?: number;
+  coupon_name?: string;
+  coupon_new_total?: number | null;
+  shipping_fee?: number;
+  tax_rate?: number;
+  total_after_coupon?: number;
+  total_with_shipping?: number;
+  tax_amount?: number;
+  total_without_tax?: number;
+  coupon_value?: number;
 };
 
 function readSessionJSON<T>(key: string): T | null {
-	if (typeof window === "undefined") return null;
-	try {
-		const raw = sessionStorage.getItem(key);
-		if (!raw) return null;
-		return JSON.parse(raw) as T;
-	} catch {
-		return null;
-	}
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
 }
 
 function readLocalJSON<T>(key: string): T | null {
-	if (typeof window === "undefined") return null;
-	try {
-		const raw = localStorage.getItem(key);
-		if (!raw) return null;
-		return JSON.parse(raw) as T;
-	} catch {
-		return null;
-	}
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
 }
 
-function BlockSkeleton() {
-	return (
-		<div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm animate-pulse">
-			<div className="h-6 bg-slate-100 rounded-xl w-1/3 mb-4" />
-			<div className="h-20 bg-slate-100 rounded-2xl w-full" />
-			<div className="h-10 bg-slate-100 rounded-2xl w-full mt-4" />
-		</div>
-	);
-}
+// الطرق اللي محتاجة إيصال
+const PAYMENT_NEEDS_RECEIPT = [4, 5, 8, 10];
 
 function SummaryBlock({ summary }: { summary: CheckoutSummaryV1 | null }) {
-	const shippingFree = n(summary?.shipping_fee) <= 0;
-	const shippingFee = n(summary?.shipping_fee);
+  const shippingFree = n(summary?.shipping_fee) <= 0;
+  const shippingFee = n(summary?.shipping_fee);
+  const hasCoupon = n(summary?.coupon_discount) > 0 || summary?.coupon_new_total !== null;
 
-	const hasCoupon = n(summary?.coupon_discount) > 0 || summary?.coupon_new_total !== null;
+  return (
+    <div className="my-2 gap-2 flex flex-col">
+      <div className="flex text-sm items-center justify-between text-black">
+        <p className="font-semibold">المجموع ({n(summary?.items_length)} عناصر)</p>
+        <p>
+          {money(summary?.subtotal)}
+          <span className="text-sm ms-1">جنية</span>
+        </p>
+      </div>
 
-	return (
-		<div className="my-2 gap-2 flex flex-col">
-			<div className="flex text-sm items-center justify-between text-black">
-				<p className="font-semibold">المجموع ({n(summary?.items_length)} عناصر)</p>
-				<p>
-					{money(summary?.subtotal)}
-					<span className="text-sm ms-1">جنية</span>
-				</p>
-			</div>
+      {hasCoupon && (
+        <div className="flex items-center justify-between text-sm">
+          <p className="text-emerald-800 font-semibold">خصم الكوبون</p>
+          <p className="font-extrabold text-emerald-700">
+            - {money(summary?.coupon_discount)}
+            <span className="text-sm ms-1">جنية</span>
+          </p>
+        </div>
+      )}
 
-		
+      <div className="flex items-center justify-between pb-3 pt-2">
+        <div className="flex gap-1 items-center">
+          <p className=" text-nowrap text-md text-pro font-semibold">الإجمالي :</p>
+        </div>
+        <p className="text-[15px] text-pro font-bold">
+          {money(summary?.total_with_shipping)}
+          <span> جنية</span>
+        </p>
+      </div>
+    </div>
+  );
+}
 
-			{hasCoupon && (
-				<div className="flex items-center justify-between text-sm">
-					<p className="text-emerald-800 font-semibold">خصم الكوبون</p>
-					<p className="font-extrabold text-emerald-700">
-						- {money(summary?.coupon_discount)}
-						<span className="text-sm ms-1">جنية</span>
-					</p>
-				</div>
-			)}
+function UploadPaymentProof({
+  paymentMethod,
+  onFileChange,
+  onRemove,
+  currentFile,
+}: {
+  paymentMethod: string;
+  onFileChange: (file: File) => void;
+  onRemove: () => void;
+  currentFile: File | null;
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-			{/* <div className="flex items-center justify-between text-sm">
-				<p>ضريبة القيمة المضافة ({Math.round(n(summary?.tax_rate) * 100) || 15}%)</p>
-				<p className="font-semibold">
-					{money(summary?.tax_amount)}
-					<span className="text-sm ms-1">جنية</span>
-				</p>
-			</div>
+  useEffect(() => {
+    if (currentFile) {
+      const url = URL.createObjectURL(currentFile);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewUrl(null);
+    }
+  }, [currentFile]);
 
-			<div className="flex items-center justify-between text-sm">
-				<p>الإجمالي بدون الضريبة</p>
-				<p className="font-semibold">
-					{money(summary?.total_without_tax)}
-					<span className="text-sm ms-1">جنية</span>
-				</p>
-			</div> */}
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const validTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+      if (!validTypes.includes(file.type)) {
+        Swal.fire("خطأ", "يرجى رفع صورة بصيغة JPG, PNG أو WebP فقط", "error");
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        Swal.fire("خطأ", "حجم الصورة يجب أن لا يتجاوز 5 ميجابايت", "error");
+        return;
+      }
+      onFileChange(file);
+    }
+  };
 
-			<div className="flex items-center justify-between pb-3 pt-2">
-				<div className="flex gap-1 items-center">
-					<p className=" text-nowrap text-md text-pro font-semibold">الإجمالي :</p>
-				</div>
-				<p className="text-[15px] text-pro font-bold">
-					{money(summary?.total_with_shipping)}
-					<span> جنية</span>
-				</p>
-			</div>
-		</div>
-	);
+  const handleUploadClick = () => fileInputRef.current?.click();
+
+  return (
+    <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-lg font-bold text-slate-800">رفع إثبات الدفع</h3>
+        <span className="text-sm text-slate-600 bg-blue-100 px-3 py-1 rounded-full">
+          {paymentMethod}
+        </span>
+      </div>
+
+      <p className="text-sm text-slate-600 mb-4">
+        يرجى رفع صورة إثبات الدفع بعد إتمام عملية الدفع
+      </p>
+
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/jpeg,image/png,image/jpg,image/webp"
+        className="hidden"
+      />
+
+      {!currentFile ? (
+        <div
+          onClick={handleUploadClick}
+          className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-500 transition-colors"
+        >
+          <div className="flex flex-col items-center justify-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+              <MdUpload className="text-blue-600 text-xl" />
+            </div>
+            <div>
+              <p className="font-semibold text-slate-700">اضغط لرفع صورة الدفع</p>
+              <p className="text-sm text-slate-500 mt-1">JPG, PNG أو WebP (حد أقصى 5MB)</p>
+            </div>
+            <button
+              type="button"
+              className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            >
+              اختيار ملف
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="relative border border-slate-200 rounded-xl p-4 bg-white">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold text-slate-800">{currentFile.name}</p>
+                <p className="text-sm text-slate-500">{(currentFile.size / 1024).toFixed(0)} كيلوبايت</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onRemove}
+              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              حذف
+            </button>
+          </div>
+
+          {previewUrl && (
+            <div className="mt-3 relative w-full h-48 rounded-lg overflow-hidden border border-slate-200">
+              <Image src={previewUrl} alt="معاينة صورة الدفع" fill className="object-contain" />
+            </div>
+          )}
+
+          <div className="flex gap-3 mt-4">
+            <button
+              type="button"
+              onClick={handleUploadClick}
+              className="flex-1 py-2 border border-blue-600 text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors"
+            >
+              تغيير الصورة
+            </button>
+            <button
+              type="button"
+              onClick={onRemove}
+              className="flex-1 py-2 border border-red-600 text-red-600 rounded-lg font-medium hover:bg-red-50 transition-colors"
+            >
+              حذف الصورة
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function PaymentPage() {
-	const { language } = useLanguage();
-	const [openModal, setOpenModal] = useState(false);
-	// const [showAddress, setShowAddress] = useState(false);
-	const { paymentMethods } = useAppContext() as any;
-	const [redirecting, setRedirecting] = useState(false);
-	const [redirectMessage, setRedirectMessage] = useState("");
+  const { language } = useLanguage();
+  const { paymentMethods } = useAppContext() as any;
+  const [redirecting, setRedirecting] = useState(false);
+  const [redirectMessage, setRedirectMessage] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<string>("");
+  const [notes, setNotes] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+  const [checkoutSummary, setCheckoutSummary] = useState<CheckoutSummaryV1 | null>(null);
+  const [couponCode, setCouponCode] = useState<string>("");
+  const [paymentProof, setPaymentProof] = useState<File | null>(null);
 
-	// const [addresses, setAddresses] = useState<AddressI[]>([]);
-	// const [selectedAddress, setSelectedAddress] = useState<AddressI | null>(null);
+  const router = useRouter();
+  const base_url = process.env.NEXT_PUBLIC_API_URL;
 
-	const [paymentMethod, setPaymentMethod] = useState<string>("");
-	const [notes, setNotes] = useState<string>("");
+  useEffect(() => {
+    const s = readSessionJSON<CheckoutSummaryV1>("checkout_summary_v1");
+    const l = readLocalJSON<CheckoutSummaryV1>("checkout_summary_v1");
+    const summary = s || l || null;
+    setCheckoutSummary(summary);
 
-	const [loading, setLoading] = useState(false);
-	const [token, setToken] = useState<string | null>(null);
+    const codeFromSession = (typeof window !== "undefined" ? sessionStorage.getItem("coupon_code") : "") || "";
+    const normalized = String(codeFromSession || "").trim();
+    const codeFallback = String(summary?.coupon_name || "").trim();
+    setCouponCode(normalized || codeFallback || "");
+  }, []);
 
-	// const [addrLoading, setAddrLoading] = useState(true);
+  useEffect(() => {
+    const t = localStorage.getItem("auth_token");
+    setToken(t);
 
-	// ✅ summary from sessionStorage
-	const [checkoutSummary, setCheckoutSummary] = useState<CheckoutSummaryV1 | null>(null);
+    if (!t) {
+      Swal.fire("تنبيه", "يرجى تسجيل الدخول لإتمام الدفع", "warning");
+      router.push("/login");
+    }
+  }, [router]);
 
-	// ✅ coupon_code from sessionStorage
-	const [couponCode, setCouponCode] = useState<string>("");
+  // مسح الصورة لو طريقة الدفع لا تحتاج إيصال
+  useEffect(() => {
+    if (!PAYMENT_NEEDS_RECEIPT.includes(Number(paymentMethod))) {
+      setPaymentProof(null);
+    }
+  }, [paymentMethod]);
 
-	const router = useRouter();
-	const base_url = process.env.NEXT_PUBLIC_API_URL;
+  const handleFileChange = (file: File) => setPaymentProof(file);
+  const handleRemoveFile = () => setPaymentProof(null);
 
-	const paymentLabel = useMemo(() => getPaymentMethodText(paymentMethod), [paymentMethod]);
+  const handleCompletePurchase = async () => {
+    if (loading) return;
 
-	// ✅ load summary + coupon_code from sessionStorage
-	useEffect(() => {
-		// primary: sessionStorage
-		const s = readSessionJSON<CheckoutSummaryV1>("checkout_summary_v1");
-		// fallback: localStorage if you saved there previously
-		const l = readLocalJSON<CheckoutSummaryV1>("checkout_summary_v1");
+    if (!paymentMethod) {
+      Swal.fire("تنبيه", "يرجى اختيار طريقة الدفع", "warning");
+      return;
+    }
 
-		const summary = s || l || null;
-		setCheckoutSummary(summary);
+    const requiresProof = PAYMENT_NEEDS_RECEIPT.includes(Number(paymentMethod));
+    if (requiresProof && !paymentProof) {
+      Swal.fire("تنبيه", "يرجى رفع صورة إثبات الدفع لإتمام العملية", "warning");
+      return;
+    }
 
-		const codeFromSession = (typeof window !== "undefined" ? sessionStorage.getItem("coupon_code") : "") || "";
-		const normalized = String(codeFromSession || "").trim();
+    if (!token) {
+      Swal.fire("تنبيه", "يرجى تسجيل الدخول", "warning");
+      router.push("/login");
+      return;
+    }
 
-		// fallback: coupon_name inside summary (like C612DFD2)
-		const codeFallback = String(summary?.coupon_name || "").trim();
-		setCouponCode(normalized || codeFallback || "");
-	}, []);
+    if (!checkoutSummary) {
+      Swal.fire("تنبيه", "لا توجد بيانات ملخص الطلب.", "warning");
+      return;
+    }
 
-	useEffect(() => {
-		const t = localStorage.getItem("auth_token");
-		setToken(t);
+    setLoading(true);
 
-		if (!t) {
-			Swal.fire("تنبيه", "يرجى تسجيل الدخول لإتمام الدفع", "warning");
-			router.push("/login");
-		}
-	}, [router]);
+    try {
+      const codeFromSession = (typeof window !== "undefined" ? sessionStorage.getItem("coupon_code") : "") || "";
+      const normalizedCoupon = String(codeFromSession || couponCode || checkoutSummary?.coupon_name || "").trim();
 
-	
+      const formData = new FormData();
+      formData.append("payment_method", paymentMethod);
+      formData.append("notes", notes?.trim() || "");
+      formData.append("coupon_code", normalizedCoupon || "");
+      if (paymentProof) formData.append("image", paymentProof);
 
+      const response = await fetch(`${base_url}/order`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Accept-Language": language,
+        },
+        body: formData,
+      });
 
-	
+      const result = await response.json();
 
-	const handleCompletePurchase = async () => {
-		if (loading) return;
+      if (!response.ok || !result?.status) {
+        throw new Error(result?.message || "حدث خطأ أثناء إنشاء الطلب");
+      }
 
-		if (!paymentMethod) {
-			Swal.fire("تنبيه", "يرجى اختيار طريقة الدفع", "warning");
-			return;
-		}
+      setRedirectMessage(result?.data?.message || "جاري توجيهك...");
+      setRedirecting(true);
+      setTimeout(() => {
+        router.push(`/ordercomplete?orderId=${result.data.id}`);
+      }, 500);
+    } catch (error: any) {
+      console.error(error);
+      Swal.fire("خطأ", error?.message || "حدث خطأ أثناء إنشاء الطلب", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-		if (!token) {
-			Swal.fire("تنبيه", "يرجى تسجيل الدخول", "warning");
-			router.push("/login");
-			return;
-		}
+  return (
+    <div className="container pb-10 pt-6">
+      <div className="flex items-center gap-2 text-sm mb-4">
+        <button onClick={() => router.back()} className="text-pro-max font-bold flex items-center gap-1">
+          <MdKeyboardArrowLeft size={18} />
+          رجوع
+        </button>
+        <span className="text-slate-400">/</span>
+        <span className="text-slate-600 font-semibold">الدفع</span>
+      </div>
 
-		// ✅ summary must exist (because we depend on it + coupon)
-		if (!checkoutSummary) {
-			Swal.fire("تنبيه", "لا توجد بيانات ملخص الطلب. يرجى الرجوع للسلة ثم المحاولة مرة أخرى.", "warning");
-			return;
-		}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="col-span-1 lg:col-span-2 space-y-4">
+          <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
+            <div className="p-5 border-b border-slate-200">
+              <h2 className="text-xl font-extrabold text-slate-900">اختر طريقة الدفع</h2>
+              <p className="text-sm text-slate-500 mt-1">اختر الطريقة الأنسب لإتمام الطلب.</p>
+            </div>
+            <div className="p-5">
+              <BankPayment paymentMethods={paymentMethods} onPaymentMethodChange={setPaymentMethod} />
+              
+              {PAYMENT_NEEDS_RECEIPT.includes(Number(paymentMethod)) && (
+                <UploadPaymentProof
+                  paymentMethod={paymentMethod}
+                  onFileChange={handleFileChange}
+                  onRemove={handleRemoveFile}
+                  currentFile={paymentProof}
+                />
+              )}
+            </div>
+          </div>
+        </div>
 
-		setLoading(true);
+        <div className="col-span-1 space-y-4 lg:sticky lg:top-[150px] h-fit">
+          <div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-5">
+            <div className="mt-4">
+              <h4 className="text-md font-extrabold text-pro mb-3">ملخص الطلب</h4>
+              {checkoutSummary ? <SummaryBlock summary={checkoutSummary} /> : <p>لا يوجد ملخص للطلب</p>}
+            </div>
 
-		try {
-			// ✅ coupon_code from sessionStorage (key: coupon_code)
-			const codeFromSession = (typeof window !== "undefined" ? sessionStorage.getItem("coupon_code") : "") || "";
-			const normalizedCoupon = String(codeFromSession || couponCode || checkoutSummary?.coupon_name || "").trim();
+            <div className="mt-4">
+              <Button
+                variant="contained"
+                disabled={loading || !paymentMethod || !checkoutSummary}
+                sx={{
+                  fontSize: "1.1rem",
+                  backgroundColor: loading ? "#9ca3af" : "#14213d",
+                  "&:hover": { backgroundColor: loading ? "#9ca3af" : "#0f1a31" },
+                  color: "#fff",
+                  gap: "10px",
+                  px: "20px",
+                  py: "12px",
+                  borderRadius: "16px",
+                  textTransform: "none",
+                  width: "100%",
+                  fontWeight: 900,
+                }}
+                endIcon={<KeyboardBackspaceIcon />}
+                onClick={handleCompletePurchase}
+              >
+                {loading ? "جاري المعالجة..." : "إتمام الشراء"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-			// ✅ optional coupon value (if exists)
-			const couponValue =
-				typeof (checkoutSummary as any)?.coupon_value !== "undefined"
-					? n((checkoutSummary as any)?.coupon_value)
-					: n(checkoutSummary?.coupon_discount);
-
-			// ✅ create order payload with requested fields
-			const orderData: any = {
-			
-				// customer_name: (selectedAddress as any)?.full_name ? String((selectedAddress as any).full_name) : "",
-				// customer_phone: (selectedAddress as any)?.phone ? String((selectedAddress as any).phone) : "",
-				// customer_email: (selectedAddress as any)?.email ? String((selectedAddress as any).email) : "",
-
-				payment_method: paymentMethod,
-				notes: notes?.trim() || `تم اختيار ${paymentLabel}`,
-
-				// ✅ send coupon code for discount
-				coupon_code: normalizedCoupon || "",
-
-				// ✅ include if backend expects a value (you said: "and also if there copupon_value")
-				...(couponValue > 0 ? { coupon_value: couponValue } : {}),
-			};
-
-			// keep compatibility with existing backend that uses address_id
-			// if (selectedAddress?.id) {
-			// 	orderData.address_id = selectedAddress.id;
-			// }
-
-			const response = await fetch(`${base_url}/order`, {
-				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-					Accept: "application/json",
-					"Accept-Language": language,
-				},
-				body: JSON.stringify(orderData),
-				cache: "no-store",
-			});
-
-			const result = await response.json();
-
-			if (!response.ok || !result?.status) {
-				throw new Error(result?.message || "حدث خطأ أثناء إنشاء الطلب");
-			}
-
-			// same redirect logic you already had
-			if (paymentMethod == "1") {
-				setRedirectMessage(result?.data?.message);
-				setRedirecting(true);
-				setTimeout(() => {
-					router.push(`/ordercomplete?orderId=${result.data.id}`);
-				}, 500);
-
-				router.push(`/ordercomplete?orderId=${result.data.id}`);
-			} else {
-				setRedirectMessage(result?.data?.message || "جاري توجيهك إلى بوابة الدفع...");
-				setRedirecting(true);
-				console.log(result);
-				setTimeout(() => {
-					if (result?.data?.payment_url) window.location.href = result.data.payment_url;
-				}, 500);
-			}
-		} catch (error: any) {
-			console.error("Error creating order:", error);
-			Swal.fire("خطأ", error?.message || "حدث خطأ أثناء إنشاء الطلب", "error");
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	return (
-		<div className="container pb-10 pt-6">
-			{/* Breadcrumb / Header */}
-			<div className="flex items-center gap-2 text-sm mb-4">
-				<button onClick={() => router.back()} className="text-pro-max font-bold flex items-center gap-1">
-					<MdKeyboardArrowLeft size={18} />
-					رجوع
-				</button>
-				<span className="text-slate-400">/</span>
-				<span className="text-slate-600 font-semibold">الدفع</span>
-			</div>
-
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-				{/* Left */}
-				<div className="col-span-1 lg:col-span-2 space-y-4">
-					
-
-					{/* Payment */}
-					<div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
-						<div className="p-5 border-b border-slate-200">
-							<h2 className="text-xl font-extrabold text-slate-900">اختر طريقة الدفع</h2>
-							<p className="text-sm text-slate-500 mt-1">اختر الطريقة الأنسب لإتمام الطلب.</p>
-						</div>
-						<div className="p-5">
-							<BankPayment paymentMethods={paymentMethods} onPaymentMethodChange={setPaymentMethod} />
-						</div>
-					</div>
-				</div>
-
-				{/* Right summary */}
-				<div className="col-span-1 space-y-4 lg:sticky lg:top-[150px] h-fit">
-					 
-
-
-					<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-5">
-						{/* <OrderSummary /> */}
-
-						{/* ✅ Same total summary from cart, using checkout_summary_v1 */}
-						<div className="mt-4">
-							<h4 className="text-md font-extrabold text-pro mb-3">ملخص الطلب</h4>
-
-							{checkoutSummary ? (
-								<SummaryBlock summary={checkoutSummary} />
-							) : (
-								<div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
-									<p className="font-extrabold text-amber-800 text-sm">
-										لا يوجد ملخص للطلب (checkout_summary_v1) — ارجع للسلة ثم ادخل صفحة الدفع مرة أخرى.
-									</p>
-								</div>
-							)}
-						</div>
-
-						<div className="mt-4">
-							<Button
-								variant="contained"
-								disabled={loading || !paymentMethod || !checkoutSummary}
-								sx={{
-									fontSize: "1.1rem",
-									backgroundColor: loading ? "#9ca3af" : "#14213d",
-									"&:hover": { backgroundColor: loading ? "#9ca3af" : "#0f1a31" },
-									color: "#fff",
-									gap: "10px",
-									px: "20px",
-									py: "12px",
-									borderRadius: "16px",
-									textTransform: "none",
-									width: "100%",
-									fontWeight: 900,
-								}}
-								endIcon={<KeyboardBackspaceIcon />}
-								onClick={handleCompletePurchase}
-							>
-								{loading ? "جاري المعالجة..." : "إتمام الشراء"}
-							</Button>
-
-							{!paymentMethod && (
-								<p className="text-red-500 text-center mt-2 text-sm font-semibold">يرجى اختيار طريقة الدفع أولًا</p>
-							)}
-
-							{!checkoutSummary && (
-								<p className="text-amber-700 text-center mt-2 text-sm font-semibold">ملخص الطلب غير موجود</p>
-							)}
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<LoadingOverlay show={redirecting} message={redirectMessage} />
-		</div>
-	);
-}
-
-function getPaymentMethodText(method: string) {
-	const map: Record<string, string> = {
-		cash_on_delivery: "الدفع عند الاستلام",
-		credit_card: "الدفع بالبطاقة",
-		applePay: "Apple Pay",
-		stcPay: "STC Pay",
-		tamara: "Tamara",
-		tabby: "Tabby",
-	};
-	return map[method] || method || "طريقة دفع";
+      <LoadingOverlay show={redirecting} message={redirectMessage} />
+    </div>
+  );
 }
