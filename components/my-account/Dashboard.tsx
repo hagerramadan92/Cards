@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
 	FaChessQueen, 
 	FaGift, 
@@ -14,12 +14,11 @@ import {
 	FaAward,
 	FaTimes,
 	FaCheck,
-	FaLock,
-	FaRegStar
+	FaLock
 } from 'react-icons/fa';
 import { MdKeyboardArrowLeft } from "react-icons/md";
 import type { IconType } from 'react-icons';
-import { FaMoneyBill, FaWallet, FaCreditCard, FaList } from 'react-icons/fa';
+import { FaWallet, FaCreditCard, FaList } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoStarFill } from 'react-icons/go';
 
@@ -27,6 +26,15 @@ interface DashboardItem {
 	icon: IconType;
 	label: string;
 	href: string;
+}
+
+// تعريف واجهة بيانات المحفظة
+interface WalletData {
+  wallet_id: number;
+  balance: string;
+  currency: string;
+  daily_limit: string;
+  total_deposits_today: string;
 }
 
 const DASHBOARD_ITEMS: DashboardItem[] = [
@@ -324,7 +332,134 @@ function LevelModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
 	);
 }
 
+// مكون قسم المالية
+function FinanceSection() {
+  const [walletData, setWalletData] = useState<WalletData | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    async function fetchWalletData() {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('auth_token');
+        
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/user/wallet`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+			'accept-language': `${navigator.language || 'en-US'}`,
+            ...(token && { 'Authorization': `Bearer ${token}` }),
+          },
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch wallet data');
+        }
+
+        const result = await response.json();
+        
+        if (result.status) {
+          setWalletData(result.data);
+        } else {
+          console.error('API Error:', result.message);
+        }
+      } catch (error) {
+        console.error('Error fetching wallet:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchWalletData();
+  }, []);
+
+  const balance = walletData?.balance || "0.00";
+  const currency = walletData?.currency || "ج.م";
+
+  return (
+    <div className="mt-4 md:mt-6 space-y-4">
+      {/* Wallet Balance Card */}
+      <div className='bg-white rounded-xl pb-3 border border-slate-200 shadow-sm overflow-hidden'>
+        <div className='px-4 py-3 md:px-5 md:py-4 border-b border-slate-100'>
+          <div className='flex items-center justify-between mb-3 md:mb-4'>
+            <h2 className='text-sm md:text-base font-semibold text-slate-500'>رصيد لايك كارد</h2>
+            <Link 
+              href="/myAccount/finance/transactions"
+              className='text-xs md:text-sm font-medium text-pro-max hover:text-pro-max transition-colors flex items-center gap-1.5'
+            >
+              عرض المعاملات
+              <MdKeyboardArrowLeft size={18} className='hidden sm:block'/>
+            </Link>
+          </div>
+          
+          {loading ? (
+            <div className="flex items-baseline gap-2">
+              <div className="h-8 w-24 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 w-8 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          ) : (
+            <>
+              <div className='flex items-baseline gap-2'>
+                <p className='text-2xl md:text-3xl font-bold text-slate-900'>{balance}</p>
+                <p className='text-xs md:text-sm text-slate-500 font-medium'>{currency}</p>
+              </div>
+              
+              {walletData && (
+                <div className='mt-3 text-xs text-slate-500'>
+                  <div className='flex justify-between'>
+                    <span>الحد اليومي:</span>
+                    <span className='font-medium'>{walletData.daily_limit} {currency}</span>
+                  </div>
+                  <div className='flex justify-between mt-1'>
+                    <span>المودوع اليوم:</span>
+                    <span className='font-medium'>{walletData.total_deposits_today} {currency}</span>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        
+        {/* Finance Actions */}
+        <div 
+          className='grid grid-cols-3 gap-px bg-slate-100'
+          style={{ backgroundColor: 'rgb(255, 250, 246)' }}
+        >
+          <Link 
+            href="/myAccount/finance/categories"
+            className='p-2 flex flex-col items-center gap-2 md:gap-3 bg-white hover:bg-slate-50 transition-all duration-200 group'
+          >
+            <div className='w-6 h-6 md:w-7 md:h-7 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors'>
+              <FaList className='text-pro-max w-3 h-3 md:w-4 md:h-4' />
+            </div>
+            <span className='text-xs md:text-sm font-semibold text-pro-max group-hover:text-pro-max transition-colors'>القسائم</span>
+          </Link>
+
+          <Link 
+            href="/myAccount/finance/charge"
+            className='p-2 flex flex-col items-center gap-2 md:gap-3 bg-white hover:bg-slate-50 transition-all duration-200 group'
+          >
+            <div className='w-6 h-6 md:w-7 md:h-7 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors'>
+              <FaWallet className='text-pro-max w-3 h-3 md:w-4 md:h-4' />
+            </div>
+            <span className='text-xs md:text-sm font-semibold text-pro-max group-hover:text-pro-max transition-colors'>تعبئة الرصيد</span>
+          </Link>
+
+          <Link 
+            href="/myAccount/finance/pay"
+            className='p-2 flex flex-col items-center gap-2 md:gap-3 bg-white hover:bg-slate-50 transition-all duration-200 group'
+          >
+            <div className='w-6 h-6 md:w-7 md:h-7 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors'>
+              <FaCreditCard className='text-pro-max w-3 h-3 md:w-4 md:h-4' />
+            </div>
+            <span className='text-xs md:text-sm font-semibold text-pro-max group-hover:text-pro-max transition-colors'>رابط الدفع</span>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Dashboard() {
 	const [showLevelModal, setShowLevelModal] = useState(false);
@@ -415,66 +550,9 @@ export default function Dashboard() {
 					<DashboardItemCard key={index} item={item} />
 				))}
 			</div>
+
 			{/* Finance Section */}
-			<div className='mt-6 md:mt-8 bg-white rounded-xl pb-3 border border-slate-200 shadow-sm overflow-hidden'>
-				{/* Header and Balance */}
-				<div className='px-4 py-3 md:px-5 md:py-4 border-b border-slate-100'>
-					<div className='flex items-center justify-between mb-3 md:mb-4'>
-						<h2 className='text-sm md:text-base font-semibold text-slate-500'>رصيد لايك كارد</h2>
-						<Link 
-							href="/myAccount/finance"
-							className='text-xs md:text-sm font-medium text-pro-max hover:text-pro-max transition-colors flex items-center gap-1.5'
-						>
-							عرض المعاملات
-							<MdKeyboardArrowLeft size={18} className='hidden sm:block'/>
-						</Link>
-					</div>
-					{/* Current Balance */}
-					<div className='flex items-baseline gap-2'>
-						<p className='text-2xl md:text-3xl font-bold text-slate-900'>0.00</p>
-						<p className='text-xs md:text-sm text-slate-500 font-medium'>ج.م</p>
-					</div>
-				</div>
-
-				{/* Three Sections */}
-				<div 
-					className='grid grid-cols-3  gap-px bg-slate-100'
-					style={{ backgroundColor: 'rgb(255, 250, 246)' }}
-				>
-					{/* Categories Section */}
-					<Link 
-						href="/myAccount/finance/categories"
-						className='p-2 flex flex-col items-center gap-2 md:gap-3 bg-white hover:bg-slate-50 transition-all duration-200 group'
-					>
-						<div className='w-6 h-6 md:w-7 md:h-7 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors'>
-							<FaList className='text-pro-max w-3 h-3 md:w-4 md:h-4' />
-						</div>
-						<span className='text-xs md:text-sm font-semibold text-pro-max group-hover:text-pro-max transition-colors'>القسائم</span>
-					</Link>
-
-					{/* Charge Wallet Section */}
-					<Link 
-						href="/myAccount/finance/charge"
-						className='p-2 flex flex-col items-center gap-2 md:gap-3 bg-white hover:bg-slate-50 transition-all duration-200 group'
-					>
-						<div className='w-6 h-6 md:w-7 md:h-7 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors'>
-							<FaWallet className='text-pro-max w-3 h-3 md:w-4 md:h-4' />
-						</div>
-						<span className='text-xs md:text-sm font-semibold text-pro-max group-hover:text-pro-max transition-colors'>تعبئة الرصيد</span>
-					</Link>
-
-					{/* Pay Section */}
-					<Link 
-						href="/myAccount/finance/pay"
-						className='p-2 flex flex-col items-center gap-2 md:gap-3 bg-white hover:bg-slate-50 transition-all duration-200 group'
-					>
-						<div className='w-6 h-6 md:w-7 md:h-7 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors'>
-							<FaCreditCard className='text-pro-max w-3 h-3 md:w-4 md:h-4' />
-						</div>
-						<span className='text-xs md:text-sm font-semibold text-pro-max group-hover:text-pro-max transition-colors'>رابط الدفع</span>
-					</Link>
-				</div>
-			</div>
+			<FinanceSection />
 
 			{/* Level Modal */}
 			<LevelModal isOpen={showLevelModal} onClose={() => setShowLevelModal(false)} />
