@@ -1851,7 +1851,7 @@ export default function ProductPageClient() {
 
 							<div className="flex  sm:gap-2 flex-col">
 							<p className="text-xs md:text-sm font-black text-slate-900 line-clamp-2">{product.name}</p>
-										<p className="text-lg text-gray-500 leading-none sm:mt-1">{displayTotal.toFixed(2)}</p>
+										<p className="text-lg text-gray-500 leading-none sm:mt-1">{product.price}</p>
 								
 							</div>
 										

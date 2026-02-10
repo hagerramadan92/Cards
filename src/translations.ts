@@ -12,6 +12,13 @@ export const translations = {
     call_now: "اتصل الآن",
     menu: "القائمة",
     language: "اللغة",
+    // في ملف الترجمة العربي
+
+  "vat": "ضريبة القيمة المضافة",
+  "total_before_vat": "الإجمالي قبل الضريبة",
+  "grand_total": "الإجمالي شامل الضريبة",
+  "shipping": "الشحن",
+
     currency: "جنية",
     no_categories: "لا توجد أقسام حالياً",
     view_all: "عرض الكل",

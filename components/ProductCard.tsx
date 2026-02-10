@@ -327,9 +327,9 @@ export default function ProductCard({
 					</div>
 
 					{/* VIP Diamond Icon */}
-					<div className="absolute start-2 px-0.5 bg-white  bottom-[-17px] z-20 flex items-center rounded-full gap-0 shadow-lg">
+					{/* <div className="absolute start-2 px-0.5 bg-white  bottom-[-17px] z-20 flex items-center rounded-full gap-0 shadow-lg"> */}
 						{/* <PiDiamondFill className="w-4 h-4 md:w-5 md:h-5 text-pro" /> */}
-						<Image
+						{/* <Image
 							src="/images/diamond.svg"
 							alt="diamond"
 							width={20}
@@ -338,8 +338,8 @@ export default function ProductCard({
 						/>
 						<span className="text-sm font-bold pe-2 py-0.5 text-pro-max ">
 							{id}
-						</span>
-					</div>
+						</span> */}
+					{/* </div> */}
 					<Link href={`/product/${id}`} className="block h-full">
 						<div className="relative h-full overflow-hidden">
 							<ImageComponent image={image || '/images/c1.png'} />
@@ -349,8 +349,8 @@ export default function ProductCard({
 
 					{/* Top actions - Right side (Favorite and Add to Cart) */}
 					<div className="absolute top-2 end-2 z-30 flex flex-col items-center gap-2">
-						<div className=" w-5 h-5 rounded-full  backdrop-blur-sm flex items-center justify-center ">
-							<Image src="/images/flag.svg" alt="flag" width={20} height={20} className="w-full h-full" />
+						<div className=" w-5 h-5 rounded-full  backdrop-blur-sm flex items-center justify-center overflow-hidden ">
+							<Image src="/images/flag.webp" alt="flag" width={20} height={20} className="w-full h-full" />
 						</div>
 					
 						</div>

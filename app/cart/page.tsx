@@ -372,48 +372,61 @@ export default function CartPage() {
 	const backendTotal = n(total);
 
 	// ✅ Save summary + coupon in localStorage for payment page
-	const persistCheckoutSummary = useCallback(() => {
-		const shippingFree = true;
-		const shippingFee = shippingFree ? 0 : 48;
-		const TAX_RATE = 0.15;
+const persistCheckoutSummary = useCallback(() => {
+  const shippingFree = true;
+  const shippingFee = shippingFree ? 0 : 48;
 
-		const totalAfterCoupon =
-			couponNewTotal !== null && couponNewTotal !== undefined
-				? Math.max(0, n(couponNewTotal))
-				: Math.max(0, backendTotal - n(couponDiscount));
+  const totalAfterCoupon =
+    couponNewTotal !== null && couponNewTotal !== undefined
+      ? Math.max(0, n(couponNewTotal))
+      : Math.max(0, backendTotal - n(couponDiscount));
 
-		const totalWithShipping = totalAfterCoupon + shippingFee;
-		const taxAmount = totalWithShipping * (TAX_RATE / (1 + TAX_RATE));
-		const totalWithoutTax = totalWithShipping - taxAmount;
+  const totalWithShipping = totalAfterCoupon + shippingFee;
+  
+  // Calculate total VAT from cart items
+  const totalVAT = cart.reduce((sum: number, item: any) => {
+    return sum + n(item.product?.tax_amount || 0) * n(item.quantity);
+  }, 0);
+  
+  const grandTotal = totalWithShipping + totalVAT;
 
-		const payload = {
-			version: "v1",
-			created_at: new Date().toISOString(),
-			items_count: cartCount,
-			items_length: Array.isArray(cart) ? cart.length : 0,
+  const payload = {
+    version: "v1",
+    created_at: new Date().toISOString(),
+    items_count: cartCount,
+    items_length: Array.isArray(cart) ? cart.length : 0,
 
-			// backend totals
-			subtotal: backendSubtotal,
-			total: backendTotal,
+    // backend totals
+    subtotal: backendSubtotal,
+    total: backendTotal,
 
-			// coupon
-			coupon_discount: n(couponDiscount),
-			coupon_name: code,
-			coupon_new_total: couponNewTotal !== null && couponNewTotal !== undefined ? n(couponNewTotal) : null,
+    // coupon
+    coupon_discount: n(couponDiscount),
+    coupon_name: code,
+    coupon_new_total: couponNewTotal !== null && couponNewTotal !== undefined ? n(couponNewTotal) : null,
 
-			// derived totals used in TotalOrder
-			shipping_fee: shippingFee,
-			tax_rate: TAX_RATE,
-			total_after_coupon: totalAfterCoupon,
-			total_with_shipping: totalWithShipping,
-			tax_amount: taxAmount,
-			total_without_tax: totalWithoutTax,
-		};
+    // derived totals
+    shipping_fee: shippingFee,
+    total_after_coupon: totalAfterCoupon,
+    total_with_shipping: totalWithShipping,
+    vat_amount: totalVAT,
+    grand_total: grandTotal,
+    
+    // individual item VAT for reference
+    items_vat_details: cart.map((item: any) => ({
+      product_id: item.product?.id,
+      product_name: item.product?.name,
+      unit_price: n(item._unit),
+      quantity: n(item.quantity),
+      unit_vat: n(item.product?.tax_amount || 0),
+      total_vat: n(item.product?.tax_amount || 0) * n(item.quantity)
+    }))
+  };
 
-		try {
-			sessionStorage.setItem("checkout_summary_v1", JSON.stringify(payload));
-		} catch { }
-	}, [backendSubtotal, backendTotal, couponDiscount, couponNewTotal, cartCount, cart]);
+  try {
+    sessionStorage.setItem("checkout_summary_v1", JSON.stringify(payload));
+  } catch { }
+}, [backendSubtotal, backendTotal, couponDiscount, couponNewTotal, cartCount, cart]);
 
 	useEffect(() => {
 		persistCheckoutSummary();
@@ -1447,87 +1460,124 @@ const StickerForm = forwardRef(function StickerForm(
 });
 
 function TotalOrder({
-	items_count,
-	subtotal,
-	total,
-	items,
-	couponDiscount = 0,
-	couponNewTotal = null,
+  items_count,
+  subtotal,
+  total,
+  items,
+  couponDiscount = 0,
+  couponNewTotal = null,
 }: {
-	items_count: number;
-	subtotal: number;
-	total: number;
-	items: any[];
-	couponDiscount?: number;
-	couponNewTotal?: number | null;
+  items_count: number;
+  subtotal: number;
+  total: number;
+  items: any[];
+  couponDiscount?: number;
+  couponNewTotal?: number | null;
 }) {
-	const { t } = useLanguage();
-	const shippingFree = true;
-	const shippingFee = shippingFree ? 0 : 48;
+  const { t } = useLanguage();
+  const shippingFree = true;
+  const shippingFee = shippingFree ? 0 : 48;
 
-	const totalAfterCoupon =
-		couponNewTotal !== null && couponNewTotal !== undefined
-			? Math.max(0, n(couponNewTotal))
-			: Math.max(0, n(total) - n(couponDiscount));
+  // Calculate total after coupon
+  const totalAfterCoupon =
+    couponNewTotal !== null && couponNewTotal !== undefined
+      ? Math.max(0, n(couponNewTotal))
+      : Math.max(0, n(total) - n(couponDiscount));
 
-	const TAX_RATE = 0.15;
+  // Calculate total with shipping
+  const totalWithShipping = totalAfterCoupon + shippingFee;
+  
+  // Calculate total VAT from all items
+  const totalVAT = items.reduce((sum: number, item: any) => {
+    return sum + n(item.product?.tax_amount || 0) * n(item.quantity);
+  }, 0);
+  
+  // Calculate grand total (including VAT)
+  const grandTotal = totalWithShipping + totalVAT;
 
-	const totalWithShipping = totalAfterCoupon + shippingFee;
-	const taxAmount = totalWithShipping * (TAX_RATE / (1 + TAX_RATE));
-	const totalWithoutTax = totalWithShipping - taxAmount;
+  // Formatting functions
+  const formattedSubtotal = n(subtotal).toLocaleString("en-US", { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  });
+  
+  const formattedVAT = n(totalVAT).toLocaleString("en-US", { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  });
+  
+  const formattedTotalBeforeVAT = n(totalWithShipping).toLocaleString("en-US", { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  });
+  
+  const formattedGrandTotal = n(grandTotal).toLocaleString("en-US", { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  });
+  
+  const formattedCoupon = n(couponDiscount).toLocaleString("en-US", { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  });
 
-	const formattedSubtotal = n(subtotal).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-	const formattedTax = n(taxAmount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-	const formattedTotalWithoutTax = n(totalWithoutTax).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-	const formattedGrandTotal = n(totalWithShipping).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-	const formattedCoupon = n(couponDiscount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return (
+    <div className="my-1 gap-2 flex flex-col">
+      {/* Subtotal */}
+      <div className="flex text-sm items-center justify-between text-black">
+        <p className="font-semibold">
+          {t('summary_total')
+            .replace('{count}', String(items?.length))
+            .replace('{items}', t('items'))}
+        </p>
+      
+      </div>
 
-	return (
-		<div className="my-1 gap-2 flex flex-col">
-			<div className="flex text-sm items-center justify-between text-black">
-				<p className="font-semibold">{t('summary_total').replace('{count}', String(items?.length)).replace('{items}', t('items'))}</p>
-				<p>
-					{formattedSubtotal}
-					<span className="text-sm ms-1">{t('currency')}</span>
-				</p>
-			</div>
+      
 
+      {/* Coupon Discount */}
+      {(n(couponDiscount) > 0 || (couponNewTotal !== null && couponNewTotal !== undefined)) && (
+        <div className="flex items-center justify-between text-sm">
+          <p className="text-emerald-800 font-semibold">{t('coupon_discount')}</p>
+          <p className="font-extrabold text-emerald-700">
+            - {formattedCoupon}
+            <span className="text-sm ms-1">{t('currency')}</span>
+          </p>
+        </div>
+      )}
 
-			{(n(couponDiscount) > 0 || (couponNewTotal !== null && couponNewTotal !== undefined)) && (
-				<div className="flex items-center justify-between text-sm">
-					<p className="text-emerald-800 font-semibold">{t('coupon_discount')}</p>
-					<p className="font-extrabold text-emerald-700">
-						- {formattedCoupon}
-							<span className="text-sm ms-1">{t('currency')}</span>
-					</p>
-				</div>
-			)}
+      {/* Total Before VAT */}
+      <div className="flex items-center justify-between text-sm pt-2 border-t border-slate-200">
+        <p className="font-semibold">{t('total_before_vat')}</p>
+        <p className="font-semibold">
+          {formattedTotalBeforeVAT}
+          <span className="text-sm ms-1">{t('currency')}</span>
+        </p>
+      </div>
 
-			{/* <div className="flex items-center justify-between text-sm">
-				<p>{t('tax')}</p>
-				<p className="font-semibold">
-					{formattedTax}
-					<span className="text-sm ms-1">{t('currency')}</span>
-				</p>
-			</div>
+      {/* VAT */}
+      <div className="flex items-center justify-between text-sm">
+        <p>
+          {t('vat')}
+        </p>
+        <p className="font-semibold">
+          + {formattedVAT}
+          <span className="text-sm ms-1">{t('currency')}</span>
+        </p>
+      </div>
 
-			<div className="flex items-center justify-between text-sm">
-				<p>{t('total_without_tax')}</p>
-				<p className="font-semibold">
-					{formattedTotalWithoutTax}
-					<span className="text-sm ms-1">{t('currency')}</span>
-				</p>
-			</div> */}
-
-			<div className="flex items-center justify-between pb-3 pt-2">
-				<div className="flex gap-1 items-center">
-					<p className=" text-nowrap text-md text-pro font-semibold">{t('total_colon')}</p>
-				</div>
-				<p className="text-[15px] text-pro font-bold">
-					{formattedGrandTotal}
-					<span> {t('currency')}</span>
-				</p>
-			</div>
-		</div>
-	);
+      {/* Grand Total */}
+      <div className="flex items-center justify-between pb-3 pt-2 border-t border-slate-200">
+        <div className="flex gap-1 items-center">
+          <p className="text-nowrap text-md text-pro font-semibold">
+            {t('grand_total')}
+          </p>
+        </div>
+        <p className="text-[15px] text-pro font-bold">
+          {formattedGrandTotal}
+          <span> {t('currency')}</span>
+        </p>
+      </div>
+    </div>
+  );
 }
