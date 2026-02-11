@@ -66,10 +66,8 @@ export default function LanguageSelector() {
 
   const handleLanguageChange = async (langCode: string) => {
     try {
-      // تحديث اللغة في السياق (سيقوم بتحديث الـ headers تلقائياً)
       setLanguage(langCode);
       
-      // إرسال طلب API لإخبار الخادم بتغيير اللغة
       await sendLanguageChangeRequest(langCode);
       
       setIsOpen(false);
@@ -79,14 +77,10 @@ export default function LanguageSelector() {
       
     } catch (error) {
       console.error("Error changing language:", error);
-      // يمكنك إضافة معالجة الأخطاء هنا
     }
   };
 
-  // دالة لإرسال طلب تغيير اللغة إلى الخادم
   const sendLanguageChangeRequest = async (langCode: string) => {
-    // هذا مثال لطلب API لتغيير إعدادات اللغة على الخادم
-    // يمكنك تكييفه حسب احتياجاتك
     
     const languageChangeEndpoint = "/api/update-language-preference";
     

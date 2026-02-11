@@ -71,97 +71,77 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
 
   // دالة لتحديث جميع البيانات بناءً على اللغة
-  const refreshAppData = useCallback(async (language?: string) => {
-    const lang = language || currentLanguage;
-    
-    try {
-      // Only show full loading if we don't have data yet
-      const isInitialLoad = !homeData || parentCategories.length === 0;
-      if (isInitialLoad) {
-        setLoading(true);
-        setLoadingHome(true);
-        setLoadingCategories(true);
-      }
-      setError(null);
-
-      console.log(`Refreshing app data with language: ${lang} (Initial: ${isInitialLoad})`);
-
-      // جلب جميع البيانات بالتوازي مع اللغة المحددة
-      const [
-        homeResult,
-        parentResult,
-        childResult,
-        socialResult,
-        paymentResult
-      ] = await Promise.allSettled([
-        // 1) Home Data
-        fetchHomeData(lang).then(res => {
-          setHomeData(res);
-          setAppearInHomeCategories(res?.appear_in_home_categories || []);
-          return res;
-        }),
-        
-        // 2) Categories Parent
-        fetchApi("categories?type=parent", {}, lang).then(res => {
-          setParentCategories(Array.isArray(res) ? res : []);
-          return res;
-        }),
-        
-        // 3) Categories Child
-        fetchApi("categories?type=child", {}, lang).then(res => {
-          setChildCategories(Array.isArray(res) ? res : []);
-          return res;
-        }),
-        
-        // 4) Social Media
-        fetchApi("social-media", {}, lang).then(res => {
-          setSocialMedia(Array.isArray(res) ? res : []);
-          return res;
-        }),
-        
-        // 5) Payment Methods
-        fetchApi("payment-methods?is_payment=true", {}, lang).then(res => {
-          setPaymentMethods(Array.isArray(res) ? res : []);
-          return res;
-        })
-      ]);
-
-      // معالجة الأخطاء
-      const errors: string[] = [];
-      
-      const checkResult = (result: PromiseSettledResult<any>, name: string) => {
-        if (result.status === 'rejected') {
-          // Ignore abort errors
-          const isAbort = result.reason === "Language changed" || result.reason?.message === "Language changed";
-          if (!isAbort) {
-            console.error(`Error fetching ${name}:`, result.reason);
-            errors.push(name);
-          }
-        }
-      };
-
-      checkResult(homeResult, 'Home data');
-      checkResult(parentResult, 'Parent categories');
-      checkResult(childResult, 'Child categories');
-      checkResult(socialResult, 'Social media');
-      checkResult(paymentResult, 'Payment methods');
-      
-      if (errors.length > 0) {
-        setError(`Failed to load: ${errors.join(', ')}`);
-      }
-
-    } catch (err: any) {
-      // Ignore top-level aborts
-      if (err === "Language changed" || err?.message === "Language changed") return;
-      
-      setError(err.message || "فشل تحميل البيانات");
-      console.error("Error in refreshAppData:", err);
-    } finally {
-      setLoading(false);
-      setLoadingHome(false);
-      setLoadingCategories(false);
+const refreshAppData = useCallback(async (language?: string) => {
+  const lang = language || currentLanguage;
+  
+  try {
+    const isInitialLoad = !homeData || parentCategories.length === 0;
+    if (isInitialLoad) {
+      setLoading(true);
+      setLoadingHome(true);
+      setLoadingCategories(true);
     }
-  }, [currentLanguage]);
+    setError(null);
+
+    console.log(`Refreshing app data with language: ${lang}`);
+
+    // 🔥 **الحل: تقسيم API calls إلى مجموعتين**
+    
+    // المجموعة 1: البيانات الحرجة أولاً (للصفحة الرئيسية)
+    const criticalPromises = Promise.allSettled([
+      fetchHomeData(lang).then(res => {
+        setHomeData(res);
+        setAppearInHomeCategories(res?.appear_in_home_categories || []);
+        return res;
+      }),
+      
+      fetchApi("categories?type=parent", {}, lang).then(res => {
+        setParentCategories(Array.isArray(res) ? res : []);
+        return res;
+      }),
+    ]);
+
+    // معالجة النتائج الحرجة أولاً
+    await criticalPromises;
+    
+    // ✅ تحديث حالة التحميل بعد تحميل البيانات الحرجة
+    setLoadingHome(false);
+    setLoadingCategories(false);
+    if (isInitialLoad) setLoading(false);
+    
+    // المجموعة 2: البيانات غير الحرجة (يمكن تأجيلها)
+    setTimeout(async () => {
+      try {
+        await Promise.allSettled([
+          fetchApi("categories?type=child", {}, lang).then(res => {
+            setChildCategories(Array.isArray(res) ? res : []);
+            return res;
+          }),
+          
+          fetchApi("social-media", {}, lang).then(res => {
+            setSocialMedia(Array.isArray(res) ? res : []);
+            return res;
+          }),
+          
+          fetchApi("payment-methods?is_payment=true", {}, lang).then(res => {
+            setPaymentMethods(Array.isArray(res) ? res : []);
+            return res;
+          })
+        ]);
+      } catch (err) {
+        console.warn("Non-critical data failed:", err);
+      }
+    }, 500); // تأخير 500ms للبيانات غير الحرجة
+
+  } catch (err: any) {
+    if (err === "Language changed" || err?.message === "Language changed") return;
+    
+    setError(err.message || "فشل تحميل البيانات");
+    console.error("Error in refreshAppData:", err);
+  } finally {
+    // تم نقل setLoading إلى بعد تحميل البيانات الحرجة
+  }
+}, [currentLanguage]);
 
   // تحديث البيانات عند تغيير اللغة مباشرة من context أو عبر الحدث
   useEffect(() => {

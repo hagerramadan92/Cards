@@ -13,7 +13,6 @@ import DropdownUser from "./DropdownUser";
 import { useAuth } from "@/src/context/AuthContext";
 import { useAppContext } from "@/src/context/AppContext";
 import Logo from "./Logo";
-import { CategoriesSliderSkeleton } from "./skeletons/HomeSkeletons";
 import CategoriesSlider from "./CategoriesC";
 import LanguageSelector from "./LanguageSelector";
 import { FaBarsStaggered } from "react-icons/fa6";

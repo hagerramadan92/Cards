@@ -225,7 +225,7 @@ export default function SideBar({ active }: SideBarProps) {
 	return (
 		<>
 			{/* Mobile Toggle Button (Visible only on small screens) */}
-			<div className="lg:hidden fixed top-30 right-0 z-[40] mb-90">
+			<div className="lg:hidden fixed top-30 right-0 z-9999 mb-90">
 				<button
 					onClick={() => setIsMobileOpen(true)}
 					className="flex items-center gap-2 px-3 py-2 bg-pro-max text-white rounded-l-xl shadow-lg hover:bg-pro-max/90 transition-all font-semibold"
@@ -243,7 +243,7 @@ export default function SideBar({ active }: SideBarProps) {
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
 						onClick={() => setIsMobileOpen(false)}
-						className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[99999] lg:hidden"
+						className="fixed inset-0 bg-black/50 backdrop-blur-sm z-0 lg:hidden"
 					/>
 				)}
 			</AnimatePresence>
@@ -253,8 +253,8 @@ export default function SideBar({ active }: SideBarProps) {
 				className={`
 					
 					bg-white rounded-2xl shadow-sm border border-slate-200 p-4
-					fixed inset-y-0 right-0 z-[100000] w-[280px] overflow-y-auto duration-300 ease-in-out transform
-					lg:translate-x-0 lg:static lg:w-full lg:z-auto lg:h-fit lg:overflow-visible
+					fixed inset-y-0 right-0 z-0 w-[280px] overflow-y-auto duration-300 ease-in-out transform
+					lg:translate-x-0 lg:static lg:w-full  lg:h-fit lg:overflow-visible
 					${isMobileOpen ? "translate-x-0" : "translate-x-full"}
 				`}
 			>
@@ -292,7 +292,7 @@ export default function SideBar({ active }: SideBarProps) {
 						<button
 							onClick={handleImageChange}
 							disabled={uploading}
-							className="absolute bottom-0 end-0 w-7 h-7 rounded-full bg-pro-max text-white flex items-center justify-center shadow-xl border-2 border-white hover:bg-pro-max/90 hover:scale-110 active:scale-95 transition-all duration-200 z-10 group/btn disabled:opacity-50 disabled:cursor-not-allowed"
+							className="absolute bottom-0 end-0 w-7 h-7 rounded-full bg-pro-max text-white flex items-center justify-center shadow-xl border-2 border-white hover:bg-pro-max/90 hover:scale-110 active:scale-95 transition-all duration-200 z-0 group/btn disabled:opacity-50 disabled:cursor-not-allowed"
 							aria-label="Change profile picture"
 							title="تغيير الصورة الشخصية"
 						>
@@ -308,7 +308,7 @@ export default function SideBar({ active }: SideBarProps) {
 						</button>
 
 						{/* Tooltip on Hover */}
-						<div className="absolute bottom-full start-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-20">
+						<div className="absolute bottom-full start-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-0">
 							<div className="bg-slate-900 text-white text-xs px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
 								تغيير الصورة
 								<div className="absolute top-full start-1/2 -translate-x-1/2 -mt-px w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-slate-900"></div>

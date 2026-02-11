@@ -6,8 +6,8 @@ import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import { ProductI } from "@/Types/ProductsI";
-import { ProductCardSkeleton } from "@/components/skeletons/HomeSkeletons";
 import { useLanguage } from "@/src/context/LanguageContext";
+import Spinner from "./Spinner/spinner";
 
 interface InStockSliderProps {
 	inStock: ProductI[];
@@ -103,7 +103,6 @@ export default function InStockSlider({
 				slidesPerView={2}
 				slidesPerGroup={2}
 				breakpoints={{
-					
 					480: { slidesPerView: 2, slidesPerGroup: 2 , spaceBetween: 0},
 					640: { slidesPerView: 2, slidesPerGroup: 2  },
 					768: { slidesPerView: 3, slidesPerGroup: 3},
@@ -112,11 +111,7 @@ export default function InStockSlider({
 				}}
 			>
 				{isLoading
-					? Array.from({ length: skeletonCount }).map((_, i) => (
-						<SwiperSlide key={`sk-${i}`}>
-							<ProductCardSkeleton />
-						</SwiperSlide>
-					))
+					? <div className="flex items-center justify-center h-40 w-full"><Spinner size="lg" /></div>
 					: inStock.map((product) => (
 						<SwiperSlide key={product.id} id="swiper-width" >
 							{typeof CardComponent === "function" ? (

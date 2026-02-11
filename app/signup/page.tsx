@@ -280,7 +280,7 @@ export default function SignupPage() {
 			});
 
 			const data = await res.json();
-
+            console.log("Signup response:", data);
 			if (res.ok && data.status !== false) {
 				const token = data.data?.token;
 

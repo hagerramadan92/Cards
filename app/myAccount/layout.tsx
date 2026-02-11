@@ -16,7 +16,7 @@ export default function MyAccountLayout({
   return (
     <div className="container flex flex-col lg:flex-row gap-4 py-6 min-h-[50vh]">
  
-      <div className="lg:h-fit lg:sticky lg:top-[160px] lg:max-w-[300px] lg:w-full z-9999 ">
+      <div className="lg:h-fit lg:sticky lg:top-[160px] lg:max-w-[300px] lg:w-full z-9 ">
         <SideBar active={active} />
       </div>
 
