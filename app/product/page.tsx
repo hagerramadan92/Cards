@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ProductCard from "@/components/ProductCard";
 import { ProductI } from "@/Types/ProductsI";
-
 import { motion } from "framer-motion";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import { FormControl, Select, MenuItem, Button } from "@mui/material";
@@ -85,6 +84,27 @@ export default function AllProductsPage() {
 	const { language, getLanguageHeaders } = useLanguage();
 	// ✅ server data
 	const [products, setProducts] = useState<ProductI[]>([]);
+const getProductImage = (product: any) => {
+  // إذا كانت الصورة موجودة وتحتوي على الرابط
+  if (product.image && typeof product.image === 'string' && product.image.trim() !== '') {
+    return product.image;
+  }
+  
+  // إذا كانت هناك صور في مصفوفة images
+  if (product.images?.length > 0) {
+    const firstImage = product.images[0];
+    if (typeof firstImage === 'string' && firstImage.trim() !== '') {
+      return firstImage;
+    }
+    if (firstImage?.url && typeof firstImage.url === 'string' && firstImage.url.trim() !== '') {
+      return firstImage.url;
+    }
+  }
+  
+  // إذا لم توجد أي صورة صالحة، أرجع الصورة المحلية
+  return "/images/not.jpg";
+};
+
 	const [meta, setMeta] = useState<Meta>({
 		current_page: 1,
 		per_page: 15,
@@ -336,11 +356,11 @@ export default function AllProductsPage() {
 											key={product.id}
 											id={product.id}
 											name={product.name}
-											image={product.image || "/images/c1.png"}
+											image={product.image || "/images/not.jpg"}
 											images={
 												product.images?.length
 													? product.images
-													: [{ url: "/images/c1.png", alt: "default image" }]
+													: [{ url: "/images/not.jpg", alt: "default image" }]
 											}
 											price={(product.price ?? 1).toString()}
 											final_price={product.final_price}

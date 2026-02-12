@@ -117,9 +117,9 @@ export default function InStockSlider({
 							{typeof CardComponent === "function" ? (
 								// if passed as render function
 								// @ts-ignore
-								<CardComponent {...product} />
+								<CardComponent {...product }  product={product} />
 							) : (
-								<CardComponent {...product} />
+								<CardComponent {...product}  product={product}/>
 							)}
 						</SwiperSlide>
 					))}

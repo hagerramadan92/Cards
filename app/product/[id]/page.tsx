@@ -586,76 +586,6 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 		return () => clearTimeout(pushTimer.current);
 	}, [getOptionsObj, onOptionsChange]);
 
-	// CART MODE: load saved options (⚠️ backend may have old selected_options; we try best)
-	// const loadSavedOptions = useCallback(async () => {
-	// 	if (!cartItemId) return;
-	// 	if (!apiData) return;
-
-	// 	try {
-	// 		const saved = await fetchCartItemOptions(cartItemId);
-	// 		if (!saved) return;
-
-	// 		// Prefer new backend fields if exist; else fallback to selected_options
-	// 		// (لو الباك إند رجّع size_id وغيره، انت ممكن توسّع restore هنا)
-	// 		const sizeFrom = extractValueFromOptions(saved.selected_options, "المقاس");
-	// 		const colorFrom = extractValueFromOptions(saved.selected_options, "اللون");
-	// 		const matFrom = extractValueFromOptions(saved.selected_options, "الخامة");
-	// 		const pmFrom = extractValueFromOptions(saved.selected_options, "طريقة الطباعة");
-
-	// 		const qtyFrom = extractValueFromOptions(saved.selected_options, "كمية المقاس");
-	// 		const totalFrom = extractValueFromOptions(saved.selected_options, "سعر المقاس الإجمالي");
-	// 		const unitFrom = extractValueFromOptions(saved.selected_options, "سعر الوحدة");
-	// 		const locsFrom = extractValuesFromOptions(saved.selected_options, "مكان الطباعة");
-
-	// 		setSize(sizeFrom || saved.size || "اختر");
-	// 		setColor(colorFrom || (saved.color?.name || saved.color) || "اختر");
-	// 		setMaterial(matFrom || saved.material || "اختر");
-	// 		setPrintingMethod(pmFrom || "اختر");
-	// 		setPrintLocations(locsFrom || []);
-
-	// 		const q = qtyFrom ? Number(qtyFrom) : null;
-	// 		const t = totalFrom ? Number(totalFrom) : null;
-	// 		const u = unitFrom ? Number(unitFrom) : null;
-
-	// 		// restore tier by qty if possible
-	// 		if (q && apiData?.sizes) {
-	// 			const sz = apiData.sizes.find((s: any) => s?.name === (sizeFrom || saved.size));
-	// 			const tier = (sz?.tiers || []).find((x: any) => Number(x?.quantity) === q) || null;
-
-	// 			const tierUnit = num(tier?.price_per_unit) || num(u);
-	// 			const backendTotal = num(tier?.total_price);
-	// 			const computed = q && tierUnit ? q * tierUnit : 0;
-
-	// 			setSizeTierId(tier?.id ?? null);
-	// 			setSizeTierQty(tier?.quantity ?? q ?? null);
-	// 			setSizeTierUnit(tierUnit || null);
-	// 			setSizeTierTotal(backendTotal > 0 ? backendTotal : t && t > 0 ? t : computed > 0 ? computed : null);
-	// 		}
-
-	// 		// restore option groups (only real groups, skip "system" ones)
-	// 		const out: Record<string, string> = {};
-	// 		Object.keys(groupedOptions).forEach((g) => (out[g] = "اختر"));
-
-	// 		if (Array.isArray(saved.selected_options)) {
-	// 			saved.selected_options.forEach((opt: any) => {
-	// 				const name = String(opt.option_name || "").trim();
-	// 				const value = String(opt.option_value || "").trim();
-	// 				if (!name || !value) return;
-
-	// 				// skip system fields (should not be in new version anyway)
-	// 				if (["المقاس", "اللون", "الخامة", "طريقة الطباعة", "مكان الطباعة", "كمية المقاس", "سعر المقاس الإجمالي", "سعر الوحدة"].includes(name)) return;
-
-	// 				if (Object.prototype.hasOwnProperty.call(out, name)) out[name] = value;
-	// 			});
-	// 		}
-
-	// 		setOptionGroups(out);
-	// 		setShowSaveButton(false);
-	// 	} catch {
-	// 		// ignore
-	// 	}
-	// }, [cartItemId, apiData, groupedOptions]);
-
 	useEffect(() => {
 		if (!cartItemId || !apiData) return;
 		// loadSavedOptions();
@@ -731,6 +661,7 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 		setSize("اختر");
 		setColor("اختر");
 		setMaterial("اختر");
+
 
 		const resetGroups: Record<string, string> = {};
 		Object.keys(groupedOptions).forEach((g) => (resetGroups[g] = "اختر"));

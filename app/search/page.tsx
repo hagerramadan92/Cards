@@ -192,7 +192,7 @@ export default function SearchPage() {
 						<input
 							value={localQ}
 							onChange={(e) => setLocalQ(e.target.value)}
-							placeholder="مثال: بوكس - استيكر - رول..."
+							placeholder=""
 							className="w-full h-12 rounded-2xl border border-slate-200 bg-white pr-11 pl-4 outline-none focus:ring-2 focus:ring-pro/30"
 						/>
 					</form>
@@ -264,11 +264,11 @@ export default function SearchPage() {
 									product={product}
 										key={product.id}
 										{...product}
-										image={product.image || "/images/c1.png"}
+										image={product.image || "/images/not.jpg"}
 										images={
 											product.images?.length
 												? product.images
-												: [{ url: "/images/c1.png", alt: "default" } as any]
+												: [{ url: "/images/not.jpg", alt: "default" } as any]
 										}
 										price={(product.price ?? 0).toString()}
 										className2="hidden"
