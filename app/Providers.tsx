@@ -33,15 +33,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <LanguageProvider>
           <AuthProvider>
             <CartProvider>
-              <SearchHistoryProvider> {/* ✅ جديد */}
+              <SearchHistoryProvider> 
                 {children}
               </SearchHistoryProvider>
             </CartProvider>
           </AuthProvider>
         </LanguageProvider>
-        {process.env.NODE_ENV === "development" && (
-          <ReactQueryDevtools initialIsOpen={false} />
-        )}
+       
       </QueryClientProvider>
     </SessionProvider>
   );
