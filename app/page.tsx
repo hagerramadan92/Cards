@@ -185,7 +185,6 @@ export default function Home() {
           )}
         </div>
 
-        {/* ✅ FastBuy - يظهر مباشرة بعد السلايدر عند توفر البيانات */}
         <div className="md:flex hidden">
           {isFastBuyReady ? (
             <FastBuy categories={parentCategories} />

@@ -163,10 +163,10 @@ export default function Footer() {
 
   // ✅ بيانات ثابتة للتواصل
   const staticContactInfo = {
-    phone: "+201000694595",
+    phone: "+201040006424",
     // whatsapp: "+201234567890",
     // email: "info@example.com",
-    address: language === 'ar' ? 'مصر ,  محافظة الشرقية' : 'ElSharkria, Egypt'
+    address: language === 'ar' ? 'مصر ,  محافظة الزقازيق' : 'Zagazig , Egypt'
   };
 
   // ✅ استخدام البيانات من API أو البيانات الثابتة كـ fallback
