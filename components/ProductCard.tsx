@@ -102,7 +102,7 @@ export default function ProductCard({
       return `-${discountValue}%`;
     } else if (discountType === 'fixed') {
       // fixed discount - عرض القيمة مع العملة
-      return `-${discountValue} ${t('currency') || 'ر.س'}`;
+      return `-${discountValue} ${t('currency') || 'ج.م'}`;
     }
     
     return `-${discountValue}`;
@@ -211,13 +211,13 @@ export default function ProductCard({
   };
 
   // ✅ show lowest_price when final_price == 0 (or missing)
-  const displayFinalPrice = useMemo(() => {
-    const fp = Number(final_price || 0);
-    if (fp > 0) return fp;
+  // const displayFinalPrice = useMemo(() => {
+  //   const fp = Number(final_price || 0);
+  //   if (fp > 0) return fp;
 
-    const lp = Number(product?.lowest_price ?? 0);
-    return lp > 0 ? lp : 0;
-  }, [final_price, product?.lowest_price]);
+  //   const lp = Number(product?.lowest_price ?? 0);
+  //   return lp > 0 ? lp : 0;
+  // }, [final_price, product?.lowest_price]);
 
   const displayPrice = useMemo(() => {
     const p = Number(price || 0);
@@ -225,14 +225,14 @@ export default function ProductCard({
   }, [price]);
 
   // ✅ تحديث منطق عرض السعر القديم
-  const priceHasDiscount = useMemo(() => {
-    // إذا كان المنتج له خصم فعلي ونوع الخصم ليس fixed
-    if (showDiscountChip) {
-      return true;
-    }
-    // أو إذا كان السعر مختلف عن السعر النهائي
-    return displayPrice !== displayFinalPrice;
-  }, [displayPrice, displayFinalPrice, showDiscountChip]);
+  // const priceHasDiscount = useMemo(() => {
+  //   // إذا كان المنتج له خصم فعلي ونوع الخصم ليس fixed
+  //   if (showDiscountChip) {
+  //     return true;
+  //   }
+  //   // أو إذا كان السعر مختلف عن السعر النهائي
+  //   return displayPrice !== displayFinalPrice;
+  // }, [displayPrice, displayFinalPrice, showDiscountChip]);
 
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({
     size: "اختر",
@@ -387,18 +387,18 @@ export default function ProductCard({
 
           {/* ✅ Price */}
           <div className={`flex items-center gap-2 max-md:!mb-1 ${classNameHome}`}>
-            {displayFinalPrice > 0 ? (
+         
               <div className='flex items-center gap-1 flex-wrap'>
                 <PriceComponent start price_text={product?.final_price} />
                 
                 {/* ✅ عرض السعر القديم مشطوب فقط إذا كان هناك خصم */}
-                {priceHasDiscount && (
+                {product.has_discount && (
                   <span className="text-sm text-gray-400 line-through">
-                    {displayPrice} {t('currency') || 'ج.م'}
+                    {product.price} 
                   </span>
                 )}
               </div>
-            ) : null}
+       
           </div>
 
           {/* Divider */}

@@ -35,7 +35,7 @@ async function getPageData(slug: string): Promise<PageData | null> {
 
 /* ✅ SEO Meta from API */
 export async function generateMetadata() {
-	const data = await getPageData("syas-alastrgaaa");
+	const data = await getPageData("syas-alkhsosy");
 
 	if (!data) {
 		return { title: "الصفحة غير موجودة" };
@@ -49,7 +49,7 @@ export async function generateMetadata() {
 }
 
 export default async function Page() {
-	const data = await getPageData("syas-alastrgaaa");
+	const data = await getPageData("syas-alkhsosy");
 
 	if (!data)  return <NotFound />
 

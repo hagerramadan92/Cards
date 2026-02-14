@@ -166,7 +166,7 @@ export default function Footer() {
     phone: "+201040006424",
     // whatsapp: "+201234567890",
     // email: "info@example.com",
-    address: language === 'ar' ? 'مصر ,  محافظة الزقازيق' : 'Zagazig , Egypt'
+    address: language === 'ar' ? 'مصر ,  محافظة الشرقية' : 'Elsharkia , Egypt'
   };
 
   // ✅ استخدام البيانات من API أو البيانات الثابتة كـ fallback

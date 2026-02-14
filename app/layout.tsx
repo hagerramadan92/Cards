@@ -23,6 +23,7 @@ const cairo = Cairo({
 const metadataBaseUrl = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000");
 
 export const metadata: Metadata = {
+	
 	metadataBase: metadataBaseUrl,
 	title: {
 		default: "أكبر منصة بطاقات شحن رقمية",

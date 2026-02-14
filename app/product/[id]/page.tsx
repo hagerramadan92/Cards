@@ -189,19 +189,8 @@ function buildSelectedOptionsWithPrice(apiData: any, opts: SelectedOptions) {
 	return selected_options;
 }
 
-function extractValueFromOptions(options: any[], optionName: string) {
-	if (!options || !Array.isArray(options)) return null;
-	const option = options.find((opt: any) => String(opt.option_name || "").trim() === String(optionName || "").trim());
-	return option ? option.option_value : null;
-}
 
-function extractValuesFromOptions(options: any[], optionName: string) {
-	if (!options || !Array.isArray(options)) return [];
-	return options
-		.filter((opt: any) => String(opt.option_name || "").trim() === String(optionName || "").trim())
-		.map((x: any) => String(x.option_value || "").trim())
-		.filter(Boolean);
-}
+
 
 /* ------------------------------------------
  * UI helpers
@@ -216,113 +205,6 @@ function Sk({ className = "" }: { className?: string }) {
 	return <div className={`animate-pulse rounded-xl bg-slate-200 ${className}`} />;
 }
 
-function ReviewsSkeleton() {
-	return (
-		<div className="space-y-4">
-			<div className="rounded-2xl border border-slate-200 bg-white p-4">
-				<Sk className="h-5 w-40" />
-				<Sk className="h-3 w-72 mt-3" />
-				<Sk className="h-3 w-56 mt-2" />
-			</div>
-
-			<div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-				{Array.from({ length: 3 }).map((_, i) => (
-					<div key={i} className="rounded-2xl border border-slate-200 p-4">
-						<div className="flex items-center gap-3">
-							<Sk className="h-10 w-10 rounded-full" />
-							<div className="flex-1">
-								<Sk className="h-4 w-40" />
-								<Sk className="h-3 w-24 mt-2" />
-							</div>
-							<Sk className="h-6 w-14" />
-						</div>
-						<Sk className="h-3 w-full mt-4" />
-						<Sk className="h-3 w-10/12 mt-2" />
-					</div>
-				))}
-			</div>
-		</div>
-	);
-}
-
-function StarsRow({ value }: { value: number }) {
-	return (
-		<div className="flex items-center gap-1">
-			{Array.from({ length: 5 }).map((_, i) => {
-				const filled = i < value;
-				return (
-					<Star
-						key={i}
-						className={`w-4 h-4 ${filled ? "text-amber-500" : "text-slate-300"}`}
-						fill={filled ? "currentColor" : "none"}
-					/>
-				);
-			})}
-		</div>
-	);
-}
-
-function getPages(current: number, total: number): Array<number | "…"> {
-	if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
-
-	const pages = new Set<number>([1, total, current]);
-	if (current - 1 >= 1) pages.add(current - 1);
-	if (current + 1 <= total) pages.add(current + 1);
-
-	const sorted = Array.from(pages).sort((a, b) => a - b);
-
-	const out: Array<number | "…"> = [];
-	for (let i = 0; i < sorted.length; i++) {
-		const p = sorted[i];
-		const prev = sorted[i - 1];
-		if (i > 0 && p - (prev as number) > 1) out.push("…");
-		out.push(p);
-	}
-	return out;
-}
-
-function SectionCard({ title, icon, children }: { title: string; icon?: React.ReactNode; children: React.ReactNode }) {
-	return (
-		<div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-			<div className="flex items-center justify-between gap-3">
-				<h3 className="font-extrabold text-slate-900 text-lg flex items-center gap-2">
-					{icon}
-					{title}
-				</h3>
-			</div>
-			<div className="mt-4">{children}</div>
-		</div>
-	);
-}
-
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
-	const { direction } = useLanguage();
-	const isRTL = direction === "rtl";
-	return (
-		<div className="flex items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-			<p className="text-sm font-extrabold text-slate-700">{label}</p>
-			<div className={`text-sm font-black text-slate-900 ${isRTL ? "text-right" : "text-left"}`}>{value}</div>
-		</div>
-	);
-}
-
-function Pill({ children, tone = "slate" }: { children: React.ReactNode; tone?: "slate" | "amber" | "emerald" }) {
-	const map = {
-		slate: "bg-slate-50 text-slate-700 border-slate-200",
-		amber: "bg-amber-50 text-amber-800 border-amber-200",
-		emerald: "bg-emerald-50 text-emerald-700 border-emerald-200",
-	};
-	return <span className={`text-[11px] font-extrabold px-2 py-1 rounded-full border ${map[tone]}`}>{children}</span>;
-}
-
-function OptChip({ label, value }: { label: string; value: string }) {
-	return (
-		<div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-			<p className="text-xs text-slate-500 font-bold">{label}</p>
-			<p className="text-sm font-extrabold text-slate-900 mt-1">{value}</p>
-		</div>
-	);
-}
 
 const ratingLabels: Record<number, string> = {
 	1: "سيئ جدًا",
@@ -1775,14 +1657,34 @@ export default function ProductPageClient() {
 								{/* Left */}
 								<div className="max-md:w-full flex items-center gap-3 min-w-0 ps-3">
 									<div className="relative w-14 h-14 md:w-16 md:h-16 rounded-2xl overflow-hidden bg-slate-100 ring-1 ring-slate-200 shrink-0">
-										<Image src={product.image || "/images/o1.jpg"} alt={product.name} fill className="object-cover" />
-									</div>
-
+											{product?.image && product.image !== "/images/not.jpg" ? (
+												<Image 
+												src={product.image} 
+												alt={product.name || "Product"} 
+												fill 
+												className="object-cover"
+												onError={(e) => {
+													// إذا فشلت الصورة، استخدم placeholder
+													e.currentTarget.style.display = 'none';
+													const parent = e.currentTarget.parentElement;
+													if (parent) {
+													parent.innerHTML = '<div class="w-full h-full bg-slate-200 flex items-center justify-center"><span class="text-slate-400 text-xs">📷</span></div>';
+													}
+												}}
+												/>
+											) : (
+												<div className="w-full h-full bg-slate-200 flex items-center justify-center">
+											<Image
+																	src="/images/not.jpg"
+																	alt="Placeholder" fill />
+												</div>
+											)}
+											</div>
 								
 
 							<div className="flex  sm:gap-2 flex-col">
 							<p className="text-xs md:text-sm font-black text-slate-900 line-clamp-2">{product.name}</p>
-										<p className="text-lg text-gray-500 leading-none sm:mt-1">{product.price}</p>
+										<p className="text-lg text-gray-500 leading-none sm:mt-1">{product.final_price}</p>
 								
 							</div>
 										

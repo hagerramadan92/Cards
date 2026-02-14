@@ -81,7 +81,7 @@ function getPages(current: number, total: number): PageToken[] {
 
 export default function AllProductsPage() {
 	const API_URL = process.env.NEXT_PUBLIC_API_URL;
-	const { language, getLanguageHeaders } = useLanguage();
+	const { t, getLanguageHeaders } = useLanguage();
 	// ✅ server data
 	const [products, setProducts] = useState<ProductI[]>([]);
 const getProductImage = (product: any) => {
@@ -132,11 +132,11 @@ const getProductImage = (product: any) => {
 
 	const sortOptions = useMemo(
 		() => [
-			{ label: "السعر: من الأقل إلى الأكثر", value: "price|asc" },
-			{ label: "السعر: من الأكثر إلى الأقل", value: "price|desc" },
-			{ label: "الأعلى تقييماً", value: "rating|desc" },
+			{ label: t('price_low_high'), value: "price|asc" },
+			{ label: t('price_high_low'), value: "price|desc" },
+			{ label: t('highest_rated'), value: "rating|desc" },
 		],
-		[]
+		[t]
 	);
 
 	const sortValue = `${sortBy}|${sortDirection}`;
@@ -198,13 +198,13 @@ const getProductImage = (product: any) => {
 	}, [perPage]);
 
 	return (
-		<section dir="rtl">
+		<section >
 			<div className="container pt-2 pb-6 md:py-12">
 				{/* Header */}
 				<motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
 					<div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
 						<div>
-							<h1 className="text-2xl md:text-3xl font-black text-slate-900">جميع المنتجات</h1>
+							<h1 className="text-2xl md:text-3xl font-black text-slate-900">{t('all_products')}</h1>
 
 							{/* ✅ Only skeleton for this line */}
 							<div className="mt-1">
@@ -212,8 +212,10 @@ const getProductImage = (product: any) => {
 									<Sk className="h-4 w-44" />
 								) : (
 									<p className="max-md:hidden text-sm text-slate-500">
-										عرض <span className="font-extrabold text-slate-900">{meta.total}</span> منتج
-										{isFetching ? <span className="mx-2 text-slate-400">• جاري التحديث…</span> : null}
+										{t('total_products')} 
+										<span className="font-extrabold text-slate-900">{meta.total}</span> 
+										{t('products')}
+										{isFetching ? <span className="mx-2 text-slate-400">• {t('updating')}</span> : null}
 									</p>
 								)}
 							</div>
@@ -231,7 +233,7 @@ const getProductImage = (product: any) => {
 									}}
 									IconComponent={KeyboardArrowDownRoundedIcon}
 									sx={{
-										direction: "rtl",
+										
 										borderRadius: "14px",
 										backgroundColor: "#fff",
 										fontWeight: 900,
@@ -249,7 +251,7 @@ const getProductImage = (product: any) => {
 												mt: 1,
 												borderRadius: "14px",
 												boxShadow: "0 12px 30px rgba(0,0,0,.12)",
-												direction: "rtl",
+											
 												fontFamily: "Cairo, Cairo Fallback",
 											},
 										},
@@ -257,7 +259,7 @@ const getProductImage = (product: any) => {
 								>
 									{[10, 15, 20, 30].map((n) => (
 										<MenuItem key={n} value={n}>
-											{n} / صفحة
+											{n} / {t('page')}
 										</MenuItem>
 									))}
 								</Select>
@@ -275,9 +277,9 @@ const getProductImage = (product: any) => {
 									}}
 									displayEmpty
 									IconComponent={KeyboardArrowDownRoundedIcon}
-									renderValue={(selected) => sortOptions.find((o) => o.value === selected)?.label || "الترتيب"}
+									renderValue={(selected) => sortOptions.find((o) => o.value === selected)?.label || t('sort_by')}
 									sx={{
-										direction: "rtl",
+									
 										borderRadius: "14px",
 										backgroundColor: "#fff",
 										fontWeight: 900,
@@ -299,7 +301,7 @@ const getProductImage = (product: any) => {
 												mt: 1,
 												borderRadius: "14px",
 												boxShadow: "0 12px 30px rgba(0,0,0,.12)",
-												direction: "rtl",
+											
 												fontFamily: "Cairo, Cairo Fallback",
 												"& .MuiMenuItem-root": {
 													fontWeight: 800,
@@ -345,8 +347,8 @@ const getProductImage = (product: any) => {
 									animate={{ opacity: 1 }}
 									className="bg-white border border-slate-200 rounded-2xl p-10 text-center"
 								>
-									<p className="text-slate-700 font-extrabold text-lg">لا توجد منتجات مطابقة للفلاتر</p>
-									<p className="text-slate-500 text-sm mt-2">جرّب إزالة بعض الفلاتر أو تغيير البحث</p>
+									<p className="text-slate-700 font-extrabold text-lg">{t('no_products_found')}</p>
+									<p className="text-slate-500 text-sm mt-2">{t('try_removing_filters_or_changing_search')}</p>
 								</motion.div>
 							) : (
 								<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
@@ -396,7 +398,7 @@ const getProductImage = (product: any) => {
 										disabled={page === 1}
 										className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-extrabold text-slate-700
                       hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent transition"
-										aria-label="السابق"
+										aria-label={t('previous_page')}
 									>
 										<ChevronRight className="w-4 h-4" />
 									</button>
@@ -420,7 +422,7 @@ const getProductImage = (product: any) => {
 														p === page ? "bg-[#14213d] text-white shadow" : "text-slate-700 hover:bg-slate-50",
 													].join(" ")}
 													aria-current={p === page ? "page" : undefined}
-													aria-label={`الصفحة ${p}`}
+													aria-label={`${t('page')} ${p}`}
 												>
 													{p}
 												</motion.button>
@@ -435,7 +437,7 @@ const getProductImage = (product: any) => {
 										disabled={page >= totalPages}
 										className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-extrabold text-slate-700
                       hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent transition"
-										aria-label="التالي"
+										aria-label={t('next_page')}
 									>
 										<ChevronLeft className="w-4 h-4" />
 									</button>

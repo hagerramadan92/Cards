@@ -1,4 +1,5 @@
-import { useLanguage } from "@/src/context/LanguageContext";
+
+// import { useLanguage } from "@/src/context/LanguageContext";
 import StaticPageClient from "../../components/StaticPage";
 import NotFound from "../not-found";
 
@@ -22,7 +23,7 @@ async function getPageData(slug: string): Promise<PageData | null> {
         {
             cache: "no-store",
             headers: {
-                "Accept-Language":"ar",
+                "Accept-Language":'ar',
             },
         }
     );
@@ -35,7 +36,7 @@ async function getPageData(slug: string): Promise<PageData | null> {
 
 /* ✅ SEO Meta from API */
 export async function generateMetadata() {
-    const data = await getPageData("syas-alastrgaaa");
+    const data = await getPageData("shipping-and-delivery-policy");
 
     if (!data) {
         return { title: "الصفحة غير موجودة" };
@@ -49,7 +50,7 @@ export async function generateMetadata() {
 }
 
 export default async function Page() {
-    const data = await getPageData("syas-alastrgaaa");
+    const data = await getPageData("shipping-and-delivery-policy");
 
     if (!data)  return <NotFound />
 
