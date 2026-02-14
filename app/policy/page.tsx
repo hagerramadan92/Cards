@@ -1,3 +1,4 @@
+import { useLanguage } from "@/src/context/LanguageContext";
 import StaticPageClient from "../../components/StaticPage";
 import NotFound from "../not-found";
 
@@ -15,9 +16,15 @@ interface PageData {
 }
 
 async function getPageData(slug: string): Promise<PageData | null> {
+	// const { t, language } = useLanguage();
 	const res = await fetch(
 		`${process.env.NEXT_PUBLIC_API_URL}/static-pages/${slug}`,
-		{ cache: "no-store" }
+		{
+			cache: "no-store",
+			headers: {
+				"Accept-Language":"ar",
+			},
+		}
 	);
 
 	const json = await res.json();
@@ -28,7 +35,7 @@ async function getPageData(slug: string): Promise<PageData | null> {
 
 /* ✅ SEO Meta from API */
 export async function generateMetadata() {
-	const data = await getPageData("syas-alkhsosy");
+	const data = await getPageData("syas-alastrgaaa");
 
 	if (!data) {
 		return { title: "الصفحة غير موجودة" };
@@ -42,7 +49,7 @@ export async function generateMetadata() {
 }
 
 export default async function Page() {
-	const data = await getPageData("syas-alkhsosy");
+	const data = await getPageData("syas-alastrgaaa");
 
 	if (!data)  return <NotFound />
 

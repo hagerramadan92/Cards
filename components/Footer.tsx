@@ -94,7 +94,7 @@ function getPaymentIcon(iconName: string | undefined, paymentName: string) {
 
 export default function Footer() {
   const { socialMedia, paymentMethods, parentCategories } = useAppContext() as any;
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const socials: SocialItem[] = Array.isArray(socialMedia) ? socialMedia : [];
   const payments: PaymentMethod[] = Array.isArray(paymentMethods) ? paymentMethods : [];
@@ -144,25 +144,36 @@ export default function Footer() {
     return colors[key.toLowerCase()] || "text-slate-600";
   };
 
-  const Links = [
-    { title: t('blog'), href: "/blogs" },
+  // ✅ روابط ثابتة بدون API calls
+  const importantLinks = [
     { title: t('about_us'), href: "/about" },
     { title: t('terms_conditions'), href: "/terms" },
-    { title: t('refund_policy'), href: "/returnsPolicy" },
+    { title: t('delivery'), href: "/delivery" },
     { title: t('privacy_policy'), href: "/policy" },
-    { title: t('warranty'), href: "/warranty" },
-    { title: t('join_as_partner'), href: "/partner" },
-    { title: t('team'), href: "/team" },
-    { title: t('contact_us'), href: "/contactUs" },
+    { title: t('refund_policy'), href: "/returnsPolicy" },
+    { title: t('team'), href: "/team" }
   ];
 
- 
-  const importantLinks = Links.slice(0, 3);
-  const helpLinks = Links.slice(8,9);
+  const helpLinks = [
+    // { title: t('privacy_policy'), href: "/policy" },
+    // { title: t('refund_policy'), href: "/returnsPolicy" },
+    // { title: t('warranty'), href: "/warranty" },
+    { title: t('contact_us'), href: "/contactUs" }
+  ];
 
-  const email = socials.find((s) => s.key === "email")?.value;
-  const phone = socials.find((s) => s.key === "phone")?.value;
-  const address = socials.find((s) => s.key === "address")?.value;
+  // ✅ بيانات ثابتة للتواصل
+  const staticContactInfo = {
+    phone: "+201000694595",
+    // whatsapp: "+201234567890",
+    // email: "info@example.com",
+    address: language === 'ar' ? 'مصر ,  محافظة الشرقية' : 'ElSharkria, Egypt'
+  };
+
+  // ✅ استخدام البيانات من API أو البيانات الثابتة كـ fallback
+  // const email = socials.find((s) => s.key === "email")?.value || staticContactInfo.email;
+  // const phone = socials.find((s) => s.key === "phone")?.value || staticContactInfo.phone;
+  // const whatsapp = socials.find((s) => s.key === "whatsapp")?.value || staticContactInfo.whatsapp;
+  // const address = socials.find((s) => s.key === "address")?.value || staticContactInfo.address;
 
   // ✅ tax_id_number extracted separately
   const taxNumber = socials.find((s) => s.key === "tax_id_number")?.value;
@@ -188,7 +199,7 @@ export default function Footer() {
         {/* top */}
         <div className="py-8 sm:py-10 lg:py-12">
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-10">
-          {/* Categories - First Section */}
+            {/* Categories - First Section */}
             <div className="col-span-2 lg:col-span-1 order-1 lg:order-1">
               <h4 className="text-base sm:text-lg font-extrabold tracking-wide">{t('categories')}</h4>
               {/* Small screen: inline-block, Large screen: two columns */}
@@ -211,76 +222,101 @@ export default function Footer() {
                     <div className="hidden lg:grid lg:grid-cols-2 lg:gap-3">
                       <div className="flex flex-col gap-3">
                         {firstSectionCategories.map((category: any) => (
-                  <Link
-                    key={category.id}
-                    href={`/category/${category.id}`}
+                          <Link
+                            key={category.id}
+                            href={`/category/${category.id}`}
                             className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
-                  >
-                    {category.name}
-                  </Link>
+                          >
+                            {category.name}
+                          </Link>
                         ))}
-            </div>
+                      </div>
                       <div className="flex flex-col gap-3">
                         {secondSectionCategories.map((category: any) => (
-                  <Link
-                    key={category.id}
-                    href={`/category/${category.id}`}
+                          <Link
+                            key={category.id}
+                            href={`/category/${category.id}`}
                             className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
-                  >
-                    {category.name}
-                  </Link>
+                          >
+                            {category.name}
+                          </Link>
                         ))}
                       </div>
                     </div>
                   </>
-              ) : (
-                <span className="text-white/70 text-sm">{t('no_categories')}</span>
-              )}
-            </div>
+                ) : (
+                  <span className="text-white/70 text-sm">{t('no_categories')}</span>
+                )}
+              </div>
             </div>
 
-          {/* Important */}
+            {/* Important Links */}
             <div className="order-2 lg:order-2">
               <h4 className="text-base sm:text-lg font-extrabold tracking-wide">{t('important_links')}</h4>
-            <div className="mt-4 flex flex-col gap-3">
-              {importantLinks.map((link, index) => (
-                <Link
-                  key={index}
-                  href={link.href}
+              <div className="mt-4 flex flex-col gap-3">
+                {importantLinks.slice(0, 5).map((link, index) => (
+                  <Link
+                    key={index}
+                    href={link.href}
                     className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
-                >
-                  {link.title}
-                </Link>
-              ))}
+                  >
+                    {link.title}
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Help / Address */}
+            {/* Contact Info & Help Links */}
             <div className="space-y-4 order-3 lg:order-3">
               <h4 className="text-base sm:text-lg font-extrabold tracking-wide">{t('need_help')}</h4>
+              
+              {/* Contact Info */}
+              <div className="flex flex-col gap-2">
+                {staticContactInfo.phone && (
+                  <Link
+                    href={`#`}
+                    className="flex items-center gap-2 text-sm sm:text-base
+                     text-white/50 hover:text-white transition underline-offset-4 hover:underline"
+                  >
+                    <FaPhone className="text-white/70" size={14} />
+                    <span dir="ltr">{staticContactInfo.phone}</span>
+                  </Link>
+                )}
+                  {staticContactInfo.address && (
+                  <Link
+                    href={`#`}
+                    className="flex items-center gap-2 text-sm sm:text-base
+                     text-white/50 hover:text-white transition underline-offset-4 hover:underline"
+                  >
+                    <FaMapMarkerAlt className="text-white/70" size={14} />
+                    <span dir="ltr">{staticContactInfo.address}</span>
+                  </Link>
+                )}
+             
+              </div>
 
-            <div className="flex flex-col gap-3">
-              {helpLinks.map((link, index) => (
-                <Link
-                  key={index}
-                  href={link.href}
+              {/* Help Links */}
+              <div className="flex flex-col gap-2">
+                {helpLinks.map((link, index) => (
+                  <Link
+                    key={index}
+                    href={link.href}
                     className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
-                >
-                  {link.title}
-                </Link>
-              ))}
-            </div>
-            <div className="flex flex-col gap-3">
-              {helpLinks.map((link, index) => (
+                  >
+                    {link.title}
+                  </Link>
+                ))}
+              </div>
+              
+              {/* FAQ Link */}
+              <div className="flex flex-col gap-2">
                 <Link
-                  key={index}
                   href="/FAQ"
-                        className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
+                  className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
                 >
                   {t('faq')}
                 </Link>
-              ))}
-            </div>
+              </div>
             </div>
           </div>
         </div>
@@ -298,39 +334,22 @@ export default function Footer() {
               <span className="text-white/70 text-xs sm:text-sm">{t('no_payment_methods')}</span>
             ) : (
               <div className="flex flex-wrap gap-2 sm:gap-3 mt-2">
-                {/* {activePayments.map((p) => {
-                  const PaymentIcon = getPaymentIcon(p.icon, p.name);
-                  return (
-                    <span
-                      key={p.id}
-                      className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-xs font-bold ring-1 ring-white/10 hover:bg-white/15 transition"
-                      title={p.name}
-                    >
-                      <PaymentIcon className="text-sm opacity-90" />
-                      <span>{p.name}</span>
-                     
-                    </span>
-                  );
-                })} */}
-                 <Image
-                        src="/images/visa.svg"
-                        alt="Visa"
-                        width={20}
-                        height={20}
-                        className="w-[45px] sm:w-[50px] h-[27px] sm:h-[30px]"
-                      />
-                       <Image
-                        src="/images/fawry.svg"
-                        alt="Fawry"
-                        width={20}
-                        height={20}
-                         className="w-[45px] sm:w-[50px] h-[27px] sm:h-[30px]"
-                      />
+                <Image
+                  src="/images/visa.svg"
+                  alt="Visa"
+                  width={20}
+                  height={20}
+                  className="w-[45px] sm:w-[50px] h-[27px] sm:h-[30px]"
+                />
+                <Image
+                  src="/images/fawry.svg"
+                  alt="Fawry"
+                  width={20}
+                  height={20}
+                  className="w-[45px] sm:w-[50px] h-[27px] sm:h-[30px]"
+                />
               </div>
             )}
-
-      
-         
           </div>
 
           {/* socials */}

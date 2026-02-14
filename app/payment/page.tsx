@@ -74,10 +74,10 @@ function SummaryBlock({ summary }: { summary: CheckoutSummaryV1 | null }) {
     <div className="my-2 gap-2 flex flex-col">
       <div className="flex text-sm items-center justify-between text-black">
         <p className="font-semibold">المجموع ({n(summary?.items_length)} عناصر)</p>
-        <p>
+        {/* <p>
           {money(summary?.subtotal)}
           <span className="text-sm ms-1">جنية</span>
-        </p>
+        </p> */}
       </div>
 
       {hasCoupon && (

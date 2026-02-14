@@ -178,6 +178,7 @@ export const translations = {
     add_new_order: "إضافة طلب جديد",
     order_details: "تفاصيل الطلب",
     order_summary: "ملخص الطلب",
+    delivery:"سياسة التوصيل والشحن",
     back: "رجوع",
     free: "مجانا",
     shipping_fee: "رسوم الشحن",
@@ -506,6 +507,7 @@ export const translations = {
   try_again: "حاول مرة أخرى",
   },
   en: {
+    delivery:"Delivery & Shipping Policy",
     delete_account_message2:"All your personal data will be deleted",
     delete_account:"Delete Account",
      recent_searches: "Recent searches",
