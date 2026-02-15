@@ -14,9 +14,12 @@ import { MdOutlineTouchApp } from "react-icons/md";
 export default function QuickBuyButton() {
 	const pathname = usePathname();
 	const router = useRouter();
-	const { parentCategories, loadingCategories } = useAppContext();
 	const [isOpen, setIsOpen] = useState(false);
 	const [mounted, setMounted] = useState(false);
+
+	// State for parent categories
+	const [parentCategories, setParentCategories] = useState<any[]>([]);
+	const [loadingParentCategories, setLoadingParentCategories] = useState(true);
 
 	// State for selections
 	const [selectedCatId, setSelectedCatId] = useState<number | null>(null);
@@ -39,6 +42,26 @@ export default function QuickBuyButton() {
 
 	useEffect(() => setMounted(true), []);
 
+	// Fetch parent categories on mount
+	useEffect(() => {
+		if (!mounted) return;
+		
+		setLoadingParentCategories(true);
+		import("@/lib/api").then(({ fetchApi }) => {
+			fetchApi('categories?type=parent')
+				.then((res) => {
+					// Assuming the API returns { data: [...] } or directly an array
+					const categories = Array.isArray(res) ? res : res?.data || [];
+					setParentCategories(categories);
+				})
+				.catch((err) => {
+					console.error('Error fetching parent categories:', err);
+					setParentCategories([]);
+				})
+				.finally(() => setLoadingParentCategories(false));
+		});
+	}, [mounted]);
+
 	useEffect(() => {
 		if (isOpen && mounted) {
 			const prev = document.body.style.overflow;
@@ -58,12 +81,19 @@ export default function QuickBuyButton() {
 		setLoadingCards(true);
 		setCards([]);
 		setSelectedCardId(null);
+		setSelectedStoreId(null);
+		setValues([]);
 		
-		// Assuming 'cards' are subcategories of the parent category
 		import("@/lib/api").then(({ fetchApi }) => {
-			fetchApi(`categories?parent_id=${selectedCatId}`)
+			fetchApi(`categories/${selectedCatId}`)
 				.then((res) => {
-					setCards(Array.isArray(res) ? res : []);
+					const categoryData = res?.data || res;
+					const children = categoryData?.children || [];
+					setCards(children);
+					// If no cards, try to show products directly
+					if (children.length === 0) {
+						setValues(categoryData?.products || []);
+					}
 				})
 				.catch(() => setCards([]))
 				.finally(() => setLoadingCards(false));
@@ -74,37 +104,42 @@ export default function QuickBuyButton() {
 	useEffect(() => {
 		if (!selectedCardId) {
 			setStores([]);
+			setValues([]);
 			return;
 		}
 		setLoadingStores(true);
 		setStores([]);
 		setSelectedStoreId(null);
 
-		// Assuming 'stores' are subcategories of the 'card' category
 		import("@/lib/api").then(({ fetchApi }) => {
-			fetchApi(`categories?parent_id=${selectedCardId}`)
+			fetchApi(`categories/${selectedCardId}`)
 				.then((res) => {
-					setStores(Array.isArray(res) ? res : []);
+					const categoryData = res?.data || res;
+					const children = categoryData?.children || [];
+					setStores(children);
+					// If no stores, try to show products directly
+					if (children.length === 0) {
+						setValues(categoryData?.products || []);
+					}
 				})
 				.catch(() => setStores([]))
 				.finally(() => setLoadingStores(false));
 		});
 	}, [selectedCardId]);
 
-	// Fetch Values (Products) when Store selected
+	// Fetch Products when Store selected
 	useEffect(() => {
 		if (!selectedStoreId) {
-			setValues([]);
 			return;
 		}
 		setLoadingValues(true);
 		setValues([]);
 
-		// Assuming 'values' are products of the 'store' category
 		import("@/lib/api").then(({ fetchApi }) => {
-			fetchApi(`products?category_id=${selectedStoreId}`)
+			fetchApi(`categories/${selectedStoreId}`)
 				.then((res) => {
-					setValues(Array.isArray(res) ? res : []);
+					const categoryData = res?.data || res;
+					setValues(categoryData?.products || []);
 				})
 				.catch(() => setValues([]))
 				.finally(() => setLoadingValues(false));
@@ -160,21 +195,26 @@ export default function QuickBuyButton() {
 							</button>
 						</div>
 
-						{/* 4 Columns Body */}
+						{/* 4 Columns Body - Always 4 columns for layout stability */}
 						<div className="grid grid-cols-4 gap-2 bg-gray-50 overflow-y-auto">
 							
 							{/* Column 1: Categories (Images Only) */}
-							<div className="w-[80px] sm:w-[90px] flex-shrink-0 bg-white border-l border-gray-200 overflow-y-auto custom-scrollbar">
+							<div className="bg-white border-l border-gray-200 overflow-y-auto custom-scrollbar">
 								<div className="p-2 border-b border-gray-100 bg-white sticky top-0 z-10 text-center">
                                     <p className="text-[10px] font-bold text-gray-400">التصنيفات</p>
                                 </div>
 								<div className="p-2 space-y-3">
-									{loadingCategories ? (
+									{loadingParentCategories ? (
 										[1,2,3,4].map(i => <div key={i} className="w-full aspect-square rounded-full bg-gray-200 animate-pulse" />)
 									) : parentCategories?.map((cat: any) => (
 										<button
 											key={cat.id}
-											onClick={() => setSelectedCatId(cat.id)}
+											onClick={() => {
+												setSelectedCatId(cat.id);
+												setSelectedCardId(null);
+												setSelectedStoreId(null);
+												setValues([]);
+											}}
 											className={`w-full aspect-square relative rounded-xl overflow-hidden transition-all duration-200 
                                                 ${selectedCatId === cat.id ? 'ring-pro-max ring-offset-2 scale-105 shadow-md' : 'hover:scale-105 hover:opacity-80 grayscale opacity-70 hover:grayscale-0 hover:opacity-100'}`}
                                             title={cat.name}
@@ -196,8 +236,8 @@ export default function QuickBuyButton() {
 								</div>
 							</div>
 
-							{/* Column 2: Cards */}
-							<div className="w-[80px] sm:w-[90px] flex-shrink-0 bg-white border-l border-gray-200 overflow-y-auto custom-scrollbar">
+							{/* Column 2: Cards - Show if selected category has cards OR if loading */}
+							<div className="bg-white border-l border-gray-200 overflow-y-auto custom-scrollbar">
 								<div className="p-2 border-b border-gray-100 bg-white sticky top-0 z-10 text-center">
                                     <p className="text-[10px] font-bold text-gray-400">البطاقات</p>
                                 </div>
@@ -212,7 +252,11 @@ export default function QuickBuyButton() {
 										cards.map((card) => (
 											<button
 												key={card.id}
-												onClick={() => setSelectedCardId(card.id)}
+												onClick={() => {
+													setSelectedCardId(card.id);
+													setSelectedStoreId(null);
+													setValues([]);
+												}}
 												className={`w-full aspect-square relative rounded-xl overflow-hidden transition-all duration-200 
                                                     ${selectedCardId === card.id 
                                                         ? ' ring-pro-max ring-offset-2 scale-105 shadow-md' 
@@ -229,13 +273,13 @@ export default function QuickBuyButton() {
 											</button>
 										))
 									) : (
-										<div className="text-center text-[10px] text-gray-400 py-4">لا يوجد</div>
+										<div className="text-center text-[10px] text-gray-400 py-4">لا يوجد بطاقات</div>
 									)}
 								</div>
 							</div>
 
-							{/* Column 3: Store */}
-							<div className="w-[80px] sm:w-[90px] flex-shrink-0 bg-white border-l border-gray-200 overflow-y-auto custom-scrollbar">
+							{/* Column 3: Store - Show if selected card has stores OR if loading */}
+							<div className="bg-white border-l border-gray-200 overflow-y-auto custom-scrollbar">
 								<div className="p-2 border-b border-gray-100 bg-white sticky top-0 z-10 text-center">
                                     <p className="text-[10px] font-bold text-gray-400">المتجر</p>
                                 </div>
@@ -267,18 +311,18 @@ export default function QuickBuyButton() {
 											</button>
 										))
 									) : (
-										<div className="text-center text-[10px] text-gray-400 py-4">لا يوجد</div>
+										<div className="text-center text-[10px] text-gray-400 py-4">لا يوجد متجر</div>
 									)}
 								</div>
 							</div>
 
-							{/* Column 4: Value */}
-							<div className="w-[80px] sm:w-[90px] flex-shrink-0 bg-white border-l border-gray-200 overflow-y-auto custom-scrollbar">
+							{/* Column 4: Value - Show if selected store has products OR if we're showing direct products */}
+							<div className="bg-white overflow-y-auto custom-scrollbar">
 								<div className="p-2 border-b border-gray-100 bg-white sticky top-0 z-10 text-center">
                                     <p className="text-[10px] font-bold text-gray-400">القيمة</p>
                                 </div>
 								<div className="p-2 space-y-3">
-									{!selectedStoreId ? (
+									{!selectedCatId ? (
 										<div className="h-full flex items-center justify-center text-gray-300">
 											<div className="w-1.5 h-1.5 rounded-full bg-gray-300" />
 										</div>
@@ -290,10 +334,20 @@ export default function QuickBuyButton() {
 												key={val.id}
 												onClick={() => handleProductClick(val.id)}
 												className="w-full aspect-square group bg-white hover:shadow-md border border-gray-100 rounded-xl overflow-hidden transition-all duration-200 relative"
-                                                title={`${val.name} - ${val.price} ج.م`}
+                                                title={`${val.name} - ${val.price}`}
 											>
                                                 {val.image ? (
-													<span>{val.price}</span>
+													<div className="relative w-full h-full">
+														<Image 
+															src={val.image} 
+															alt={val.name} 
+															fill 
+															className="object-cover"
+														/>
+														<div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[8px] p-1 text-center">
+															{val.price}
+														</div>
+													</div>
                                                 ) : (
                                                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-1">
                                                         <span className="text-xs font-bold text-pro-max">
@@ -305,17 +359,12 @@ export default function QuickBuyButton() {
 											</button>
 										))
 									) : (
-										<div className="text-center text-[10px] text-gray-400 py-4">لا يوجد</div>
+										<div className="text-center text-[10px] text-gray-400 py-4">اختر منتج</div>
 									)}
 								</div>
 							</div>
 
 						</div>
-
-						{/* Footer - Optional */}
-						{/* <div className="p-3 bg-white border-t border-gray-200 flex justify-end">
-                            <span className="text-xs text-gray-400">اختر العناصر للمتابعة</span>
-						</div> */}
 					</motion.div>
 				</>
 			)}
@@ -347,4 +396,3 @@ export default function QuickBuyButton() {
 		</>
 	);
 }
-

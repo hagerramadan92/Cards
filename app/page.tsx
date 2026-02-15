@@ -144,7 +144,6 @@ export default function Home() {
       }
     };
 
-    // تأخير تحميل السلايدر قليلاً لإعطاء الأولوية للبيانات الأساسية
     const timer = setTimeout(getMainSlider, 100);
     
     return () => {
