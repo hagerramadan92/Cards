@@ -280,7 +280,7 @@ export default function ProductCard({
     try {
       const res: any = await addToCart(product.id, cartData);
 
-      toast.success(t('add_to_cart'));
+      // toast.success(t('add_to_cart'));
       router.push("/cart");
     } catch {
       toast.error(t('error_loading'));
