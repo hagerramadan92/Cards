@@ -40,7 +40,7 @@ interface WalletData {
 const DASHBOARD_ITEMS: DashboardItem[] = [
 	// { icon: FaChessQueen, label: ' لاكي كود  ', href: '/myAccount/lucky-code' },
 	// { icon: FaGift, label: ' تصفح المكافآت ', href: '/myAccount/rewards' },
-	{ icon: FaTicketAlt, label: ' دعم العملاء ', href: '/contactUs' },
+	{ icon: FaTicketAlt, label: ' دعم العملاء ', href: '/myAccount/support' },
 	// { icon: FaStar, label: ' مكافآتي ', href: '/myAccount/my-rewards' },
 	// { icon: FaCrown, label: ' سحوباتي ', href: '/myAccount/draws' },
 	// { icon: FaTrophy, label: ' سجل النقاط  ', href: '/myAccount/points-log' },
