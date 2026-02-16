@@ -13,6 +13,7 @@ import { FormControl, Select } from "@mui/material";
 import { MenuItem } from "@mui/material";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import Link from "next/link";
+import Spinner from "@/components/Spinner/spinner";
 
 
 interface CategoryChild {
@@ -270,7 +271,7 @@ export default function CategoryPage() {
 		);
 	};
 
-	if (loading) return <CategoryPageSkeleton />;
+	if (loading) return <div className="flex items-center"><Spinner /></div>;
 
 	if (!category) {
 		return (
@@ -674,7 +675,7 @@ export default function CategoryPage() {
 								px-4 md:mx-0 md:px-0">
 									{subCategories.map((sub) => (
 										<a
-											href={`/category/${sub.slug ?? sub.id}`}
+											href={`/category/${sub.id}`}
 											key={sub.id}
 											className="min-w-fit group"
 										>

@@ -51,7 +51,7 @@ const formattedTotal = total.toLocaleString("en-US", {
           {/* < /> */}
         
           {
-            cart.length>0 && (  <span className="absolute -top-2 -left-2  bg-red-500 rounded-full w-5 h-5 p-2 text-[0.9rem] flex items-center justify-center text-white">
+            cart.length>0 && (  <span className="absolute -top-2 md:-left-2 left-0  bg-red-500 rounded-full md:w-5 md:h-5 md:p-2 p-1.5 w-4 h-4 text-[0.9rem] flex items-center justify-center text-white">
             {cart.length}
           </span>)
           }

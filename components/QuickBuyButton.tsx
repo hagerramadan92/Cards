@@ -279,7 +279,8 @@ export default function QuickBuyButton() {
 							</div>
 
 							{/* Column 3: Store - Show if selected card has stores OR if loading */}
-							<div className="bg-white border-l border-gray-200 overflow-y-auto custom-scrollbar">
+							{stores.length > 0 &&(
+										<div className="bg-white border-l border-gray-200 overflow-y-auto custom-scrollbar">
 								<div className="p-2 border-b border-gray-100 bg-white sticky top-0 z-10 text-center">
                                     <p className="text-[10px] font-bold text-gray-400">المتجر</p>
                                 </div>
@@ -315,6 +316,8 @@ export default function QuickBuyButton() {
 									)}
 								</div>
 							</div>
+							)}
+						
 
 							{/* Column 4: Value - Show if selected store has products OR if we're showing direct products */}
 							<div className="bg-white overflow-y-auto custom-scrollbar">
