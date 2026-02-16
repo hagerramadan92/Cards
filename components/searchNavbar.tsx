@@ -229,7 +229,7 @@ export default function SearchNavbar() {
 												</div>
 											</div>
 										))
-									) : <CategoriesSlider inSlide={true} categories={parentCategories} />
+									) : <CategoriesSlider inSlide={true} categories={parentCategories}   onCategoryClick={() => setMenuOpen(false)} />
 									}
 								</div>
 

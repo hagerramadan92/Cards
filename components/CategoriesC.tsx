@@ -12,6 +12,7 @@ interface CategoriesSliderProps {
 	title?: string;
 	subtitle?: string;
 	inSlide?: any;
+	  onCategoryClick?: () => void;
 }
 
 function cn(...c: (string | false | undefined | null)[]) {
@@ -23,6 +24,7 @@ export default function CategoriesSlider({
 	inSlide,
 	title,
 	subtitle,
+	onCategoryClick 
 }: CategoriesSliderProps) {
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
 	const [canScrollStart, setCanScrollStart] = useState(false);
@@ -192,7 +194,7 @@ export default function CategoriesSlider({
 	};
 
 	return (
-		<section className="relative w-full py-4 md:py-6 ">
+		<section className="relative w-full py-4 md:py-6 " onClick={onCategoryClick}>
 			{/* Header */}
 			<div className="mb-3 md:mb-4 flex items-center justify-between gap-2">
 				<div className="flex items-center gap-2">
@@ -214,6 +216,7 @@ export default function CategoriesSlider({
 				{items.length > 12 && (
 					<Link
 						href="/category"
+						onClick={onCategoryClick}
 						className="text-pro-max text-sm md:text-base font-semibold px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 transition whitespace-nowrap"
 					>
 						{t('view_all')}
@@ -267,7 +270,10 @@ export default function CategoriesSlider({
 								href={`/category/${cat.id}`}
 								aria-label={`Go to ${cat.name}`}
 								className="fast-buy-item py-0 block"
-								onClick={(e) => handleLinkClick(e, cat.id)}
+								onClick={(e) => {
+									handleLinkClick(e, cat.id);
+									onCategoryClick?.();
+								}}
 								draggable={false} // Prevent default drag behavior
 							>
 								<div
