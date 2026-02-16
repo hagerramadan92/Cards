@@ -701,7 +701,7 @@ export default function CategoryPage() {
 						{/* Products or Sub-categories Grid */}
 						{paginatedProducts.length === 0 ? (
 							subCategories.length > 0 ? (
-								<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+								<div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
 									{subCategories.map((sub, idx) => (
 										<motion.div
 											key={sub.id}

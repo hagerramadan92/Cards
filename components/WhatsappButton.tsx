@@ -276,7 +276,7 @@ export default function FloatingChatButton() {
 				whileHover={{ scale: 1.1 }}
 				whileTap={{ scale: 0.95 }}
 				className={[
-					"fixed right-4 sm:right-5 z-[9997] w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl",
+					"fixed right-4 sm:right-5 z-[9997] w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl",
 					"bottom-[15px] sm:bottom-5",
 					isProductPage ? "max-sm:bottom-[15px] !right-3" : "",
 				].join(" ")}
@@ -286,7 +286,7 @@ export default function FloatingChatButton() {
 					alt="chat"
 					width={24}
 					height={24}
-					className="w-12 h-12 sm:w-14 sm:h-14"
+					className="w-10 h-10 sm:w-12 sm:h-12"
 				/>
 			</motion.button>
 
