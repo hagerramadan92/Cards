@@ -525,9 +525,760 @@ export const translations = {
   "twitter_description": "أكبر منصة بطاقات شحن رقمية - اشترِ بطاقات الشحن والعروض الرقمية بسهولة وأمان",
   "authors_name": "فريق لايك كارد",
   "publisher_name": "لايك كارد",
-  "creator_name": "لايك كارد"
+  "creator_name": "لايك كارد",
+     // Dashboard الرئيسية
+    "dashboard.my_dashboard": "لوحة التحكم الخاصة بي",
+    "dashboard.points": "نقاط",
+    "dashboard.blue_level": "الأزرق",
+    "dashboard.discover_features": "تعرف على المميزات",
+    "dashboard.buy_for_level_up": "اشتري بقيمة 25793 ج.م لترتقي لـ",
+    "dashboard.silver_level": "المستوى الفضي",
+
+    // Dashboard Items
+    "dashboard.lucky_code": "لاكي كود",
+    "dashboard.browse_rewards": "تصفح المكافآت",
+    "dashboard.customer_support": "دعم العملاء",
+    "dashboard.my_rewards": "مكافآتي",
+    "dashboard.my_draws": "سحوباتي",
+    "dashboard.points_log": "سجل النقاط",
+    "dashboard.special_prices": "أسعار خاصة",
+    "dashboard.terms": "الشروط والأحكام",
+
+    // Finance Section
+    "finance.like_card_balance": "رصيد لايك كارد",
+    "finance.view_transactions": "عرض المعاملات",
+    "finance.daily_limit": "الحد اليومي",
+    "finance.total_deposits_today": "المودوع اليوم",
+    "finance.vouchers": "القسائم",
+    "finance.charge_balance": "تعبئة الرصيد",
+    "finance.payment_link": "رابط الدفع",
+
+    // Level Modal
+    "level_modal.title": "افتح مكافآتك",
+    "level_modal.description": "اكسب نقاطًا مع كل عملية شراء واستمتع بمكافآت رائعة! ارتقِ عبر المستويات واحتفظ بجميع مزاياك. ابدأ الاستكشاف الآن",
+    "level_modal.current_level": "المستوى الحالي",
+    "level_modal.locked": "مقفل",
+    "level_modal.start_blue_message": "ابدأ بالمستوى الأزرق بعد أول عملية شراء",
+    "level_modal.next_level_message": "انتقل للمستوى {level} لما بتتعدى مشترياتك قيمة {amount} EGP",
+
+    // Level Names
+    "level.blue": "الأزرق",
+    "level.silver": "الفضي",
+    "level.gold": "الذهبي",
+    "level.titanium": "التيتانيوم",
+    "level.diamond": "الماسي",
+
+    // Level Features - Blue
+    "level.feature.blue.lucky_code": "1 لاكي كود مع كل عملية شراء بقيمة 100 ر.س أو أكثر",
+    "level.feature.blue.standard_support": "الدعم الفني القياسي",
+
+    // Level Features - Silver
+    "level.feature.silver.lucky_codes": "3 لاكي كود لكل عملية شراء تزيد عن 1,289 EGP",
+    "level.feature.silver.weekly_lucky_code": "احصل على 1 لاكي كود أسبوعياً",
+    "level.feature.silver.extra_points_5": "5% نقاط إضافية",
+    "level.feature.silver.special_prices_3": "أسعار خاصة على 3 منتجات شهرياً",
+    "level.feature.silver.standard_support": "الدعم الفني القياسي",
+
+    // Level Features - Gold
+    "level.feature.gold.lucky_codes_5": "5 لاكي كود لكل عملية شراء تزيد عن 1,289 EGP",
+    "level.feature.gold.daily_lucky_code": "احصل على 1 لاكي كود يومياً",
+    "level.feature.gold.extra_points_10": "10% نقاط إضافية",
+    "level.feature.gold.special_prices_5": "أسعار خاصة على 5 منتجات شهرياً",
+    "level.feature.gold.premium_support": "دعم العملاء المميز",
+
+    // Level Features - Titanium
+    "level.feature.titanium.lucky_codes_7": "7 لاكي كود لكل عملية شراء تزيد عن 1,289 EGP",
+    "level.feature.titanium.daily_lucky_codes_2": "احصل على 2 لاكي كود يومياً",
+    "level.feature.titanium.extra_points_15": "15% نقاط إضافية",
+    "level.feature.titanium.special_prices_10": "أسعار خاصة على 10 منتجات شهرياً",
+    "level.feature.titanium.priority_support": "دعم العملاء ذو الأولوية",
+
+    // Level Features - Diamond
+    "level.feature.diamond.lucky_codes_10": "10 لاكي كود لكل عملية شراء تزيد عن 1,289 EGP",
+    "level.feature.diamond.daily_lucky_codes_3": "احصل على 3 لاكي كود يومياً",
+    "level.feature.diamond.extra_points_20": "20% نقاط إضافية",
+    "level.feature.diamond.special_prices_20": "أسعار خاصة على 20 منتج شهرياً",
+    "level.feature.diamond.whatsapp_support": "دعم خاص عبر الواتساب لعملاء النخبة",
+    "level.feature.diamond.premium_account": "إدارة خاصة للحساب المميز",
+    "level.feature.diamond.free_like_card": "قسيمة لايك كارد مجانية",
+    "level.feature.diamond.iphone_prize": "فرصة للفوز بجهاز iPhone كل شهر",
+      // القائمة الجانبية - Sidebar
+    "sidebar.menu": "القائمة",
+    "sidebar.my_dashboard": "لوحة التحكم الخاصة بي",
+    "sidebar.my_details": "التفاصيل الخاصة بي",
+    "sidebar.my_orders": "طلباتي",
+    "sidebar.my_coupons": "قسائمي",
+    "sidebar.my_favorites": "منتجاتي المفضلة",
+    "sidebar.my_referral": "الاحالة الخاصة بي",
+    "sidebar.help_center": "مركز المساعدة",
+    "sidebar.delete_account": "حذف الحساب",
+    "sidebar.logout": "تسجيل خروج",
+    
+    // ملف المستخدم - User Profile
+    "profile.welcome": "مرحباً",
+    "profile.change_image": "تغيير الصورة",
+    "profile.change_picture": "تغيير الصورة الشخصية",
+    "profile.image_tooltip": "تغيير الصورة",
+    
+    // رسائل الصورة - Image Messages
+    "image.size_error": "حجم الصورة كبير جداً. الحد الأقصى 5 ميجابايت",
+    "image.type_error": "الرجاء اختيار ملف صورة صحيح",
+    "image.login_required": "يجب تسجيل الدخول أولاً",
+    "image.api_unavailable": "API غير متوفر",
+    "image.upload_error": "فشل رفع الصورة",
+    "image.upload_success": "تم تحديث الصورة الشخصية بنجاح",
+    "image.upload_general_error": "حدث خطأ أثناء رفع الصورة",
+    
+    // تسجيل الخروج - Logout
+    "logout.title": "تسجيل الخروج",
+    "logout.confirm": "هل أنت متأكد من تسجيل الخروج؟",
+    "logout.confirm_button": "نعم، سجل الخروج",
+    "logout.cancel_button": "إلغاء",
+    
+    // حذف الحساب - Delete Account
+    "delete_account.title": "حذف الحساب",
+    "delete_account.sad_message": "نحن حزينون لرؤيتك تغادر!",
+    "delete_account.warning": "حذف حسابك يعني حذف جميع بياناتك بشكل دائم، ولا يمكن التراجع عن هذا الإجراء.",
+    "delete_account.select_reason": "يرجى اختيار سبب",
+    "delete_account.select_reason_text": "الرجاء اختيار سبب حذف الحساب",
+    "delete_account.success": "تم الحذف",
+    "delete_account.success_message": "تم حذف حسابك بنجاح",
+    "delete_account.cancel": "إلغاء",
+    "delete_account.confirm": "حذف الحساب",
+    
+    // أسباب حذف الحساب - Delete Reasons
+    "delete_reason.never_used": "لم أستخدم حسابي أبداً",
+    "delete_reason.no_time": "ليس لدي وقت",
+    "delete_reason.changing_email": "أقوم بتغيير بريدي الإلكتروني أو مزود خدمة الإنترنت",
+    "delete_reason.security_concern": "أنا قلق من أنه غير آمن",
+    "delete_reason.other": "أخرى",
+  
+  "customer_support": "دعم العملاء",
+  "support_tickets": "تذاكر الدعم",
+  "manage_support_tickets": "عرض وإدارة تذاكر الدعم الخاصة بك",
+  "create_ticket": "إنشاء تذكرة",
+  "new_support_ticket": "تذكرة دعم جديدة",
+  
+  "table": {
+    "id": "#",
+    "title": "العنوان",
+    "type": "النوع",
+    "status": "الحالة",
+    "created_date": "تاريخ الإنشاء",
+    "last_reply": "آخر رد",
+    "actions": "الإجراءات",
+    "view_details": "عرض التفاصيل"
+  },
+  
+  "status2": {
+    "open": "مفتوحة",
+    "closed": "مغلقة",
+    "pending": "قيد المراجعة",
+    "replied": "تم الرد"
+  },
+  
+  "empty": {
+    "no_tickets": "لا توجد تذاكر دعم حالياً",
+    "create_first": "يمكنك إنشاء تذكرة دعم جديدة من هنا"
+  },
+  
+  "ticket_types": {
+    "inquiry": "استفسار",
+    "complaint": "شكوى",
+    "suggestion": "اقتراح"
+  }
+,
+   // Common
+    "common.back": "العودة",
+    "common.cancel": "إلغاء",
+    "common.submit": "إرسال",
+    "common.sending": "جاري الإرسال...",
+    "common.ok": "حسناً",
+    "common.error": "خطأ",
+    "common.loading": "جاري التحميل...",
+    "common.status": "الحالة",
+    "common.email": "البريد الإلكتروني",
+    "common.name": "الاسم",
+    "common.active": "نشط",
+    "common.inactive": "غير نشط",
+    "common.pending": "قيد المراجعة",
+    
+    // Support Page
+    "support.title": "دعم العملاء",
+    "support.create_ticket": "إنشاء تذكرة",
+    "support.new_ticket": "تذكرة دعم جديدة",
+    "support.view_details": "عرض التفاصيل",
+    "support.no_tickets": "لا توجد تذاكر دعم حالياً",
+    "support.create_first_ticket": "يمكنك إنشاء تذكرة دعم جديدة من هنا",
+    
+    // Support Tickets Section
+    "support.tickets.title": "تذاكر الدعم",
+    "support.tickets.subtitle": "عرض وإدارة تذاكر الدعم الخاصة بك",
+    
+    // Table Headers
+    "support.table.title": "العنوان",
+    "support.table.type": "النوع",
+    "support.table.status": "الحالة",
+    "support.table.created_date": "تاريخ الإنشاء",
+    "support.table.last_reply": "آخر رد",
+    "support.table.actions": "الإجراءات",
+    
+    // Status
+    "support.status.open": "مفتوحة",
+    "support.status.closed": "مغلقة",
+    "support.status.pending": "قيد المراجعة",
+    "support.status.replied": "تم الرد",
+    
+    // Ticket Types (for future use)
+    "support.types.inquiry": "استفسار",
+    "support.types.complaint": "شكوى",
+    "support.types.suggestion": "اقتراح",
+    // / Sample Ticket Titles (للبيانات التجريبية)
+    "support.samples.title.inquiry": "استفسار عن خدمة",
+    "support.samples.title.payment_issue": "مشكلة في الدفع",
+    "support.samples.title.suggestion": "اقتراح لتطوير الموقع",
+     // Ticket Form
+    "ticket.form.title": "نموذج تذكرة الدعم",
+    "ticket.form.select_type": "اختر نوع التذكرة",
+    "ticket.form.write_details": "اكتب تفاصيل تذكرتك هنا...",
+    "ticket.form.submit": "إرسال التذكرة",
+    
+    // Form Fields
+    "ticket.field.full_name": "الاسم الكامل",
+    "ticket.field.full_name_placeholder": "أدخل اسمك الكامل",
+    "ticket.field.full_name_required": "الاسم الكامل مطلوب",
+    
+    "ticket.field.email": "البريد الإلكتروني",
+    "ticket.field.email_placeholder": "example@email.com",
+    "ticket.field.email_required": "البريد الإلكتروني مطلوب",
+    "ticket.field.email_invalid": "البريد الإلكتروني غير صالح",
+    
+    "ticket.field.phone": "رقم الجوال",
+    "ticket.field.phone_placeholder": "أدخل رقم الجوال",
+    "ticket.field.phone_required": "رقم الجوال مطلوب",
+    
+    "ticket.field.address": "العنوان",
+    "ticket.field.address_placeholder": "أدخل عنوانك",
+    "ticket.field.address_required": "العنوان مطلوب",
+    
+    "ticket.field.message": "الرسالة",
+    "ticket.field.message_placeholder": "اكتب تفاصيل تذكرتك هنا...",
+    "ticket.field.message_required": "الرسالة مطلوبة",
+    
+    "ticket.field.type": "نوع التذكرة",
+    "ticket.field.type_required": "نوع التذكرة مطلوب",
+    
+    // Phone Validation Messages
+    "ticket.phone.invalid_eg": "رقم الجوال غير صحيح (مثال: 01012345678)",
+    "ticket.phone.invalid_sa": "رقم الجوال غير صحيح (مثال: 0512345678)",
+    "ticket.phone.invalid_ae": "رقم الجوال غير صحيح (مثال: 0512345678)",
+    "ticket.phone.invalid_kw": "رقم الجوال غير صحيح (مثال: 51234567)",
+    "ticket.phone.invalid_qa": "رقم الجوال غير صحيح (مثال: 33123456)",
+    "ticket.phone.invalid_bh": "رقم الجوال غير صحيح (مثال: 36123456)",
+    "ticket.phone.invalid_om": "رقم الجوال غير صحيح (مثال: 912345678)",
+    "ticket.phone.invalid_jo": "رقم الجوال غير صحيح (مثال: 0791234567)",
+    
+    // Country Names
+    "country.eg": "مصر",
+    "country.sa": "السعودية",
+    "country.ae": "الإمارات",
+    "country.kw": "الكويت",
+    "country.qa": "قطر",
+    "country.bh": "البحرين",
+    "country.om": "عمان",
+    "country.jo": "الأردن",
+    
+    // Sample Ticket Titles
+
+    
+    // Alerts
+    "alert.success": "تم الإرسال بنجاح",
+    "alert.success_message": "تم إنشاء تذكرة الدعم بنجاح، سنتواصل معك قريباً",
+    "alert.error_message": "حدث خطأ أثناء الإرسال",
+
+    // Status Page
+    "status.title": "الاحالة الخاصة بي",
+    "status.no_info": "لا توجد معلومات متاحة",
+    "status.fetch_error": "خطأ في تحميل المعلومات",
+    // Status Types
+    "status.active": "نشط",
+    "status.inactive": "غير نشط",
+    "status.pending": "قيد المراجعة",
+    "status.approved": "مقبول",
+    "status.rejected": "مرفوض",
+    "status.suspended": "موقوف",
+    
+    // Profile Fields
+    "profile.status": "الحالة",
+    "profile.email": "البريد الإلكتروني",
+    "profile.name": "الاسم",
+    "profile.phone": "رقم الجوال",
+    "profile.address": "العنوان",
+    "profile.membership_date": "تاريخ العضوية",
+    "profile.last_login": "آخر دخول",
+      "common.read_more": "اقرأ المزيد",
+    "common.view_all": "عرض جميع",
+    "common.watch": "مشاهدة",
+    
+    // Help Center
+    "help.title": "مركز المساعدة",
+    "help.search_placeholder": "ابحث عن مساعدة...",
+    "help.no_results": "لا توجد نتائج للبحث",
+    
+    // FAQ
+    "faq.title": "الأسئلة الشائعة",
+    "faq.desc": "تعرف على المزيد حول الاسترداد، الدفع عند الاستلام، والضمان.",
+    "faq.badge": "الأكثر زيارة",
+    
+    // Returns Policy
+    "returns.title": "سياسة الاسترجاع",
+    "returns.desc": "تعرف على شروط وإجراءات الاسترجاع بسهولة وخطوات التنفيذ.",
+    
+    // Privacy Policy
+    "privacy.title": "سياسة الخصوصية",
+    "privacy.desc": "كيف نحمي بياناتك ونضمن خصوصيتك أثناء استخدام الموقع.",
+    
+    // Terms & Conditions
+    "terms.title": "الشروط والأحكام",
+    "terms.desc": "القواعد التي تنظم استخدامك لخدماتنا والالتزامات المتبادلة.",
+    
+    // Support Tickets Card
+    "support.tickets_card.title": "تذاكر الدعم",
+    "support.tickets_card.no_tickets": "لا توجد تذاكر للعرض",
+    "support.tickets_card.view_all": "عرض جميع التذاكر",
+    
+    // Tutorials Card
+    "tutorials.title": "مشاهدة الدروس التعليمية",
+    "tutorials.desc": "تحقق من دروسنا التعليمية المصورة التي ترشدك عبر تطبيقات لايك كارد.",
+    "tutorials.watch_videos": "مشاهدة فيديوهات الدروس التعليمية",
+      // Transactions Page
+  "transactions.title": "سجل المعاملات",
+  "transactions.loading": "جاري تحميل المعاملات...",
+  "transactions.no_transactions": "لا توجد معاملات حتى الآن",
+  
+  // Transactions Table Headers
+  "transactions.table.description": "الوصف",
+  "transactions.table.amount": "المبلغ",
+  "transactions.table.status": "الحالة",
+  "transactions.table.date": "التاريخ",
+  
+  // Transaction Status
+  "transactions.status.completed": "مكتمل",
+  "transactions.status.pending": "قيد الانتظار",
+  "transactions.status.failed": "فشل",
+  
+  // Transaction Types
+  "transactions.type.deposit": "إيداع",
+  "transactions.type.withdrawal": "سحب",
+  "transactions.type.transfer": "تحويل",
+   "common.try_again": "حاول مرة أخرى",
+  // Error Messages
+  "transactions.error.fetch": "حدث خطأ أثناء تحميل المعاملات",
+   // Payment Page
+  "payment.title": "الدفع",
+  "payment.back": "رجوع",
+  "payment.select_method": "اختر طريقة الدفع",
+  "payment.select_method_desc": "اختر الطريقة الأنسب لإتمام الطلب.",
+  "payment.complete_purchase": "إتمام الشراء",
+  "payment.processing": "جاري المعالجة...",
+  "payment.redirecting": "جاري توجيهك...",
+  
+  // Order Summary
+  "order.summary.title": "ملخص الطلب",
+  "order.summary.no_summary": "لا يوجد ملخص للطلب",
+  "order.summary.total_items": "المجموع ({count} عناصر)",
+  "order.summary.total": "الإجمالي :",
+  "order.summary.coupon_discount": "خصم الكوبون",
+  "order.summary.shipping_fee": "رسوم الشحن",
+  "order.summary.tax": "الضريبة",
+  "order.summary.egp": "جنية",
+  
+  // Payment Proof Upload
+  "proof.title": "رفع إثبات الدفع",
+  "proof.description": "يرجى رفع صورة إثبات الدفع بعد إتمام عملية الدفع",
+  "proof.click_to_upload": "اضغط لرفع صورة الدفع",
+  "proof.file_requirements": "JPG, PNG أو WebP (حد أقصى 5MB)",
+  "proof.select_file": "اختيار ملف",
+  "proof.change_image": "تغيير الصورة",
+  "proof.delete_image": "حذف الصورة",
+  "proof.delete": "حذف",
+  "proof.preview": "معاينة صورة الدفع",
+  "proof.kb": "كيلوبايت",
+  
+  // Validation Messages
+  "payment.validation.select_method": "يرجى اختيار طريقة الدفع",
+  "payment.validation.upload_proof": "يرجى رفع صورة إثبات الدفع لإتمام العملية",
+  "payment.validation.login_required": "يرجى تسجيل الدخول لإتمام الدفع",
+  "payment.validation.login": "يرجى تسجيل الدخول",
+  "payment.validation.no_order_summary": "لا توجد بيانات ملخص الطلب.",
+  
+  // Error Messages
+  "payment.error.order_creation": "حدث خطأ أثناء إنشاء الطلب",
+  
+  // File Upload Errors
+  "upload.error.invalid_type": "يرجى رفع صورة بصيغة JPG, PNG أو WebP فقط",
+  "upload.error.file_too_large": "حجم الصورة يجب أن لا يتجاوز 5 ميجابايت",
+  "common.alert": "تحذير",
   },
   en: {
+    "common.alert": "Alert",
+      // Payment Page
+  "payment.title": "Payment",
+  "payment.back": "Back",
+  "payment.select_method": "Select Payment Method",
+  "payment.select_method_desc": "Choose the most suitable method to complete your order.",
+  "payment.complete_purchase": "Complete Purchase",
+  "payment.processing": "Processing...",
+  "payment.redirecting": "Redirecting...",
+  
+  // Order Summary
+  "order.summary.title": "Order Summary",
+  "order.summary.no_summary": "No order summary available",
+  "order.summary.total_items": "Total ({count} items)",
+  "order.summary.total": "Total:",
+  "order.summary.coupon_discount": "Coupon Discount",
+  "order.summary.shipping_fee": "Shipping Fee",
+  "order.summary.tax": "Tax",
+  "order.summary.egp": "EGP",
+  
+  // Payment Proof Upload
+  "proof.title": "Upload Payment Proof",
+  "proof.description": "Please upload payment proof after completing the payment",
+  "proof.click_to_upload": "Click to upload payment image",
+  "proof.file_requirements": "JPG, PNG or WebP (Max 5MB)",
+  "proof.select_file": "Select File",
+  "proof.change_image": "Change Image",
+  "proof.delete_image": "Delete Image",
+  "proof.delete": "Delete",
+  "proof.preview": "Payment proof preview",
+  "proof.kb": "KB",
+  
+  // Validation Messages
+  "payment.validation.select_method": "Please select a payment method",
+  "payment.validation.upload_proof": "Please upload payment proof to complete the process",
+  "payment.validation.login_required": "Please login to complete payment",
+  "payment.validation.login": "Please login",
+  "payment.validation.no_order_summary": "No order summary data available.",
+  
+  // Error Messages
+  "payment.error.order_creation": "An error occurred while creating the order",
+  
+  // File Upload Errors
+  "upload.error.invalid_type": "Please upload an image in JPG, PNG or WebP format only",
+  "upload.error.file_too_large": "Image size must not exceed 5MB",
+     "common.try_again": "Try Again",
+      // Transactions Page
+  "transactions.title": "Transaction History",
+  "transactions.loading": "Loading transactions...",
+  "transactions.no_transactions": "No transactions yet",
+  
+  // Transactions Table Headers
+  "transactions.table.description": "Description",
+  "transactions.table.amount": "Amount",
+  "transactions.table.status": "Status",
+  "transactions.table.date": "Date",
+  
+  // Transaction Status
+  "transactions.status.completed": "Completed",
+  "transactions.status.pending": "Pending",
+  "transactions.status.failed": "Failed",
+  
+  // Transaction Types
+  "transactions.type.deposit": "Deposit",
+  "transactions.type.withdrawal": "Withdrawal",
+  "transactions.type.transfer": "Transfer",
+  
+  // Error Messages
+  "transactions.error.fetch": "Error loading transactions",
+     // Common
+    "common.read_more": "Read More",
+    "common.view_all": "View All",
+    "common.watch": "Watch",
+    
+    // Help Center
+    "help.title": "Help Center",
+    "help.search_placeholder": "Search for help...",
+    "help.no_results": "No results found",
+    
+    // FAQ
+    "faq.title": "Frequently Asked Questions",
+    "faq.desc": "Learn more about refunds, cash on delivery, and warranty.",
+    "faq.badge": "Most Visited",
+    
+    // Returns Policy
+    "returns.title": "Returns Policy",
+    "returns.desc": "Easily learn about return conditions, procedures, and implementation steps.",
+    
+    // Privacy Policy
+    "privacy.title": "Privacy Policy",
+    "privacy.desc": "How we protect your data and ensure your privacy while using the site.",
+    
+    // Terms & Conditions
+    "terms.title": "Terms & Conditions",
+    "terms.desc": "Rules governing your use of our services and mutual obligations.",
+    
+    // Support Tickets Card
+    "support.tickets_card.title": "Support Tickets",
+    "support.tickets_card.no_tickets": "No tickets to display",
+    "support.tickets_card.view_all": "View All Tickets",
+    
+    // Tutorials Card
+    "tutorials.title": "Watch Tutorials",
+    "tutorials.desc": "Check out our illustrated tutorials that guide you through Like Card applications.",
+    "tutorials.watch_videos": "Watch Tutorial Videos",
+        // Status Page
+    "status.title": "My Referral",
+    "status.no_info": "No information available",
+    "status.fetch_error": "Error loading information",
+     // Status Types
+    "status.active": "Active",
+    "status.inactive": "Inactive",
+    "status.pending": "Pending",
+    "status.approved": "Approved",
+    "status.rejected": "Rejected",
+    "status.suspended": "Suspended",
+
+      // Profile Fields
+    "profile.status": "Status",
+    "profile.email": "Email",
+    "profile.name": "Name",
+    "profile.phone": "Phone Number",
+    "profile.address": "Address",
+    "profile.membership_date": "Membership Date",
+    "profile.last_login": "Last Login",
+    // Ticket Form
+    "ticket.form.title": "Support Ticket Form",
+    "ticket.form.select_type": "Select ticket type",
+    "ticket.form.write_details": "Write your ticket details here...",
+    "ticket.form.submit": "Submit Ticket",
+    
+    // Form Fields
+    "ticket.field.full_name": "Full Name",
+    "ticket.field.full_name_placeholder": "Enter your full name",
+    "ticket.field.full_name_required": "Full name is required",
+    
+    "ticket.field.email": "Email",
+    "ticket.field.email_placeholder": "example@email.com",
+    "ticket.field.email_required": "Email is required",
+    "ticket.field.email_invalid": "Invalid email address",
+    
+    "ticket.field.phone": "Phone Number",
+    "ticket.field.phone_placeholder": "Enter phone number",
+    "ticket.field.phone_required": "Phone number is required",
+    
+    "ticket.field.address": "Address",
+    "ticket.field.address_placeholder": "Enter your address",
+    "ticket.field.address_required": "Address is required",
+    
+    "ticket.field.message": "Message",
+    "ticket.field.message_placeholder": "Write your ticket details here...",
+    "ticket.field.message_required": "Message is required",
+    
+    "ticket.field.type": "Ticket Type",
+    "ticket.field.type_required": "Ticket type is required",
+    
+    // Phone Validation Messages
+    "ticket.phone.invalid_eg": "Invalid phone number (Example: 01012345678)",
+    "ticket.phone.invalid_sa": "Invalid phone number (Example: 0512345678)",
+    "ticket.phone.invalid_ae": "Invalid phone number (Example: 0512345678)",
+    "ticket.phone.invalid_kw": "Invalid phone number (Example: 51234567)",
+    "ticket.phone.invalid_qa": "Invalid phone number (Example: 33123456)",
+    "ticket.phone.invalid_bh": "Invalid phone number (Example: 36123456)",
+    "ticket.phone.invalid_om": "Invalid phone number (Example: 912345678)",
+    "ticket.phone.invalid_jo": "Invalid phone number (Example: 0791234567)",
+    
+    // Country Names
+    "country.eg": "Egypt",
+    "country.sa": "Saudi Arabia",
+    "country.ae": "UAE",
+    "country.kw": "Kuwait",
+    "country.qa": "Qatar",
+    "country.bh": "Bahrain",
+    "country.om": "Oman",
+    "country.jo": "Jordan",
+    
+
+    
+    // Alerts
+    "alert.success": "Success",
+    "alert.success_message": "Support ticket created successfully, we will contact you soon",
+    "alert.error_message": "An error occurred while sending",
+    // Common
+    "common.back": "Back",
+    "common.cancel": "Cancel",
+    "common.submit": "Submit",
+    "common.sending": "Sending...",
+    "common.ok": "OK",
+    "common.error": "Error",
+    "common.loading": "Loading...",
+    "common.status": "Status",
+    "common.email": "Email",
+    "common.name": "Name",
+    "common.active": "Active",
+    "common.inactive": "Inactive",
+    "common.pending": "Pending",
+    
+    // Support Page
+    "support.title": "Customer Support",
+    "support.create_ticket": "Create Ticket",
+    "support.new_ticket": "New Support Ticket",
+    "support.view_details": "View Details",
+    "support.no_tickets": "No support tickets found",
+    "support.create_first_ticket": "You can create a new support ticket from here",
+    
+    // Support Tickets Section
+    "support.tickets.title": "Support Tickets",
+    "support.tickets.subtitle": "View and manage your support tickets",
+    
+    // Table Headers
+    "support.table.title": "Title",
+    "support.table.type": "Type",
+    "support.table.status": "Status",
+    "support.table.created_date": "Created Date",
+    "support.table.last_reply": "Last Reply",
+    "support.table.actions": "Actions",
+    
+    // Status
+    "support.status.open": "Open",
+    "support.status.closed": "Closed",
+    "support.status.pending": "Pending",
+    "support.status.replied": "Replied",
+    
+       // Sample Ticket Titles (للبيانات التجريبية)
+    "support.samples.title.inquiry": "Service Inquiry",
+    "support.samples.title.payment_issue": "Payment Issue",
+    "support.samples.title.suggestion": "Website Development Suggestion",
+    // Ticket Types (for future use)
+    
+    "support.types.inquiry": "Inquiry",
+    "support.types.complaint": "Complaint",
+    "support.types.suggestion": "Suggestion",
+      // Sidebar
+    "sidebar.menu": "Menu",
+    "sidebar.my_dashboard": "My Dashboard",
+    "sidebar.my_details": "My Details",
+    "sidebar.my_orders": "My Orders",
+    "sidebar.my_coupons": "My Coupons",
+    "sidebar.my_favorites": "My Favorites",
+    "sidebar.my_referral": "My Referral",
+    "sidebar.help_center": "Help Center",
+    "sidebar.delete_account": "Delete Account",
+    "sidebar.logout": "Logout",
+    
+    // User Profile
+    "profile.welcome": "Welcome",
+    "profile.change_image": "Change Image",
+    "profile.change_picture": "Change Profile Picture",
+    "profile.image_tooltip": "Change Image",
+    
+    // Image Messages
+    "image.size_error": "Image size is too large. Maximum size is 5MB",
+    "image.type_error": "Please select a valid image file",
+    "image.login_required": "You must be logged in first",
+    "image.api_unavailable": "API unavailable",
+    "image.upload_error": "Failed to upload image",
+    "image.upload_success": "Profile picture updated successfully",
+    "image.upload_general_error": "An error occurred while uploading the image",
+    
+    // Logout
+    "logout.title": "Logout",
+    "logout.confirm": "Are you sure you want to logout?",
+    "logout.confirm_button": "Yes, logout",
+    "logout.cancel_button": "Cancel",
+    
+    // Delete Account
+    "delete_account.title": "Delete Account",
+    "delete_account.sad_message": "We're sad to see you go!",
+    "delete_account.warning": "Deleting your account means permanently deleting all your data, and this action cannot be undone.",
+    "delete_account.select_reason": "Please select a reason",
+    "delete_account.select_reason_text": "Please select a reason for deleting your account",
+    "delete_account.success": "Deleted",
+    "delete_account.success_message": "Your account has been successfully deleted",
+    "delete_account.cancel": "Cancel",
+    "delete_account.confirm": "Delete Account",
+    
+    // Delete Reasons
+    "delete_reason.never_used": "I never used my account",
+    "delete_reason.no_time": "I don't have time",
+    "delete_reason.changing_email": "I'm changing my email or internet service provider",
+    "delete_reason.security_concern": "I'm concerned it's not secure",
+    "delete_reason.other": "Other",
+      // Dashboard
+    "dashboard.my_dashboard": "My Dashboard",
+    "dashboard.points": "Points",
+    "dashboard.blue_level": "Blue",
+    "dashboard.discover_features": "Discover Features",
+    "dashboard.buy_for_level_up": "Buy for 25,793 EGP to reach",
+    "dashboard.silver_level": "Silver Level",
+
+    // Dashboard Items
+    "dashboard.lucky_code": "Lucky Code",
+    "dashboard.browse_rewards": "Browse Rewards",
+    "dashboard.customer_support": "Customer Support",
+    "dashboard.my_rewards": "My Rewards",
+    "dashboard.my_draws": "My Draws",
+    "dashboard.points_log": "Points Log",
+    "dashboard.special_prices": "Special Prices",
+    "dashboard.terms": "Terms & Conditions",
+
+    // Finance Section
+    "finance.like_card_balance": "Like Card Balance",
+    "finance.view_transactions": "View Transactions",
+    "finance.daily_limit": "Daily Limit",
+    "finance.total_deposits_today": "Total Deposits Today",
+    "finance.vouchers": "Vouchers",
+    "finance.charge_balance": "Charge Balance",
+    "finance.payment_link": "Payment Link",
+
+    // Level Modal
+    "level_modal.title": "Unlock Your Rewards",
+    "level_modal.description": "Earn points with every purchase and enjoy amazing rewards! Rise through the levels and keep all your benefits. Start exploring now",
+    "level_modal.current_level": "Current Level",
+    "level_modal.locked": "Locked",
+    "level_modal.start_blue_message": "Start at Blue level after your first purchase",
+    "level_modal.next_level_message": "Reach {level} level when your purchases exceed {amount} EGP",
+
+    // Level Names
+    "level.blue": "Blue",
+    "level.silver": "Silver",
+    "level.gold": "Gold",
+    "level.titanium": "Titanium",
+    "level.diamond": "Diamond",
+
+    // Level Features - Blue
+    "level.feature.blue.lucky_code": "1 Lucky Code with every purchase of 100 SAR or more",
+    "level.feature.blue.standard_support": "Standard Technical Support",
+
+    // Level Features - Silver
+    "level.feature.silver.lucky_codes": "3 Lucky Codes for every purchase over 1,289 EGP",
+    "level.feature.silver.weekly_lucky_code": "Get 1 Lucky Code weekly",
+    "level.feature.silver.extra_points_5": "5% Extra Points",
+    "level.feature.silver.special_prices_3": "Special prices on 3 products monthly",
+    "level.feature.silver.standard_support": "Standard Technical Support",
+
+    // Level Features - Gold
+    "level.feature.gold.lucky_codes_5": "5 Lucky Codes for every purchase over 1,289 EGP",
+    "level.feature.gold.daily_lucky_code": "Get 1 Lucky Code daily",
+    "level.feature.gold.extra_points_10": "10% Extra Points",
+    "level.feature.gold.special_prices_5": "Special prices on 5 products monthly",
+    "level.feature.gold.premium_support": "Premium Customer Support",
+
+    // Level Features - Titanium
+    "level.feature.titanium.lucky_codes_7": "7 Lucky Codes for every purchase over 1,289 EGP",
+    "level.feature.titanium.daily_lucky_codes_2": "Get 2 Lucky Codes daily",
+    "level.feature.titanium.extra_points_15": "15% Extra Points",
+    "level.feature.titanium.special_prices_10": "Special prices on 10 products monthly",
+    "level.feature.titanium.priority_support": "Priority Customer Support",
+
+    // Level Features - Diamond
+    "level.feature.diamond.lucky_codes_10": "10 Lucky Codes for every purchase over 1,289 EGP",
+    "level.feature.diamond.daily_lucky_codes_3": "Get 3 Lucky Codes daily",
+    "level.feature.diamond.extra_points_20": "20% Extra Points",
+    "level.feature.diamond.special_prices_20": "Special prices on 20 products monthly",
+    "level.feature.diamond.whatsapp_support": "Special WhatsApp support for elite customers",
+    "level.feature.diamond.premium_account": "Premium account management",
+    "level.feature.diamond.free_like_card": "Free Like Card voucher",
+    "level.feature.diamond.iphone_prize": "Chance to win an iPhone every month",
       "site_title_default": "The Largest Digital Gift Cards Platform",
   "site_title_template": "%s | LikeCard",
   "site_description": "The Largest Digital Gift Cards Platform - Buy gift cards and digital offers easily and securely",

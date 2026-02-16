@@ -232,37 +232,7 @@ export default function TicketDetails() {
 							</div>
 						</div>
 
-						{/* إضافة رد جديد - يظهر فقط إذا كانت التذكرة مفتوحة */}
-						{/* {ticket.status !== 'closed' && (
-							<div className='mt-6 pt-6 border-t border-slate-200'>
-								<h3 className='text-sm font-semibold text-slate-900 mb-3'>إضافة رد:</h3>
-								<div className='flex gap-3'>
-									<textarea
-										value={newReply}
-										onChange={(e) => setNewReply(e.target.value)}
-										placeholder='اكتب ردك هنا...'
-										className='flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-pro focus:ring-2 focus:ring-pro/20 outline-none resize-none'
-										rows={3}
-									/>
-									<div className='flex flex-col gap-2'>
-										<button
-											onClick={handleSendReply}
-											disabled={!newReply.trim()}
-											className='p-3 bg-pro hover:bg-pro-max text-white rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-											title='إرسال'
-										>
-											<FaPaperPlane size={18} />
-										</button>
-										<button
-											className='p-3 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl transition-colors'
-											title='إرفاق ملف'
-										>
-											<FiPaperclip size={18} />
-										</button>
-									</div>
-								</div>
-							</div>
-						)} */}
+				
 					</div>
 				</div>
 			</div>

@@ -15,6 +15,8 @@ import {
 	FiMoreHorizontal,
 } from "react-icons/fi";
 import { HiLightBulb } from "react-icons/hi";
+import { useLanguage } from "@/src/context/LanguageContext";
+
 
 interface FormData {
 	full_name: string;
@@ -63,6 +65,7 @@ interface TicketFormCustomProps {
 }
 
 export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps) {
+	const { t } = useLanguage();
 	const [loading, setLoading] = useState(false);
 	const [errors, setErrors] = useState<Errors>({});
 	const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
@@ -81,10 +84,10 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 
 	// Suggestion type options
 	const suggestionTypes = [
-		{ value: "complaint", label: "شكوى", icon: FiAlertCircle, color: "text-red-600", bgColor: "bg-red-50", borderColor: "border-red-200" },
-		{ value: "suggestion", label: "اقتراح", icon: HiLightBulb, color: "text-yellow-600", bgColor: "bg-yellow-50", borderColor: "border-yellow-200" },
-		{ value: "inquiry", label: "استفسار", icon: FiHelpCircle, color: "text-blue-600", bgColor: "bg-blue-50", borderColor: "border-blue-200" },
-		{ value: "other", label: "أخرى", icon: FiMoreHorizontal, color: "text-slate-600", bgColor: "bg-slate-50", borderColor: "border-slate-200" },
+		{ value: "complaint", label: t('support.types.complaint'), icon: FiAlertCircle, color: "text-red-600", bgColor: "bg-red-50", borderColor: "border-red-200" },
+		{ value: "suggestion", label: t('support.types.suggestion'), icon: HiLightBulb, color: "text-yellow-600", bgColor: "bg-yellow-50", borderColor: "border-yellow-200" },
+		{ value: "inquiry", label: t('support.types.inquiry'), icon: FiHelpCircle, color: "text-blue-600", bgColor: "bg-blue-50", borderColor: "border-blue-200" },
+		{ value: "other", label: t('support.types.other' as any), icon: FiMoreHorizontal, color: "text-slate-600", bgColor: "bg-slate-50", borderColor: "border-slate-200" },
 	];
 
 	const selectedSuggestionType = suggestionTypes.find((t) => t.value === form.suggestion_type);
@@ -108,65 +111,65 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 		EG: {
 			pattern: /^01[0-9]{9}$/,
 			example: "01012345678",
-			message: "رقم الجوال غير صحيح (مثال: 01012345678)",
+			message: t('ticket.phone.invalid_eg'),
 			flag: "🇪🇬",
-			name: "مصر",
+			name: t('country.eg'),
 			code: "+20",
 		},
 		SA: {
 			pattern: /^05[0-9]{8}$/,
 			example: "0512345678",
-			message: "رقم الجوال غير صحيح (مثال: 0512345678)",
+			message: t('ticket.phone.invalid_sa'),
 			flag: "🇸🇦",
-			name: "السعودية",
+			name: t('country.sa'),
 			code: "+966",
 		},
 		AE: {
 			pattern: /^05[0-9]{8}$/,
 			example: "0512345678",
-			message: "رقم الجوال غير صحيح (مثال: 0512345678)",
+			message: t('ticket.phone.invalid_ae'),
 			flag: "🇦🇪",
-			name: "الإمارات",
+			name: t('country.ae'),
 			code: "+971",
 		},
 		KW: {
 			pattern: /^[569][0-9]{7}$/,
 			example: "51234567",
-			message: "رقم الجوال غير صحيح (مثال: 51234567)",
+			message: t('ticket.phone.invalid_kw'),
 			flag: "🇰🇼",
-			name: "الكويت",
+			name: t('country.kw'),
 			code: "+965",
 		},
 		QA: {
 			pattern: /^[3-7][0-9]{7}$/,
 			example: "33123456",
-			message: "رقم الجوال غير صحيح (مثال: 33123456)",
+			message: t('ticket.phone.invalid_qa'),
 			flag: "🇶🇦",
-			name: "قطر",
+			name: t('country.qa'),
 			code: "+974",
 		},
 		BH: {
 			pattern: /^[3-9][0-9]{7}$/,
 			example: "36123456",
-			message: "رقم الجوال غير صحيح (مثال: 36123456)",
+			message: t('ticket.phone.invalid_bh'),
 			flag: "🇧🇭",
-			name: "البحرين",
+			name: t('country.bh'),
 			code: "+973",
 		},
 		OM: {
 			pattern: /^[79][0-9]{8}$/,
 			example: "912345678",
-			message: "رقم الجوال غير صحيح (مثال: 912345678)",
+			message: t('ticket.phone.invalid_om'),
 			flag: "🇴🇲",
-			name: "عمان",
+			name: t('country.om'),
 			code: "+968",
 		},
 		JO: {
 			pattern: /^07[789][0-9]{7}$/,
 			example: "0791234567",
-			message: "رقم الجوال غير صحيح (مثال: 0791234567)",
+			message: t('ticket.phone.invalid_jo'),
 			flag: "🇯🇴",
-			name: "الأردن",
+			name: t('country.jo'),
 			code: "+962",
 		},
 	};
@@ -174,10 +177,10 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 	const validate = useCallback((data: FormData) => {
 		const newErrors: Errors = {};
 
-		if (!data.full_name.trim()) newErrors.full_name = "الاسم الكامل مطلوب";
+		if (!data.full_name.trim()) newErrors.full_name = t('ticket.field.full_name_required');
 
 		if (!data.phone.trim()) {
-			newErrors.phone = "رقم الجوال مطلوب";
+			newErrors.phone = t('ticket.field.phone_required');
 		} else if (data.country && phonePatterns[data.country]) {
 			const phoneValidation = phonePatterns[data.country];
 			if (!phoneValidation.pattern.test(data.phone.trim())) {
@@ -185,16 +188,16 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 			}
 		}
 
-		if (!data.email.trim()) newErrors.email = "البريد الإلكتروني مطلوب";
+		if (!data.email.trim()) newErrors.email = t('ticket.field.email_required');
 		else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim()))
-			newErrors.email = "البريد الإلكتروني غير صالح";
+			newErrors.email = t('ticket.field.email_invalid');
 
-		if (!data.address.trim()) newErrors.address = "العنوان مطلوب";
-		if (!data.suggestion_type.trim()) newErrors.suggestion_type = "نوع التذكرة مطلوب";
-		if (!data.message.trim()) newErrors.message = "الرسالة مطلوبة";
+		if (!data.address.trim()) newErrors.address = t('ticket.field.address_required');
+		if (!data.suggestion_type.trim()) newErrors.suggestion_type = t('ticket.field.type_required');
+		if (!data.message.trim()) newErrors.message = t('ticket.field.message_required');
 
 		return newErrors;
-	}, [phonePatterns]);
+	}, [phonePatterns, t]);
 
 	const inputBase =
 		"w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-slate-900 placeholder:text-slate-400 outline-none transition";
@@ -248,9 +251,9 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 				
 				Swal.fire({
 					icon: "success",
-					title: "تم الإرسال بنجاح",
-					text: "تم إنشاء تذكرة الدعم بنجاح، سنتواصل معك قريباً",
-					confirmButtonText: "حسناً",
+					title: t('alert.success'),
+					text: t('alert.success_message'),
+					confirmButtonText: t('common.ok' as any),
 				});
 
 				setForm({
@@ -270,44 +273,44 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 			} catch {
 				Swal.fire({
 					icon: "error",
-					title: "خطأ",
-					text: "حدث خطأ أثناء الإرسال",
+					title: t('common.error' as any),
+					text: t('alert.error_message'),
 				});
 			} finally {
 				setLoading(false);
 			}
 		},
-		[form, loading, validate, onSuccess, onClose]
+		[form, loading, validate, onSuccess, onClose, t]
 	);
 
 	return (
 		<div className="p-6 md:p-8">
 			<form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-5">
-				<Field label="الاسم الكامل" error={errors.full_name}>
+				<Field label={t('ticket.field.full_name')} error={errors.full_name}>
 					<input
 						name="full_name"
 						value={form.full_name}
 						onChange={handleChange}
 						className={inputClass("full_name")}
-						placeholder="أدخل اسمك الكامل"
+						placeholder={t('ticket.field.full_name_placeholder')}
 						autoComplete="given-name"
 					/>
 				</Field>
 
-				<Field label="البريد الإلكتروني" error={errors.email}>
+				<Field label={t('ticket.field.email')} error={errors.email}>
 					<input
 						name="email"
 						type="text"
 						value={form.email}
 						onChange={handleChange}
 						className={inputClass("email")}
-						placeholder="example@email.com"
+						placeholder={t('ticket.field.email_placeholder')}
 						autoComplete="email"
 					/>
 				</Field>
 
 				<div className="md:col-span-2">
-					<Field label="نوع التذكرة" error={errors.suggestion_type}>
+					<Field label={t('ticket.field.type')} error={errors.suggestion_type}>
 						<div ref={suggestionTypeRef} className="relative">
 							<button
 								type="button"
@@ -329,7 +332,7 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 											<span className="text-slate-900">{selectedSuggestionType.label}</span>
 										</>
 									) : (
-										<span className="text-slate-400">اختر نوع التذكرة</span>
+										<span className="text-slate-400">{t('ticket.form.select_type')}</span>
 									)}
 								</div>
 								<FiChevronDown
@@ -391,7 +394,7 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 					</Field>
 				</div>
 
-				<Field label="رقم الجوال" error={errors.phone}>
+				<Field label={t('ticket.field.phone')} error={errors.phone}>
 					<div className="relative flex" dir="ltr">
 						<div className="relative flex-shrink-0 w-20" ref={countryDropdownRef}>
 							<button
@@ -449,8 +452,8 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 								)}
 								placeholder={
 									form.country && phonePatterns[form.country]
-										? `مثال: ${phonePatterns[form.country].example}`
-										: "أدخل رقم الجوال"
+										? `Example: ${phonePatterns[form.country].example}`
+										: t('ticket.field.phone_placeholder')
 								}
 								inputMode="numeric"
 							/>
@@ -458,7 +461,7 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 					</div>
 				</Field>
 
-				<Field label="العنوان" error={errors.address}>
+				<Field label={t('ticket.field.address')} error={errors.address}>
 					<div className="relative">
 						<span className="absolute right-4 top-3.5 text-slate-400">
 							<FiMapPin />
@@ -468,13 +471,13 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 							value={form.address}
 							onChange={handleChange}
 							className={cn(inputClass("address"), "pr-11")}
-							placeholder="أدخل عنوانك"
+							placeholder={t('ticket.field.address_placeholder')}
 						/>
 					</div>
 				</Field>
 
 				<div className="md:col-span-2">
-					<Field label="الرسالة" error={errors.message}>
+					<Field label={t('ticket.field.message')} error={errors.message}>
 						<div className="relative">
 							<span className="absolute right-4 top-3.5 text-slate-400">
 								<FiMessageSquare />
@@ -484,7 +487,7 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 								value={form.message}
 								onChange={handleChange}
 								className={cn(textareaClass("message"), "pr-11")}
-								placeholder="اكتب تفاصيل تذكرتك هنا..."
+								placeholder={t('ticket.field.message_placeholder')}
 							/>
 						</div>
 					</Field>
@@ -502,12 +505,12 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 						{loading ? (
 							<>
 								<div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-								<span>جاري الإرسال...</span>
+								<span>{t('common.sending' as any)}</span>
 							</>
 						) : (
 							<>
 								<FiArrowUpRight className="text-lg" />
-								<span>إرسال التذكرة</span>
+								<span>{t('ticket.form.submit')}</span>
 							</>
 						)}
 					</button>
@@ -518,7 +521,7 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 							onClick={onClose}
 							className="px-8 py-4 border border-slate-200 rounded-2xl font-semibold text-slate-600 hover:bg-slate-50 transition-all"
 						>
-							إلغاء
+							{t('common.cancel' as any)}
 						</button>
 					)}
 				</div>

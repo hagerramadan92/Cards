@@ -3,6 +3,7 @@
 import UserNameWelcome from "@/components/UserNameWelcome";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 import { TfiMenuAlt } from "react-icons/tfi";
 import { TiMessages } from "react-icons/ti";
@@ -25,6 +26,8 @@ function Card({
 }: {
 	item: HelpItem;
 }) {
+	const { t } = useLanguage();
+	
 	return (
 		<Link href={item.href} aria-label={item.title} className="group">
 			<div
@@ -70,7 +73,7 @@ function Card({
 						</p>
 
 						<div className="mt-3 inline-flex items-center gap-1 text-sm font-extrabold text-pro">
-							اقرأ المزيد
+							{t('common.read_more')}
 							<MdOutlineKeyboardArrowLeft className="text-pro transition group-hover:translate-x-[-2px]" />
 						</div>
 					</div>
@@ -81,32 +84,33 @@ function Card({
 }
 
 export default function Page() {
+	const { t } = useLanguage();
 	const [q, setQ] = useState("");
 
 	const items: HelpItem[] = [
 		{
 			href: "/FAQ",
-			title: "الأسئلة الشائعة",
-			desc: "تعرف على المزيد حول الاسترداد، الدفع عند الاستلام، والضمان.",
+			title: t('faq.title'),
+			desc: t('faq.desc'),
 			icon: <TiMessages size={24} />,
-			badge: "الأكثر زيارة",
+			badge: t('faq.badge'),
 		},
 		{
 			href: "/returnsPolicy",
-			title: "سياسة الاسترجاع",
-			desc: "تعرف على شروط وإجراءات الاسترجاع بسهولة وخطوات التنفيذ.",
+			title: t('returns.title'),
+			desc: t('returns.desc'),
 			icon: <BsArrowReturnLeft size={22} />,
 		},
 		{
 			href: "/policy",
-			title: "سياسة الخصوصية",
-			desc: "كيف نحمي بياناتك ونضمن خصوصيتك أثناء استخدام الموقع.",
+			title: t('privacy.title'),
+			desc: t('privacy.desc'),
 			icon: <BsShieldCheck size={22} />,
 		},
 		{
 			href: "/terms",
-			title: "الشروط والأحكام",
-			desc: "القواعد التي تنظم استخدامك لخدماتنا والالتزامات المتبادلة.",
+			title: t('terms.title'),
+			desc: t('terms.desc'),
 			icon: <TfiMenuAlt size={21} />,
 		},
 	];
@@ -119,53 +123,75 @@ export default function Page() {
 				it.title.includes(s) ||
 				it.desc.includes(s)
 		);
-	}, [q]);
+	}, [q, items]);
 
 	return (
 		<div className="space-y-3 md:mt-0 mt-5">
 		
+			{/* Search Bar - يمكن إضافته لاحقاً إذا أردت */}
+			{/* <div className="relative mb-4">
+				<FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+				<input
+					type="text"
+					value={q}
+					onChange={(e) => setQ(e.target.value)}
+					placeholder={t('help.search_placeholder')}
+					className="w-full rounded-xl border border-slate-200 bg-white py-3 pr-4 pl-10 text-sm text-slate-900 placeholder:text-slate-400 focus:border-pro focus:outline-none focus:ring-2 focus:ring-pro/20"
+				/>
+			</div> */}
 
-		{/* Support Tickets Section */}
-		<div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-			<div className="flex gap-1">
-				<div className="w-8 h-8 rounded-lg bg-pro/10 flex items-center justify-center">
-					<FaTicketAlt className="text-pro-max" size={28} />
+			{/* Help Cards Grid */}
+			{/* {filtered.length > 0 ? (
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+					{filtered.map((item, idx) => (
+						<Card key={idx} item={item} />
+					))}
 				</div>
-				<div className="flex flex-col gap-1">
-				<h3 className="text-lg font-semibold text-slate-900">تذاكر الدعم</h3>
-				<p className="text-slate-500 text-sm">لا توجد تذاكر للعرض</p>
+			) : (
+				<div className="text-center py-8">
+					<p className="text-slate-500">{t('help.no_results')}</p>
 				</div>
+			)} */}
 
+			{/* Support Tickets Section */}
+			<div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+				<div className="flex gap-3">
+					<div className="w-10 h-10 rounded-lg bg-pro/10 flex items-center justify-center flex-shrink-0">
+						<FaTicketAlt className="text-pro-max" size={24} />
+					</div>
+					<div className="flex flex-col gap-1 flex-1">
+						<h3 className="text-lg font-semibold text-slate-900">{t('support.tickets_card.title')}</h3>
+						<p className="text-slate-500 text-sm">{t('support.tickets_card.no_tickets')}</p>
+					</div>
+				</div>
+				
+				<Link href="/myAccount/support">
+					<button className="w-full mt-4 px-4 py-2.5 bg-orange-50 hover:bg-orange-100 rounded-lg text-pro-max font-semibold text-sm transition-colors">
+						{t('support.tickets_card.view_all')}
+					</button>
+				</Link>
 			</div>
-			
-			<button className="px-3 py-1.5 hover:bg-orange-200 rounded-lg text-pro-max bg-orange-100 w-full text-center mt-2 text-white text-sm font-semibold hover:bg-pro-max/90 transition-colors">
-				عرض جميع التذاكر
-			</button>
-		</div>
 
-		{/* Watch Tutorials Section */}
-		<div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-			<div className="flex gap-1 mb-2">
-				<div className="w-8 h-8 rounded-lg bg-pro/10 flex items-center justify-center">
-					<FaPlayCircle className="text-pro-max" size={28} />
+			{/* Watch Tutorials Section */}
+			<div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+				<div className="flex gap-3 mb-2">
+					<div className="w-10 h-10 rounded-lg bg-pro/10 flex items-center justify-center flex-shrink-0">
+						<FaPlayCircle className="text-pro-max" size={24} />
+					</div>
+					<div className="flex flex-col gap-1 flex-1">
+						<h3 className="text-lg font-semibold text-slate-900">{t('tutorials.title')}</h3>
+						<p className="text-sm text-slate-500">
+							{t('tutorials.desc')}
+						</p>
+					</div>
 				</div>
-				  <div className="flex flex-col gap-1">
-				  <h3 className="text-lg font-semibold text-slate-900">مشاهدة الدروس التعليمية</h3>
-				<p className="text-sm text-slate-500 mb-3">
-				تحقق من دروسنا التعليمية المصورة التي ترشدك عبر تطبيقات لايك كارد.
-			</p>
-				  </div>
+				
+				<Link href="/tutorials">
+					<button className="w-full mt-2 px-4 py-2.5 bg-orange-50 hover:bg-orange-100 rounded-lg text-pro-max font-semibold text-sm transition-colors">
+						{t('tutorials.watch_videos')}
+					</button>
+				</Link>
 			</div>
-			
-			<button className="px-3 py-1.5 hover:bg-orange-200 rounded-lg text-pro-max bg-orange-100 w-full text-center mt-2 text-white text-sm font-semibold hover:bg-pro-max/90 transition-colors">
-				مشاهدة فيديوهات الدروس التعليمية
-			</button>
-		</div>
-
-			
 		</div>
 	);
 }
-
-
-

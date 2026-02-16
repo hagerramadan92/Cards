@@ -271,7 +271,9 @@ export default function CategoryPage() {
 		);
 	};
 
-	if (loading) return <div className="flex items-center"><Spinner /></div>;
+	if (loading) return  <div className="flex items-center justify-center mt-7">
+			<Spinner size="lg" />
+		  </div>;
 
 	if (!category) {
 		return (

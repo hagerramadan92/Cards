@@ -62,10 +62,11 @@ function readLocalJSON<T>(key: string): T | null {
   }
 }
 
-// الطرق اللي محتاجة إيصال
+// Payment methods that require receipt
 const PAYMENT_NEEDS_RECEIPT = [4, 5, 8, 10];
 
 function SummaryBlock({ summary }: { summary: CheckoutSummaryV1 | null }) {
+  const { t } = useLanguage();
   const shippingFree = n(summary?.shipping_fee) <= 0;
   const shippingFee = n(summary?.shipping_fee);
   const hasCoupon = n(summary?.coupon_discount) > 0 || summary?.coupon_new_total !== null;
@@ -73,30 +74,28 @@ function SummaryBlock({ summary }: { summary: CheckoutSummaryV1 | null }) {
   return (
     <div className="my-2 gap-2 flex flex-col">
       <div className="flex text-sm items-center justify-between text-black">
-        <p className="font-semibold">المجموع ({n(summary?.items_length)} عناصر)</p>
-        {/* <p>
-          {money(summary?.subtotal)}
-          <span className="text-sm ms-1">جنية</span>
-        </p> */}
+        <p className="font-semibold">
+          {t('order.summary.total_items', { count: n(summary?.items_length) })}
+        </p>
       </div>
 
       {hasCoupon && (
         <div className="flex items-center justify-between text-sm">
-          <p className="text-emerald-800 font-semibold">خصم الكوبون</p>
+          <p className="text-emerald-800 font-semibold">{t('order.summary.coupon_discount')}</p>
           <p className="font-extrabold text-emerald-700">
             - {money(summary?.coupon_discount)}
-            <span className="text-sm ms-1">جنية</span>
+            <span className="text-sm ms-1">{t('order.summary.egp')}</span>
           </p>
         </div>
       )}
 
       <div className="flex items-center justify-between pb-3 pt-2">
         <div className="flex gap-1 items-center">
-          <p className=" text-nowrap text-md text-pro font-semibold">الإجمالي :</p>
+          <p className=" text-nowrap text-md text-pro font-semibold">{t('order.summary.total')}</p>
         </div>
         <p className="text-[15px] text-pro font-bold">
           {money(summary?.total_with_shipping)}
-          <span> جنية</span>
+          <span> {t('order.summary.egp')}</span>
         </p>
       </div>
     </div>
@@ -114,6 +113,7 @@ function UploadPaymentProof({
   onRemove: () => void;
   currentFile: File | null;
 }) {
+  const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -132,11 +132,11 @@ function UploadPaymentProof({
     if (file) {
       const validTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
       if (!validTypes.includes(file.type)) {
-        Swal.fire("خطأ", "يرجى رفع صورة بصيغة JPG, PNG أو WebP فقط", "error");
+        Swal.fire(t('common.error'), t('upload.error.invalid_type'), "error");
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
-        Swal.fire("خطأ", "حجم الصورة يجب أن لا يتجاوز 5 ميجابايت", "error");
+        Swal.fire(t('common.error'), t('upload.error.file_too_large'), "error");
         return;
       }
       onFileChange(file);
@@ -148,14 +148,14 @@ function UploadPaymentProof({
   return (
     <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-lg font-bold text-slate-800">رفع إثبات الدفع</h3>
+        <h3 className="text-lg font-bold text-slate-800">{t('proof.title')}</h3>
         <span className="text-sm text-slate-600 bg-blue-100 px-3 py-1 rounded-full">
           {paymentMethod}
         </span>
       </div>
 
       <p className="text-sm text-slate-600 mb-4">
-        يرجى رفع صورة إثبات الدفع بعد إتمام عملية الدفع
+        {t('proof.description')}
       </p>
 
       <input
@@ -176,14 +176,14 @@ function UploadPaymentProof({
               <MdUpload className="text-blue-600 text-xl" />
             </div>
             <div>
-              <p className="font-semibold text-slate-700">اضغط لرفع صورة الدفع</p>
-              <p className="text-sm text-slate-500 mt-1">JPG, PNG أو WebP (حد أقصى 5MB)</p>
+              <p className="font-semibold text-slate-700">{t('proof.click_to_upload')}</p>
+              <p className="text-sm text-slate-500 mt-1">{t('proof.file_requirements')}</p>
             </div>
             <button
               type="button"
               className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
             >
-              اختيار ملف
+              {t('proof.select_file')}
             </button>
           </div>
         </div>
@@ -198,7 +198,7 @@ function UploadPaymentProof({
               </div>
               <div>
                 <p className="font-semibold text-slate-800">{currentFile.name}</p>
-                <p className="text-sm text-slate-500">{(currentFile.size / 1024).toFixed(0)} كيلوبايت</p>
+                <p className="text-sm text-slate-500">{(currentFile.size / 1024).toFixed(0)} {t('proof.kb')}</p>
               </div>
             </div>
             <button
@@ -206,13 +206,13 @@ function UploadPaymentProof({
               onClick={onRemove}
               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             >
-              حذف
+              {t('proof.delete')}
             </button>
           </div>
 
           {previewUrl && (
             <div className="mt-3 relative w-full h-48 rounded-lg overflow-hidden border border-slate-200">
-              <Image src={previewUrl} alt="معاينة صورة الدفع" fill className="object-contain" />
+              <Image src={previewUrl} alt={t('proof.preview')} fill className="object-contain" />
             </div>
           )}
 
@@ -222,14 +222,14 @@ function UploadPaymentProof({
               onClick={handleUploadClick}
               className="flex-1 py-2 border border-blue-600 text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors"
             >
-              تغيير الصورة
+              {t('proof.change_image')}
             </button>
             <button
               type="button"
               onClick={onRemove}
               className="flex-1 py-2 border border-red-600 text-red-600 rounded-lg font-medium hover:bg-red-50 transition-colors"
             >
-              حذف الصورة
+              {t('proof.delete_image')}
             </button>
           </div>
         </div>
@@ -239,7 +239,7 @@ function UploadPaymentProof({
 }
 
 export default function PaymentPage() {
-  const { language } = useLanguage();
+  const { t, language } = useLanguage();
   const { paymentMethods } = useAppContext() as any;
   const [redirecting, setRedirecting] = useState(false);
   const [redirectMessage, setRedirectMessage] = useState("");
@@ -267,16 +267,16 @@ export default function PaymentPage() {
   }, []);
 
   useEffect(() => {
-    const t = localStorage.getItem("auth_token");
-    setToken(t);
+    const token = localStorage.getItem("auth_token");
+    setToken(token);
 
-    if (!t) {
-      Swal.fire("تنبيه", "يرجى تسجيل الدخول لإتمام الدفع", "warning");
+    if (!token) {
+      Swal.fire(t('common.alert' ), t('payment.validation.login_required'), "warning");
       router.push("/login");
     }
-  }, [router]);
+  }, [router, t]);
 
-  // مسح الصورة لو طريقة الدفع لا تحتاج إيصال
+  // Clear proof if payment method doesn't require receipt
   useEffect(() => {
     if (!PAYMENT_NEEDS_RECEIPT.includes(Number(paymentMethod))) {
       setPaymentProof(null);
@@ -290,24 +290,24 @@ export default function PaymentPage() {
     if (loading) return;
 
     if (!paymentMethod) {
-      Swal.fire("تنبيه", "يرجى اختيار طريقة الدفع", "warning");
+      Swal.fire(t('common.alert'), t('payment.validation.select_method'), "warning");
       return;
     }
 
     const requiresProof = PAYMENT_NEEDS_RECEIPT.includes(Number(paymentMethod));
     if (requiresProof && !paymentProof) {
-      Swal.fire("تنبيه", "يرجى رفع صورة إثبات الدفع لإتمام العملية", "warning");
+      Swal.fire(t('common.alert'), t('payment.validation.upload_proof'), "warning");
       return;
     }
 
     if (!token) {
-      Swal.fire("تنبيه", "يرجى تسجيل الدخول", "warning");
+      Swal.fire(t('common.alert'), t('payment.validation.login'), "warning");
       router.push("/login");
       return;
     }
 
     if (!checkoutSummary) {
-      Swal.fire("تنبيه", "لا توجد بيانات ملخص الطلب.", "warning");
+      Swal.fire(t('common.alert'), t('payment.validation.no_order_summary'), "warning");
       return;
     }
 
@@ -327,7 +327,7 @@ export default function PaymentPage() {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
-          "Accept-Language": language,
+          "Accept-Language": language === 'ar' ? 'ar-EG' : 'en-US',
         },
         body: formData,
       });
@@ -335,17 +335,17 @@ export default function PaymentPage() {
       const result = await response.json();
 
       if (!response.ok || !result?.status) {
-        throw new Error(result?.message || "حدث خطأ أثناء إنشاء الطلب");
+        throw new Error(result?.message || t('payment.error.order_creation'));
       }
 
-      setRedirectMessage(result?.data?.message || "جاري توجيهك...");
+      setRedirectMessage(result?.data?.message || t('payment.redirecting'));
       setRedirecting(true);
       setTimeout(() => {
         router.push(`/ordercomplete?orderId=${result.data.id}`);
       }, 500);
     } catch (error: any) {
       console.error(error);
-      Swal.fire("خطأ", error?.message || "حدث خطأ أثناء إنشاء الطلب", "error");
+      Swal.fire(t('common.error'), error?.message || t('payment.error.order_creation'), "error");
     } finally {
       setLoading(false);
     }
@@ -356,18 +356,18 @@ export default function PaymentPage() {
       <div className="flex items-center gap-2 text-sm mb-4">
         <button onClick={() => router.back()} className="text-pro-max font-bold flex items-center gap-1">
           <MdKeyboardArrowLeft size={18} />
-          رجوع
+          {t('payment.back')}
         </button>
         <span className="text-slate-400">/</span>
-        <span className="text-slate-600 font-semibold">الدفع</span>
+        <span className="text-slate-600 font-semibold">{t('payment.title')}</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="col-span-1 lg:col-span-2 space-y-4">
           <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
             <div className="p-5 border-b border-slate-200">
-              <h2 className="text-xl font-extrabold text-slate-900">اختر طريقة الدفع</h2>
-              <p className="text-sm text-slate-500 mt-1">اختر الطريقة الأنسب لإتمام الطلب.</p>
+              <h2 className="text-xl font-extrabold text-slate-900">{t('payment.select_method')}</h2>
+              <p className="text-sm text-slate-500 mt-1">{t('payment.select_method_desc')}</p>
             </div>
             <div className="p-5">
               <BankPayment paymentMethods={paymentMethods} onPaymentMethodChange={setPaymentMethod} />
@@ -387,8 +387,8 @@ export default function PaymentPage() {
         <div className="col-span-1 space-y-4 lg:sticky lg:top-[150px] h-fit">
           <div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-5">
             <div className="mt-4">
-              <h4 className="text-md font-extrabold text-pro mb-3">ملخص الطلب</h4>
-              {checkoutSummary ? <SummaryBlock summary={checkoutSummary} /> : <p>لا يوجد ملخص للطلب</p>}
+              <h4 className="text-md font-extrabold text-pro mb-3">{t('order.summary.title')}</h4>
+              {checkoutSummary ? <SummaryBlock summary={checkoutSummary} /> : <p>{t('order.summary.no_summary')}</p>}
             </div>
 
             <div className="mt-4">
@@ -411,7 +411,7 @@ export default function PaymentPage() {
                 endIcon={<KeyboardBackspaceIcon />}
                 onClick={handleCompletePurchase}
               >
-                {loading ? "جاري المعالجة..." : "إتمام الشراء"}
+                {loading ? t('payment.processing') : t('payment.complete_purchase')}
               </Button>
             </div>
           </div>

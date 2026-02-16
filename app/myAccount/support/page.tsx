@@ -5,6 +5,8 @@ import { MdKeyboardArrowLeft } from 'react-icons/md';
 import { FaTicketAlt, FaPlus } from 'react-icons/fa';
 import { useState } from 'react';
 import TicketForm from './TicketForm'; 
+import { useLanguage } from '@/src/context/LanguageContext';
+
 
 // واجهة بيانات التذكرة
 interface Ticket {
@@ -17,42 +19,42 @@ interface Ticket {
 }
 
 export default function SupportPage() {
+	const { t } = useLanguage();
 	const [showTicketForm, setShowTicketForm] = useState(false);
 	
 	// بيانات تجريبية للتذاكر - يمكن استبدالها ببيانات حقيقية من API
 	const [tickets, setTickets] = useState<Ticket[]>([
-		{
+	{
 			id: 1,
-			title: 'استفسار عن خدمة',
+			title: t('support.samples.title.inquiry'),
 			status: 'open',
 			date: '2024-03-15',
 			lastReply: '2024-03-16',
-			type: 'استفسار'
+			type: t('support.types.inquiry')
 		},
 		{
 			id: 2,
-			title: 'مشكلة في الدفع',
+			title: t('support.samples.title.payment_issue'),
 			status: 'pending',
 			date: '2024-03-10',
 			lastReply: '2024-03-12',
-			type: 'شكوى'
+			type: t('support.types.complaint')
 		},
 		{
 			id: 3,
-			title: 'مشكلة في الدفع',
+			title: t('support.samples.title.payment_issue'),
 			status: 'replied',
 			date: '2024-03-10',
 			lastReply: '2024-03-12',
-			type: 'شكوى'
+			type: t('support.types.complaint')
 		},
 		{
-			
 			id: 4,
-			title: 'اقتراح لتطوير الموقع',
+			title: t('support.samples.title.suggestion'),
 			status: 'closed',
 			date: '2024-03-01',
 			lastReply: '2024-03-05',
-			type: 'اقتراح'
+			type: t('support.types.suggestion')
 		}
 	]);
 
@@ -76,13 +78,13 @@ export default function SupportPage() {
 	const getStatusText = (status: string) => {
 		switch(status) {
 			case 'open':
-				return 'مفتوحة';
+				return t('support.status.open');
 			case 'closed':
-				return 'مغلقة';
+				return t('support.status.closed');
 			case 'pending':
-				return 'قيد المراجعة';
+				return t('support.status.pending');
 			case 'replied':
-				return 'تم الرد';
+				return t('support.status.replied');
 			default:
 				return status;
 		}
@@ -97,10 +99,10 @@ export default function SupportPage() {
 					className='inline-flex items-center gap-2 text-sm text-slate-600 hover:text-pro transition-colors mb-4'
 				>
 					<MdKeyboardArrowLeft size={20} />
-					<span>العودة</span>
+					<span>{t('common.back')}</span>
 				</Link>
 				<h1 className='text-2xl md:text-3xl text-pro font-semibold'>
-					دعم العملاء
+					{t('support.title')}
 				</h1>
 			</div>
 
@@ -112,8 +114,8 @@ export default function SupportPage() {
 							<FaTicketAlt className='text-pro-max' size={22} />
 						</div>
 						<div>
-							<h2 className='md:text-lg text-sm font-semibold text-slate-900'>تذاكر الدعم</h2>
-							<p className='md:text-sm text-xs text-slate-500'>عرض وإدارة تذاكر الدعم الخاصة بك</p>
+							<h2 className='md:text-lg text-sm font-semibold text-slate-900'>{t('support.tickets.title')}</h2>
+							<p className='md:text-sm text-xs text-slate-500'>{t('support.tickets.subtitle')}</p>
 						</div>
 					</div>
 					
@@ -123,31 +125,31 @@ export default function SupportPage() {
 						className='inline-flex items-center md:gap-2 bg-pro hover:bg-pro-max text-white md:px-4 md:py-2 p-1 rounded md:rounded-xl transition-colors shadow-sm hover:shadow-md'
 					>
 						<FaPlus size={16} />
-						<span className='text-[12px] md:text-sm whitespace-nowrap'>إنشاء تذكرة </span>
+						<span className='text-[12px] md:text-sm whitespace-nowrap'>{t('support.create_ticket')}</span>
 					</button>
 				</div>
 
 				{/* نموذج إنشاء تذكرة جديدة */}
 				{showTicketForm && (
-	<div className='mb-8 border border-slate-200 rounded-xl overflow-hidden'>
-		<div className='bg-slate-50 px-4 py-3 border-b border-slate-200 flex justify-between items-center'>
-			<h3 className='font-semibold text-slate-900'>تذكرة دعم جديدة</h3>
-			<button 
-				onClick={() => setShowTicketForm(false)}
-				className='text-slate-400 hover:text-slate-600'
-			>
-				✕
-			</button>
-		</div>
-		<TicketForm
-			onClose={() => setShowTicketForm(false)}
-			onSuccess={() => {
-				// تحديث قائمة التذاكر هنا
-				console.log('تم إرسال التذكرة بنجاح');
-			}}
-		/>
-	</div>
-)}
+					<div className='mb-8 border border-slate-200 rounded-xl overflow-hidden'>
+						<div className='bg-slate-50 px-4 py-3 border-b border-slate-200 flex justify-between items-center'>
+							<h3 className='font-semibold text-slate-900'>{t('support.new_ticket')}</h3>
+							<button 
+								onClick={() => setShowTicketForm(false)}
+								className='text-slate-400 hover:text-slate-600'
+							>
+								✕
+							</button>
+						</div>
+						<TicketForm
+							onClose={() => setShowTicketForm(false)}
+							onSuccess={() => {
+								// تحديث قائمة التذاكر هنا
+								console.log('تم إرسال التذكرة بنجاح');
+							}}
+						/>
+					</div>
+				)}
 
 				{/* جدول التذاكر */}
 				{tickets.length > 0 ? (
@@ -155,13 +157,13 @@ export default function SupportPage() {
 						<table className='w-full'>
 							<thead>
 								<tr className='border-b border-slate-200'>
-									<th className='text-right py-3 px-4 text-sm font-semibold text-slate-600'>#</th>
-									<th className='text-right py-3 px-4 text-sm font-semibold text-slate-600'>العنوان</th>
-									<th className='text-right py-3 px-4 text-sm font-semibold text-slate-600'>النوع</th>
-									<th className='text-right py-3 px-4 text-sm font-semibold text-slate-600'>الحالة</th>
-									<th className='text-right py-3 px-4 text-sm font-semibold text-slate-600'>تاريخ الإنشاء</th>
-									<th className='text-right py-3 px-4 text-sm font-semibold text-slate-600'>آخر رد</th>
-									<th className='text-right py-3 px-4 text-sm font-semibold text-slate-600'>الإجراءات</th>
+									<th className='text-start py-3 px-4 text-sm font-semibold text-slate-600'>#</th>
+									<th className='text-start py-3 px-4 text-sm font-semibold text-slate-600'>{t('support.table.title')}</th>
+									<th className='text-start py-3 px-4 text-sm font-semibold text-slate-600'>{t('support.table.type')}</th>
+									<th className='text-start py-3 px-4 text-sm font-semibold text-slate-600'>{t('support.table.status')}</th>
+									<th className='text-start py-3 px-4 text-sm font-semibold text-slate-600'>{t('support.table.created_date')}</th>
+									<th className='text-start py-3 px-4 text-sm font-semibold text-slate-600'>{t('support.table.last_reply')}</th>
+									<th className='text-start py-3 px-4 text-sm font-semibold text-slate-600'>{t('support.table.actions')}</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -179,10 +181,11 @@ export default function SupportPage() {
 										<td className='py-3 px-4 text-sm text-slate-600'>{ticket.lastReply}</td>
 										<td className='py-3 px-4'>
 											<Link 
-												href={`/myAccount/support/tickets/${ticket.id}`}
+												// href={`/myAccount/support/tickets/${ticket.id}`}
+												href={'#'}
 												className='inline-flex items-center gap-1 text-sm text-pro hover:text-pro-max transition-colors'
 											>
-												عرض التفاصيل
+												{t('support.view_details')}
 											</Link>
 										</td>
 									</tr>
@@ -192,8 +195,8 @@ export default function SupportPage() {
 					</div>
 				) : (
 					<div className='text-center py-12'>
-						<p className='text-slate-500 mb-2'>لا توجد تذاكر دعم حالياً</p>
-						<p className='text-sm text-slate-400'>يمكنك إنشاء تذكرة دعم جديدة من هنا</p>
+						<p className='text-slate-500 mb-2'>{t('support.no_tickets')}</p>
+						<p className='text-sm text-slate-400'>{t('support.create_first_ticket')}</p>
 					</div>
 				)}
 			</div>
