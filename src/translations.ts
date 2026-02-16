@@ -919,8 +919,10 @@ export const translations = {
   "upload.error.invalid_type": "يرجى رفع صورة بصيغة JPG, PNG أو WebP فقط",
   "upload.error.file_too_large": "حجم الصورة يجب أن لا يتجاوز 5 ميجابايت",
   "common.alert": "تحذير",
+  "dashboard.terms_and_conditions": "الشروط والأحكام",
   },
   en: {
+    "dashboard.terms_and_conditions": "Terms & Conditions",
     "common.alert": "Alert",
       // Payment Page
   "payment.title": "Payment",

@@ -22,7 +22,7 @@ import { FaWallet, FaCreditCard, FaList } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoStarFill } from 'react-icons/go';
 import { useLanguage } from '@/src/context/LanguageContext';
-
+import { LiaCertificateSolid } from "react-icons/lia";
 interface DashboardItem {
 	icon: IconType;
 	label: string;
@@ -40,6 +40,7 @@ interface WalletData {
 
 const DASHBOARD_ITEMS: DashboardItem[] = [
 	{ icon: FaTicketAlt, label: 'dashboard.customer_support', href: '/myAccount/support' },
+	{ icon: LiaCertificateSolid, label: 'dashboard.terms_and_conditions', href: '/terms' },
 ];
 
 function DashboardItemCard({ item }: { item: DashboardItem }) {
@@ -457,7 +458,7 @@ export default function Dashboard() {
 
 	return (
 		<div className="md:mt-0 mt-5">
-			<div className='bg-white border border-slate-200 rounded-xl shadow-sm'>
+			{/* <div className='bg-white border border-slate-200 rounded-xl shadow-sm'>
 				<h1 className='text-lg md:text-3xl text-pro font-semibold mb-3 md:mb-4 ps-3 md:ps-4 pt-3 md:pt-4'>
 					{t('dashboard.my_dashboard')}
 				</h1>
@@ -529,7 +530,7 @@ export default function Dashboard() {
 						/>
 					</div>
 				</div>
-			</div>
+			</div> */}
 
 			<div className='grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mt-4 md:mt-6'>
 				{DASHBOARD_ITEMS.map((item, index) => (
