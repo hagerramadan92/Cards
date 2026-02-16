@@ -387,7 +387,7 @@ export default function QuickBuyButton() {
 				whileHover={{ scale: 1.1 }}
 				whileTap={{ scale: 0.95 }}
 				className={[
-					"fixed left-4 sm:left-5 z-[9997] w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-pro-max flex items-center justify-center shadow-xl hover:shadow-2xl",
+					"fixed left-5 z-[9997] w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-pro-max flex items-center justify-center shadow-xl hover:shadow-2xl",
 					"bottom-4 sm:bottom-5",
 					isProductPage ? "max-sm:bottom-[14px] !left-3" : "",
 				].join(" ")}

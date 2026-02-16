@@ -46,10 +46,8 @@ export default function Home() {
   
   const { t, language } = useLanguage();
 
-  // ✅ حالة واحدة موحدة لتحميل البيانات الأولية
   const [isInitialDataReady, setIsInitialDataReady] = useState(false);
   
-  // ✅ حالة سريعة للتحقق من جاهزية FastBuy
   const [isFastBuyReady, setIsFastBuyReady] = useState(false);
   
   const [categories2, setCategories2] = useState<any[]>([]);
@@ -60,18 +58,13 @@ export default function Home() {
   const [mainSlider, setMainSlider] = useState<BannerI[]>([]);
   const [isMainSliderLoading, setIsMainSliderLoading] = useState(false); // false لأن السلايدر ليس ضرورياً للصفحة الرئيسية
 
-  // ✅ التحقق من جاهزية FastBuy فور توفر parentCategories
   useEffect(() => {
     if (parentCategories && parentCategories.length > 0 && !isFastBuyReady) {
       setIsFastBuyReady(true);
     }
   }, [parentCategories, isFastBuyReady]);
 
-  // ✅ التحقق من جاهزية البيانات الأولية
   useEffect(() => {
-    // البيانات تعتبر جاهزة عندما:
-    // 1. loadingCriticalData = false (البيانات الأساسية انتهت)
-    // 2. homeData موجود
     const isReady = !loadingHome && homeData;
     
     if (isReady && !isInitialDataReady) {
@@ -79,7 +72,6 @@ export default function Home() {
     }
   }, [loadingHome, homeData, isInitialDataReady]);
 
-  // ✅ تحديث البيانات المحلية من homeData
   useEffect(() => {
     if (homeData) {
       const newCategories = homeData?.sub_categories || [];
@@ -92,7 +84,6 @@ export default function Home() {
     }
   }, [homeData]);
 
-  // ✅ تحميل المزيد من البيانات
   const loadMore = useCallback(async () => {
     if (!paginationState?.next_page || loadingMore) return;
 
@@ -124,7 +115,6 @@ export default function Home() {
 
   const hasNext = Boolean(paginationState?.next_page);
 
-  // ✅ تحميل السلايدر (غير حرج - يمكن تحميله لاحقاً)
   useEffect(() => {
     let mounted = true;
 
@@ -157,7 +147,6 @@ export default function Home() {
     [mainSlider]
   );
 
-  // ✅ شاشة التحميل الرئيسية - تظهر فقط عند التحمل الأولي
   if (loadingHome && !homeData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -169,7 +158,6 @@ export default function Home() {
   return (
     <div className="!mt-8 !mb-8">
       <div className="flex flex-col gap-8">
-        {/* Main Slider - يظهر دائماً */}
         <div className="relative rounded-3xl overflow-hidden border border-gray-100 bg-white shadow-sm">
           {isMainSliderLoading ? (
             <div className="h-[200px] md:h-[420px] flex items-center justify-center">
