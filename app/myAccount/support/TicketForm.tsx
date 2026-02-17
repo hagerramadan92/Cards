@@ -17,15 +17,14 @@ import {
 import { HiLightBulb } from "react-icons/hi";
 import { useLanguage } from "@/src/context/LanguageContext";
 
-
 interface FormData {
-	full_name: string;
+	first_name: string;
+	last_name: string;
 	country: string;
 	phone: string;
 	email: string;
-	address: string;
 	message: string;
-	suggestion_type: string;
+	type_complaint: string;
 }
 
 type Errors = Partial<Record<keyof FormData, string>>;
@@ -65,32 +64,34 @@ interface TicketFormCustomProps {
 }
 
 export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps) {
-	const { t } = useLanguage();
+	const { t, language } = useLanguage();
 	const [loading, setLoading] = useState(false);
 	const [errors, setErrors] = useState<Errors>({});
 	const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
 	const countryDropdownRef = useRef<HTMLDivElement>(null);
-	const [suggestionTypeOpen, setSuggestionTypeOpen] = useState(false);
-	const suggestionTypeRef = useRef<HTMLDivElement>(null);
+	const [complaintTypeOpen, setComplaintTypeOpen] = useState(false);
+	const complaintTypeRef = useRef<HTMLDivElement>(null);
 	const [form, setForm] = useState<FormData>({
-		full_name: "",
+		first_name: "",
+		last_name: "",
 		country: "EG",
 		phone: "",
 		email: "",
-		address: "",
 		message: "",
-		suggestion_type: "",
+		type_complaint: "",
 	});
 
-	// Suggestion type options
-	const suggestionTypes = [
-		{ value: "complaint", label: t('support.types.complaint'), icon: FiAlertCircle, color: "text-red-600", bgColor: "bg-red-50", borderColor: "border-red-200" },
+	const base_url = `${process.env.NEXT_PUBLIC_API_URL}/contact-us`;
+
+	// Complaint type options
+	const complaintTypes = [
+		{ value: "technical_issue", label: t('support.types.complaint'), icon: FiAlertCircle, color: "text-red-600", bgColor: "bg-red-50", borderColor: "border-red-200" },
 		{ value: "suggestion", label: t('support.types.suggestion'), icon: HiLightBulb, color: "text-yellow-600", bgColor: "bg-yellow-50", borderColor: "border-yellow-200" },
 		{ value: "inquiry", label: t('support.types.inquiry'), icon: FiHelpCircle, color: "text-blue-600", bgColor: "bg-blue-50", borderColor: "border-blue-200" },
 		{ value: "other", label: t('support.types.other' as any), icon: FiMoreHorizontal, color: "text-slate-600", bgColor: "bg-slate-50", borderColor: "border-slate-200" },
 	];
 
-	const selectedSuggestionType = suggestionTypes.find((t) => t.value === form.suggestion_type);
+	const selectedComplaintType = complaintTypes.find((t) => t.value === form.type_complaint);
 
 	// Close dropdowns when clicking outside
 	useEffect(() => {
@@ -98,15 +99,15 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 			if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target as Node)) {
 				setCountryDropdownOpen(false);
 			}
-			if (suggestionTypeRef.current && !suggestionTypeRef.current.contains(event.target as Node)) {
-				setSuggestionTypeOpen(false);
+			if (complaintTypeRef.current && !complaintTypeRef.current.contains(event.target as Node)) {
+				setComplaintTypeOpen(false);
 			}
 		}
 		document.addEventListener("mousedown", handleClickOutside);
 		return () => document.removeEventListener("mousedown", handleClickOutside);
 	}, []);
 
-	// Phone patterns (مختصرة للدول الرئيسية)
+	// Phone patterns
 	const phonePatterns: Record<string, { pattern: RegExp; example: string; message: string; flag: string; name: string; code: string }> = {
 		EG: {
 			pattern: /^01[0-9]{9}$/,
@@ -177,7 +178,8 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 	const validate = useCallback((data: FormData) => {
 		const newErrors: Errors = {};
 
-		if (!data.full_name.trim()) newErrors.full_name = t('ticket.field.full_name_required');
+		if (!data.first_name.trim()) newErrors.first_name = t('ticket.field.full_name_required');
+		if (!data.last_name.trim()) newErrors.last_name = t('ticket.field.full_name_required');
 
 		if (!data.phone.trim()) {
 			newErrors.phone = t('ticket.field.phone_required');
@@ -192,8 +194,7 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 		else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim()))
 			newErrors.email = t('ticket.field.email_invalid');
 
-		if (!data.address.trim()) newErrors.address = t('ticket.field.address_required');
-		if (!data.suggestion_type.trim()) newErrors.suggestion_type = t('ticket.field.type_required');
+		if (!data.type_complaint.trim()) newErrors.type_complaint = t('ticket.field.type_required');
 		if (!data.message.trim()) newErrors.message = t('ticket.field.message_required');
 
 		return newErrors;
@@ -246,30 +247,60 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 			setLoading(true);
 
 			try {
-				// محاكاة إرسال البيانات
-				await new Promise(resolve => setTimeout(resolve, 1500));
-				
-				Swal.fire({
-					icon: "success",
-					title: t('alert.success'),
-					text: t('alert.success_message'),
-					confirmButtonText: t('common.ok' as any),
+				// Format phone number with country code
+				const countryCode = phonePatterns[form.country]?.code || "";
+				const formattedPhone = form.phone.startsWith('0') 
+					? countryCode + form.phone.substring(1)
+					: countryCode + form.phone;
+
+				const res = await fetch(base_url, {
+					method: "POST",
+					headers: { 
+						"Content-Type": "application/json",
+						"Accept": "application/json",
+						"Accept-Language": language
+					},
+					body: JSON.stringify({
+						first_name: form.first_name.trim(),
+						last_name: form.last_name.trim(),
+						phone: formattedPhone,
+						email: form.email.trim(),
+						type_complaint: form.type_complaint,
+						message: form.message.trim(),
+					}),
 				});
 
-				setForm({
-					full_name: "",
-					country: "EG",
-					phone: "",
-					email: "",
-					address: "",
-					message: "",
-					suggestion_type: "",
+				const data = await res.json().catch(() => null);
+
+				if (res.ok && data?.status) {
+					Swal.fire({
+						icon: "success",
+						title: t('alert.success'),
+						text: "" ,
+						confirmButtonText: t('common.ok' as any),
+					});
+
+					setForm({
+						first_name: "",
+						last_name: "",
+						country: "EG",
+						phone: "",
+						email: "",
+						message: "",
+						type_complaint: "",
+					});
+					setErrors({});
+					
+					if (onSuccess) onSuccess();
+					if (onClose) onClose();
+					return;
+				}
+
+				Swal.fire({
+					icon: "error",
+					title: t('common.error' as any),
+					text: data?.message || t('alert.error_message'),
 				});
-				setErrors({});
-				
-				if (onSuccess) onSuccess();
-				if (onClose) onClose();
-				
 			} catch {
 				Swal.fire({
 					icon: "error",
@@ -280,56 +311,78 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 				setLoading(false);
 			}
 		},
-		[form, loading, validate, onSuccess, onClose, t]
+		[base_url, form, loading, validate, onSuccess, onClose, t, language, phonePatterns]
 	);
 
 	return (
 		<div className="p-6 md:p-8">
 			<form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-5">
-				<Field label={t('ticket.field.full_name')} error={errors.full_name}>
+				{/* First Name */}
+				<Field label={t('first_name')} error={errors.first_name}>
 					<input
-						name="full_name"
-						value={form.full_name}
+						name="first_name"
+						value={form.first_name}
 						onChange={handleChange}
-						className={inputClass("full_name")}
-						placeholder={t('ticket.field.full_name_placeholder')}
+						className={inputClass("first_name")}
+						placeholder={t('first_name')}
 						autoComplete="given-name"
 					/>
 				</Field>
 
-				<Field label={t('ticket.field.email')} error={errors.email}>
+				{/* Last Name */}
+				<Field label={t('last_name')} error={errors.last_name}>
 					<input
-						name="email"
-						type="text"
-						value={form.email}
+						name="last_name"
+						value={form.last_name}
 						onChange={handleChange}
-						className={inputClass("email")}
-						placeholder={t('ticket.field.email_placeholder')}
-						autoComplete="email"
+						className={inputClass("last_name")}
+						placeholder={t('last_name')}
+						autoComplete="family-name"
 					/>
 				</Field>
 
+				{/* Email - Full width */}
+				{/* <div className="md:col-span-2">
+					<Field label={t('ticket.field.email')} error={errors.email}>
+						<div className="relative">
+							<span className="absolute right-4 top-3.5 text-slate-400">
+								<FiMail />
+							</span>
+							<input
+								name="email"
+								type="email"
+								value={form.email}
+								onChange={handleChange}
+								className={cn(inputClass("email"), "pr-11")}
+								placeholder={t('ticket.field.email_placeholder')}
+								autoComplete="email"
+							/>
+						</div>
+					</Field>
+				</div> */}
+
+				{/* Complaint Type - Full width */}
 				<div className="md:col-span-2">
-					<Field label={t('ticket.field.type')} error={errors.suggestion_type}>
-						<div ref={suggestionTypeRef} className="relative">
+					<Field label={t('ticket.field.type')} error={errors.type_complaint}>
+						<div ref={complaintTypeRef} className="relative">
 							<button
 								type="button"
-								onClick={() => setSuggestionTypeOpen(!suggestionTypeOpen)}
+								onClick={() => setComplaintTypeOpen(!complaintTypeOpen)}
 								className={cn(
 									"w-full rounded-2xl border bg-white px-4 py-3.5 text-sm font-semibold outline-none transition-all duration-200 flex items-center justify-between",
-									errors.suggestion_type
+									errors.type_complaint
 										? "border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100"
 										: "border-slate-200 hover:border-slate-300 focus:border-pro focus:ring-2 focus:ring-pro/20",
-									suggestionTypeOpen && "border-pro ring-2 ring-pro/20"
+									complaintTypeOpen && "border-pro ring-2 ring-pro/20"
 								)}
 							>
 								<div className="flex items-center gap-3">
-									{selectedSuggestionType ? (
+									{selectedComplaintType ? (
 										<>
-											<div className={cn("p-2 rounded-lg", selectedSuggestionType.bgColor)}>
-												<selectedSuggestionType.icon className={cn("w-4 h-4", selectedSuggestionType.color)} />
+											<div className={cn("p-2 rounded-lg", selectedComplaintType.bgColor)}>
+												<selectedComplaintType.icon className={cn("w-4 h-4", selectedComplaintType.color)} />
 											</div>
-											<span className="text-slate-900">{selectedSuggestionType.label}</span>
+											<span className="text-slate-900">{selectedComplaintType.label}</span>
 										</>
 									) : (
 										<span className="text-slate-400">{t('ticket.form.select_type')}</span>
@@ -338,30 +391,30 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 								<FiChevronDown
 									className={cn(
 										"text-slate-400 transition-transform duration-200",
-										suggestionTypeOpen && "rotate-180"
+										complaintTypeOpen && "rotate-180"
 									)}
 								/>
 							</button>
 
-							{suggestionTypeOpen && (
+							{complaintTypeOpen && (
 								<div className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
 									<div className="py-1">
-										{suggestionTypes.map((type) => {
+										{complaintTypes.map((type) => {
 											const Icon = type.icon;
-											const isSelected = form.suggestion_type === type.value;
+											const isSelected = form.type_complaint === type.value;
 											return (
 												<button
 													key={type.value}
 													type="button"
 													onClick={() => {
-														setForm((prev) => ({ ...prev, suggestion_type: type.value }));
-														setSuggestionTypeOpen(false);
-														if (errors.suggestion_type) {
-															setErrors((prev) => ({ ...prev, suggestion_type: undefined }));
+														setForm((prev) => ({ ...prev, type_complaint: type.value }));
+														setComplaintTypeOpen(false);
+														if (errors.type_complaint) {
+															setErrors((prev) => ({ ...prev, type_complaint: undefined }));
 														}
 													}}
 													className={cn(
-														"w-full flex items-center gap-3 px-4 py-3 text-right transition-colors",
+														"w-full flex items-center gap-3 px-4 py-3 text-start transition-colors",
 														isSelected
 															? cn(type.bgColor, type.color, "font-bold")
 															: "text-slate-700 hover:bg-slate-50"
@@ -394,6 +447,7 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 					</Field>
 				</div>
 
+				{/* Phone Number */}
 				<Field label={t('ticket.field.phone')} error={errors.phone}>
 					<div className="relative flex" dir="ltr">
 						<div className="relative flex-shrink-0 w-20" ref={countryDropdownRef}>
@@ -401,7 +455,7 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 								type="button"
 								onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
 								className={cn(
-									"w-full rounded-l-lg border border-slate-200 bg-white px-2 py-3.5 text-sm font-semibold text-slate-900 outline-none transition border-r-0 cursor-pointer hover:bg-slate-50 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 flex items-center justify-between",
+									"w-full rounded-l-lg border border-slate-200 bg-white px-2 py-3 text-sm font-semibold text-slate-900 outline-none transition border-r-0 cursor-pointer hover:bg-slate-50 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 flex items-center justify-between",
 									errors.phone ? "border-red-400" : ""
 								)}
 							>
@@ -460,39 +514,42 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 						</div>
 					</div>
 				</Field>
+					<Field label={t('ticket.field.email')} error={errors.email}>
+						<div className="relative">
+							<span className="absolute start-4 top-3.5 text-slate-400">
+								<FiMail />
+							</span>
+							<input
+								name="email"
+								type="email"
+								value={form.email}
+								onChange={handleChange}
+								className={cn(inputClass("email"), "ps-11")}
+								placeholder={t('ticket.field.email_placeholder')}
+								autoComplete="email"
+							/>
+						</div>
+					</Field>
 
-				<Field label={t('ticket.field.address')} error={errors.address}>
-					<div className="relative">
-						<span className="absolute right-4 top-3.5 text-slate-400">
-							<FiMapPin />
-						</span>
-						<input
-							name="address"
-							value={form.address}
-							onChange={handleChange}
-							className={cn(inputClass("address"), "pr-11")}
-							placeholder={t('ticket.field.address_placeholder')}
-						/>
-					</div>
-				</Field>
-
+				{/* Message - Full width */}
 				<div className="md:col-span-2">
 					<Field label={t('ticket.field.message')} error={errors.message}>
 						<div className="relative">
-							<span className="absolute right-4 top-3.5 text-slate-400">
+							<span className="absolute start-4 top-3.5 text-slate-400">
 								<FiMessageSquare />
 							</span>
 							<textarea
 								name="message"
 								value={form.message}
 								onChange={handleChange}
-								className={cn(textareaClass("message"), "pr-11")}
+								className={cn(textareaClass("message"), "ps-11")}
 								placeholder={t('ticket.field.message_placeholder')}
 							/>
 						</div>
 					</Field>
 				</div>
 
+				{/* Buttons */}
 				<div className="md:col-span-2 pt-2 flex gap-3">
 					<button
 						type="submit"

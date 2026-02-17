@@ -3,12 +3,24 @@
 import Link from 'next/link';
 import { MdKeyboardArrowLeft } from 'react-icons/md';
 import { FaTicketAlt, FaPlus } from 'react-icons/fa';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import TicketForm from './TicketForm'; 
 import { useLanguage } from '@/src/context/LanguageContext';
 
+// واجهة بيانات التذكرة من API
+interface ContactMessage {
+	id: number;
+	first_name: string;
+	last_name: string;
+	phone: string;
+	email: string;
+	company: string | null;
+	message: string;
+	status: string;
+	created_at: string;
+}
 
-// واجهة بيانات التذكرة
+// واجهة بيانات التذكرة المعروضة في الجدول
 interface Ticket {
 	id: number;
 	title: string;
@@ -21,42 +33,78 @@ interface Ticket {
 export default function SupportPage() {
 	const { t } = useLanguage();
 	const [showTicketForm, setShowTicketForm] = useState(false);
-	
-	// بيانات تجريبية للتذاكر - يمكن استبدالها ببيانات حقيقية من API
-	const [tickets, setTickets] = useState<Ticket[]>([
-	{
-			id: 1,
-			title: t('support.samples.title.inquiry'),
-			status: 'open',
-			date: '2024-03-15',
-			lastReply: '2024-03-16',
-			type: t('support.types.inquiry')
-		},
-		{
-			id: 2,
-			title: t('support.samples.title.payment_issue'),
-			status: 'pending',
-			date: '2024-03-10',
-			lastReply: '2024-03-12',
-			type: t('support.types.complaint')
-		},
-		{
-			id: 3,
-			title: t('support.samples.title.payment_issue'),
-			status: 'replied',
-			date: '2024-03-10',
-			lastReply: '2024-03-12',
-			type: t('support.types.complaint')
-		},
-		{
-			id: 4,
-			title: t('support.samples.title.suggestion'),
-			status: 'closed',
-			date: '2024-03-01',
-			lastReply: '2024-03-05',
-			type: t('support.types.suggestion')
+	const [tickets, setTickets] = useState<Ticket[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+
+	// دالة لجلب البيانات من API
+	const fetchContactMessages = async () => {
+		try {
+			setLoading(true);
+			const response = await fetch('https://flashicard.renix4tech.com/api/v1/user/contact-us', {
+				headers: {
+					'Accept-Language': 'ar', 
+					'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+				},
+			});
+
+			if (!response.ok) {
+				throw new Error('فشل في جلب البيانات');
+			}
+
+			const result = await response.json();
+			
+			// تحويل البيانات من API إلى هيكل التذاكر المطلوب
+			const formattedTickets: Ticket[] = result.data.map((item: ContactMessage) => ({
+				id: item.id,
+				title: item.message.substring(0, 50) + (item.message.length > 50 ? '...' : ''), // استخدام أول 50 حرف من الرسالة كعنوان
+				status: mapStatus(item.status), // تحويل الحالة
+				date: item.created_at.split(' ')[0], // أخذ التاريخ فقط
+				lastReply: item.created_at.split(' ')[0], // استخدام نفس التاريخ كآخر رد
+				type: getMessageType(item.message), // تحديد نوع الرسالة
+			}));
+
+			setTickets(formattedTickets);
+			setError(null);
+		} catch (err) {
+			console.error('خطأ في جلب البيانات:', err);
+			setError('حدث خطأ أثناء تحميل البيانات');
+		} finally {
+			setLoading(false);
 		}
-	]);
+	};
+
+	// دالة لتحويل حالة الرسالة
+	const mapStatus = (status: string): 'open' | 'closed' | 'pending' | 'replied' => {
+		switch(status) {
+			case 'معلق':
+				return 'pending';
+			case 'مقروء':
+				return 'replied';
+			case 'مغلق':
+				return 'closed';
+			default:
+				return 'open';
+		}
+	};
+
+	// دالة لتحديد نوع الرسالة بناءً على محتواها
+	const getMessageType = (message: string): string => {
+		if (message.includes('مشروع')) {
+			return t('support.types.inquiry');
+		} else if (message.includes('شكوى') || message.includes('مشكلة')) {
+			return t('support.types.complaint');
+		} else if (message.includes('اقتراح')) {
+			return t('support.types.suggestion');
+		} else {
+			return t('support.types.inquiry');
+		}
+	};
+
+	// جلب البيانات عند تحميل المكون
+	useEffect(() => {
+		fetchContactMessages();
+	}, []);
 
 	// دالة الحصول على لون الحالة
 	const getStatusColor = (status: string) => {
@@ -144,15 +192,36 @@ export default function SupportPage() {
 						<TicketForm
 							onClose={() => setShowTicketForm(false)}
 							onSuccess={() => {
-								// تحديث قائمة التذاكر هنا
-								console.log('تم إرسال التذكرة بنجاح');
+								// تحديث قائمة التذاكر بعد إضافة تذكرة جديدة
+								fetchContactMessages();
 							}}
 						/>
 					</div>
 				)}
 
+				{/* عرض حالة التحميل */}
+				{loading && (
+					<div className='text-center py-12'>
+						<div className='inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pro'></div>
+						<p className='text-slate-500 mt-2'>جاري تحميل البيانات...</p>
+					</div>
+				)}
+
+				{/* عرض الخطأ */}
+				{error && !loading && (
+					<div className='text-center py-12'>
+						<p className='text-red-500 mb-2'>{error}</p>
+						<button 
+							onClick={fetchContactMessages}
+							className='text-pro hover:text-pro-max text-sm'
+						>
+							إعادة المحاولة
+						</button>
+					</div>
+				)}
+
 				{/* جدول التذاكر */}
-				{tickets.length > 0 ? (
+				{!loading && !error && tickets.length > 0 ? (
 					<div className='overflow-x-auto'>
 						<table className='w-full'>
 							<thead>
@@ -163,7 +232,7 @@ export default function SupportPage() {
 									<th className='text-start py-3 px-4 text-sm font-semibold text-slate-600'>{t('support.table.status')}</th>
 									<th className='text-start py-3 px-4 text-sm font-semibold text-slate-600'>{t('support.table.created_date')}</th>
 									<th className='text-start py-3 px-4 text-sm font-semibold text-slate-600'>{t('support.table.last_reply')}</th>
-									<th className='text-start py-3 px-4 text-sm font-semibold text-slate-600'>{t('support.table.actions')}</th>
+									{/* <th className='text-start py-3 px-4 text-sm font-semibold text-slate-600'>{t('support.table.actions')}</th> */}
 								</tr>
 							</thead>
 							<tbody>
@@ -179,26 +248,31 @@ export default function SupportPage() {
 										</td>
 										<td className='py-3 px-4 text-sm text-slate-600'>{ticket.date}</td>
 										<td className='py-3 px-4 text-sm text-slate-600'>{ticket.lastReply}</td>
-										<td className='py-3 px-4'>
-											<Link 
-												// href={`/myAccount/support/tickets/${ticket.id}`}
-												href={'#'}
+										{/* <td className='py-3 px-4'> */}
+											{/* <Link 
+												href={`/myAccount/support/tickets/${ticket.id}`}
 												className='inline-flex items-center gap-1 text-sm text-pro hover:text-pro-max transition-colors'
 											>
 												{t('support.view_details')}
-											</Link>
-										</td>
+											</Link> */}
+											{/* <p 
+												
+												className='inline-flex items-center gap-1 text-sm text-pro hover:text-pro-max transition-colors'
+											>
+												{t('support.view_details')}
+											</p> */}
+										{/* </td> */}
 									</tr>
 								))}
 							</tbody>
 						</table>
 					</div>
-				) : (
+				) : !loading && !error && tickets.length === 0 ? (
 					<div className='text-center py-12'>
 						<p className='text-slate-500 mb-2'>{t('support.no_tickets')}</p>
 						<p className='text-sm text-slate-400'>{t('support.create_first_ticket')}</p>
 					</div>
-				)}
+				) : null}
 			</div>
 		</div>
 	);

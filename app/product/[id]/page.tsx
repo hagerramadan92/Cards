@@ -1068,7 +1068,8 @@ export const StickerForm = forwardRef<StickerFormHandle, StickerFormProps>(funct
 export default function ProductPageClient() {
 	const { id } = useParams();
 	const productId = id as string;
-
+// في ProductPageClient
+const { setFavoriteProducts } = useAuth(); // أضف هذا مع باقي الـ hooks
 	const { authToken: token, user, userId } = useAuth() as any;
 	const currentUserId: number | null = typeof userId === "number" ? userId : user?.id ?? null;
 
@@ -1079,7 +1080,17 @@ export default function ProductPageClient() {
 	const isRTL = direction === "rtl";
 
 	const stickerFormRef = useRef<StickerFormHandle | null>(null);
-
+// بعد useState
+useEffect(() => {
+  if (product?.id) {
+    try {
+      const saved = JSON.parse(localStorage.getItem("favorites") || "[]") as number[];
+      setIsFavorite(saved.includes(product.id));
+    } catch (e) {
+      console.error("Error reading favorites from localStorage:", e);
+    }
+  }
+}, [productId]);
 	const [product, setProduct] = useState<any>(null);
 	const [apiData, setApiData] = useState<any>(null);
 
@@ -1352,44 +1363,72 @@ export default function ProductPageClient() {
 	};
 
 	const toggleFavorite = async () => {
-		if (!token) return toast.error("يجب تسجيل الدخول أولاً");
-		if (!product) return;
+  if (!token) return toast.error("يجب تسجيل الدخول أولاً");
+  if (!product) return;
 
-		const newState = !isFavorite;
-		setIsFavorite(newState);
+  const newState = !isFavorite;
+  
+  setIsFavorite(newState);
+  
+  try {
+    let saved = JSON.parse(localStorage.getItem("favorites") || "[]") as number[];
+    
+    if (newState) {
+      if (!saved.includes(product.id)) {
+        saved.push(product.id);
+      }
+    } else {
+      saved = saved.filter((pid) => pid !== product.id);
+    }
+    localStorage.setItem("favorites", JSON.stringify(saved));
+    
+    if (newState) {
+      setFavoriteProducts((prev: any[]) => {
+        if (!prev.some(p => p.id === product.id)) {
+          return [...prev, product];
+        }
+        return prev;
+      });
+    } else {
+      setFavoriteProducts((prev: any[]) => 
+        prev.filter(p => p.id !== product.id)
+      );
+    }
+    
+    window.dispatchEvent(new CustomEvent('favoritesUpdated', { 
+      detail: { productId: product.id, action: newState ? 'add' : 'remove' } 
+    }));
+    
+  } catch (e) {
+    console.error("Error updating favorites:", e);
+  }
 
-		let saved = JSON.parse(localStorage.getItem("favorites") || "[]") as number[];
-		if (newState) {
-			if (!saved.includes(product.id)) saved.push(product.id);
-		} else {
-			saved = saved.filter((pid) => pid !== product.id);
-		}
-		localStorage.setItem("favorites", JSON.stringify(saved));
+  // الاتصال بالـ API
+  try {
+    const res = await fetch(`${API_URL}/favorites/toggle`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json", 
+        Authorization: `Bearer ${token}`,
+        "Accept-Language": language,
+        Accept: "application/json"
+      },
+      body: JSON.stringify({ product_id: product.id }),
+    });
 
-		try {
-			const res = await fetch(`${API_URL}/favorites/toggle`, {
-				method: "POST",
-				headers: { 
-					"Content-Type": "application/json", 
-					Authorization: `Bearer ${token}`,
-					"Accept-Language": language,
-					Accept: "application/json"
-				},
-				body: JSON.stringify({ product_id: product.id }),
-			});
-
-			const data = await res.json();
-			if (!res.ok || !data.status) {
-				setIsFavorite(!newState);
-				toast.error(data.message || "فشل تحديث المفضلة");
-			} else {
-				toast.success(data.message || "تم تحديث المفضلة");
-			}
-		} catch {
-			setIsFavorite(!newState);
-			toast.error("حدث خطأ أثناء تحديث المفضلة");
-		}
-	};
+    const data = await res.json();
+    
+    if (!res.ok || !data.status) {
+      console.error("Favorite API failed:", data.message);
+      toast.error("تم التحديث محلياً لكن فشل الاتصال بالخادم");
+    } else {
+      toast.success(data.message || "تم تحديث المفضلة");
+    }
+  } catch (error) {
+    console.error("Favorite API error:", error);
+    toast.error("تم التحديث محلياً لكن فشل الاتصال بالخادم");
+  }
+};
 
 	const categories2 = homeData?.sub_categories || [];
 
@@ -1444,12 +1483,7 @@ export default function ProductPageClient() {
 
 						<div className="mt-1 md:mt-3 flex items-center justify-between gap-4">
 							<div className="flex items-center gap-3">
-								<HearComponent
-									liked={isFavorite}
-									onToggleLike={toggleFavorite}
-									ClassName="text-slate-500"
-									ClassNameP="border border-slate-200 hover:border-slate-300"
-								/>
+								
 								<button
 									onClick={handleBuyNow}
 									aria-label={t('buy_now')}
@@ -1458,11 +1492,15 @@ export default function ProductPageClient() {
 									<span>{t('buy_now')}</span>
 									<ShoppingCart className="w-4 h-4" />
 								</button>
+								<HearComponent
+									liked={isFavorite}
+									onToggleLike={toggleFavorite}
+									ClassName="text-slate-500"
+									ClassNameP="!w-7 !h-7 border border-slate-200 hover:border-slate-300"
+								/>
 							</div>
 
-							{/* <div className="flex items-center gap-2">
-								<RatingStars average_ratingc={product.average_rating || 0} reviewsc={product.reviews || []} />
-							</div> */}
+							
 						</div>
 
 						{/* Product Description FAQ */}
@@ -1690,8 +1728,6 @@ export default function ProductPageClient() {
 										
 								</div>
 								{/* Right */}
-			
-
 									<div className="min-w-[130px] md:min-w-[150px]">
 										<ButtonComponent
 											className="scale-[.8]"

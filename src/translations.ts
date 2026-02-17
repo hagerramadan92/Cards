@@ -920,8 +920,12 @@ export const translations = {
   "upload.error.file_too_large": "حجم الصورة يجب أن لا يتجاوز 5 ميجابايت",
   "common.alert": "تحذير",
   "dashboard.terms_and_conditions": "الشروط والأحكام",
+  select_complaint_type: "اختر نوع الشكوى",
+  technical_issue: "مشكلة تقنية",
   },
   en: {
+    technical_issue: "Technical Issue",
+    select_complaint_type: "Select Complaint Type",
     "dashboard.terms_and_conditions": "Terms & Conditions",
     "common.alert": "Alert",
       // Payment Page

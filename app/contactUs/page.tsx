@@ -19,13 +19,13 @@ import { HiLightBulb } from "react-icons/hi";
 import { useLanguage } from "@/src/context/LanguageContext";
 
 interface FormData {
-	full_name: string;
+	first_name: string;
+	last_name: string;
 	country: string;
 	phone: string;
 	email: string;
-	address: string;
 	message: string;
-	suggestion_type: string;
+	type_complaint: string;
 }
 
 type Errors = Partial<Record<keyof FormData, string>>;
@@ -123,38 +123,38 @@ export default function ContactPageOne() {
 	const [errors, setErrors] = useState<Errors>({});
 	const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
 	const countryDropdownRef = useRef<HTMLDivElement>(null);
-	const [suggestionTypeOpen, setSuggestionTypeOpen] = useState(false);
-	const suggestionTypeRef = useRef<HTMLDivElement>(null);
+	const [complaintTypeOpen, setComplaintTypeOpen] = useState(false);
+	const complaintTypeRef = useRef<HTMLDivElement>(null);
 	const [form, setForm] = useState<FormData>({
-		full_name: "",
+		first_name: "",
+		last_name: "",
 		country: "EG",
 		phone: "",
 		email: "",
-		address: "",
 		message: "",
-		suggestion_type: "",
+		type_complaint: "",
 	});
 
 	const base_url = `${process.env.NEXT_PUBLIC_API_URL}/contact-us`;
 
-	// Suggestion type options
-	const suggestionTypes = [
-		{ value: "complaint", label: t('complaint'), icon: FiAlertCircle, color: "text-red-600", bgColor: "bg-red-50", borderColor: "border-red-200" },
+	// Complaint type options (matching API requirements)
+	const complaintTypes = [
+		{ value: "technical_issue", label: t('technical_issue'), icon: FiAlertCircle, color: "text-red-600", bgColor: "bg-red-50", borderColor: "border-red-200" },
 		{ value: "suggestion", label: t('suggestion'), icon: HiLightBulb, color: "text-yellow-600", bgColor: "bg-yellow-50", borderColor: "border-yellow-200" },
 		{ value: "inquiry", label: t('inquiry'), icon: FiHelpCircle, color: "text-blue-600", bgColor: "bg-blue-50", borderColor: "border-blue-200" },
 		{ value: "other", label: t('other'), icon: FiMoreHorizontal, color: "text-slate-600", bgColor: "bg-slate-50", borderColor: "border-slate-200" },
 	];
 
-	const selectedSuggestionType = suggestionTypes.find((t) => t.value === form.suggestion_type);
+	const selectedComplaintType = complaintTypes.find((t) => t.value === form.type_complaint);
 
-	// Close country dropdown when clicking outside
+	// Close dropdowns when clicking outside
 	useEffect(() => {
 		function handleClickOutside(event: MouseEvent) {
 			if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target as Node)) {
 				setCountryDropdownOpen(false);
 			}
-			if (suggestionTypeRef.current && !suggestionTypeRef.current.contains(event.target as Node)) {
-				setSuggestionTypeOpen(false);
+			if (complaintTypeRef.current && !complaintTypeRef.current.contains(event.target as Node)) {
+				setComplaintTypeOpen(false);
 			}
 		}
 		document.addEventListener("mousedown", handleClickOutside);
@@ -440,7 +440,8 @@ export default function ContactPageOne() {
 	const validate = useCallback((data: FormData) => {
 		const newErrors: Errors = {};
 
-		if (!data.full_name.trim()) newErrors.full_name = t('full_name_required');
+		if (!data.first_name.trim()) newErrors.first_name = t('first_name_required');
+		if (!data.last_name.trim()) newErrors.last_name = t('last_name_required');
 
 		if (!data.phone.trim()) {
 			newErrors.phone = t('phone_required');
@@ -459,9 +460,7 @@ export default function ContactPageOne() {
 		else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim()))
 			newErrors.email = t('email_invalid');
 
-		if (!data.address.trim()) newErrors.address = t('address_details_required');
-
-		if (!data.suggestion_type.trim()) newErrors.suggestion_type = t('required_field');
+		if (!data.type_complaint.trim()) newErrors.type_complaint = t('required_field');
 		if (!data.message.trim()) newErrors.message = t('required_field');
 
 		return newErrors;
@@ -516,6 +515,12 @@ export default function ContactPageOne() {
 			setLoading(true);
 
 			try {
+				// Format phone number with country code
+				const countryCode = phonePatterns[form.country]?.code || "";
+				const formattedPhone = form.phone.startsWith('0') 
+					? countryCode + form.phone.substring(1)
+					: countryCode + form.phone;
+
 				const res = await fetch(base_url, {
 					method: "POST",
 					headers: { 
@@ -524,9 +529,12 @@ export default function ContactPageOne() {
 						"Accept-Language": language
 					},
 					body: JSON.stringify({
-						...form,
-						phone: form.phone.trim(),
+						first_name: form.first_name.trim(),
+						last_name: form.last_name.trim(),
+						phone: formattedPhone,
 						email: form.email.trim(),
+						type_complaint: form.type_complaint,
+						message: form.message.trim(),
 					}),
 				});
 
@@ -541,13 +549,13 @@ export default function ContactPageOne() {
 					});
 
 					setForm({
-						full_name: "",
+						first_name: "",
+						last_name: "",
 						country: "EG",
 						phone: "",
 						email: "",
-						address: "",
 						message: "",
-						suggestion_type: "",
+						type_complaint: "",
 					});
 					setErrors({});
 					return;
@@ -568,10 +576,8 @@ export default function ContactPageOne() {
 				setLoading(false);
 			}
 		},
-		[base_url, form, loading, validate, t]
+		[base_url, form, loading, validate, t, language, phonePatterns]
 	);
-
-
 
 	const copyToClipboard = async (text: string, label: string) => {
 		try {
@@ -594,7 +600,6 @@ export default function ContactPageOne() {
 
 	return (
 		<section
-		
 			className="relative container overflow-hidden bg-white text-slate-800"
 		>
 			{/* Soft background */}
@@ -603,10 +608,10 @@ export default function ContactPageOne() {
 				<div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-slate-300/20 blur-3xl" />
 			</div>
 
-			<div className="relative  container  pb-8 ">
+			<div className="relative container pb-8">
 				{/* Hero */}
-				<div className="mb-5 text-center"> 
-					<h1 className=" max-md:text-center mt-4 text-pro text-3xl md:text-4xl font-extrabold text-slate-950 leading-tight">
+				<div className="mb-5 text-center">
+					<h1 className="max-md:text-center mt-4 text-pro text-3xl md:text-4xl font-extrabold text-slate-950 leading-tight">
 						{t('contact')} <span className="text-pro-max">{t('us')}</span>
 					</h1>
 					<p className="mt-2">
@@ -616,98 +621,113 @@ export default function ContactPageOne() {
 
 				{/* Content */}
 				<div className="container">
-					
-
 					{/* Right: Form */}
 					<div className="max-w-3xl mx-auto mt-0">
 						<div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden mt-0">
-						
-
 							<form
 								onSubmit={handleSubmit}
 								className="p-6 md:p-8 grid md:grid-cols-2 gap-5 mt-0"
 							>
-								<Field label={t('full_name')} error={errors.full_name}>
+								{/* First Name */}
+								<Field label={t('first_name')} error={errors.first_name}>
 									<input
-										name="full_name"
-										value={form.full_name}
+										name="first_name"
+										value={form.first_name}
 										onChange={handleChange}
-										className={inputClass("full_name")}
-										placeholder={t('enter_full_name')}
+										className={inputClass("first_name")}
+										placeholder={t('first_name')}
 										autoComplete="given-name"
 									/>
 								</Field>
 
-							
-								<Field label={t('email')} error={errors.email}>
+								{/* Last Name */}
+								<Field label={t('last_name')} error={errors.last_name}>
 									<input
-										name="email"
-										type="text"
-										value={form.email}
+										name="last_name"
+										value={form.last_name}
 										onChange={handleChange}
-										className={inputClass("email")}
-										placeholder={t('email_or_phone_placeholder')}
-										autoComplete="email"
+										className={inputClass("last_name")}
+										placeholder={t('last_name')}
+										autoComplete="family-name"
 									/>
 								</Field>
 
-								
+								{/* Email (full width) */}
+								{/* <div className="md:col-span-2">
+									<Field label={t('email')} error={errors.email}>
+										<div className="relative">
+											<span className="absolute start-4 top-3.5 text-slate-400">
+												<FiMail />
+											</span>
+											<input
+												name="email"
+												type="email"
+												value={form.email}
+												onChange={handleChange}
+												className={cn(inputClass("email"), "ps-11")}
+												placeholder={t('email')}
+												autoComplete="email"
+											/>
+										</div>
+									</Field>
+								</div> */}
 
+								{/* Complaint Type */}
 								<div className="md:col-span-2">
-									<Field label={t('select_suggestion_type')} error={errors.suggestion_type}>
-										<div ref={suggestionTypeRef} className="relative">
+									<Field label={t('select_complaint_type')} error={errors.type_complaint}>
+										<div ref={complaintTypeRef} className="relative">
 											{/* Custom Dropdown Button */}
 											<button
 												type="button"
-												onClick={() => setSuggestionTypeOpen(!suggestionTypeOpen)}
+												onClick={() => setComplaintTypeOpen(!complaintTypeOpen)}
 												className={cn(
 													"w-full rounded-2xl border bg-white px-4 py-3.5 text-sm font-semibold outline-none transition-all duration-200 flex items-center justify-between",
-													errors.suggestion_type
+													errors.type_complaint
 														? "border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100"
 														: "border-slate-200 hover:border-slate-300 focus:border-pro focus:ring-2 focus:ring-pro/20",
-													suggestionTypeOpen && "border-pro ring-2 ring-pro/20"
+													complaintTypeOpen && "border-pro ring-2 ring-pro/20"
 												)}
 											>
 												<div className="flex items-center gap-3">
-													{selectedSuggestionType ? (
+													{selectedComplaintType ? (
 														<>
-															<div className={cn("p-2 rounded-lg", selectedSuggestionType.bgColor)}>
-																<selectedSuggestionType.icon className={cn("w-4 h-4", selectedSuggestionType.color)} />
+															<div className={cn("p-2 rounded-lg", selectedComplaintType.bgColor)}>
+																<selectedComplaintType.icon className={cn("w-4 h-4", selectedComplaintType.color)} />
 															</div>
-															<span className="text-slate-900">{selectedSuggestionType.label}</span>
+															<span className="text-slate-900">{selectedComplaintType.label}</span>
 														</>
 													) : (
-														<span className="text-slate-400">{t('select_suggestion_type')}</span>
+														<span className="text-slate-400">{t('select_complaint_type')}</span>
 													)}
 												</div>
 												<FiChevronDown
 													className={cn(
 														"text-slate-400 transition-transform duration-200",
-														suggestionTypeOpen && "rotate-180"
+														complaintTypeOpen && "rotate-180"
 													)}
 												/>
 											</button>
 
 											{/* Dropdown Menu */}
-											{suggestionTypeOpen && (
+											{complaintTypeOpen && (
 												<div className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
 													<div className="py-1">
-														{suggestionTypes.map((type) => {
+														{complaintTypes.map((type) => {
 															const Icon = type.icon;
-															const isSelected = form.suggestion_type === type.value;
+															const isSelected = form.type_complaint === type.value;
 															return (
 																<button
 																	key={type.value}
 																	type="button"
 																	onClick={() => {
-																		setForm((prev) => ({ ...prev, suggestion_type: type.value }));
-																		setSuggestionTypeOpen(false);
-																		if (errors.suggestion_type) {
-																			setErrors((prev) => ({ ...prev, suggestion_type: undefined }));
+																		setForm((prev) => ({ ...prev, type_complaint: type.value }));
+																		setComplaintTypeOpen(false);
+																		if (errors.type_complaint) {
+																			setErrors((prev) => ({ ...prev, type_complaint: undefined }));
 																		}
 																	}}
 																	className={cn(
-																		"w-full flex items-center gap-3 px-4 py-3 text-right transition-colors",
+																		"w-full flex items-center gap-3 px-4 py-3 text-start transition-colors",
 																		isSelected
 																			? cn(type.bgColor, type.color, "font-bold")
 																			: "text-slate-700 hover:bg-slate-50"
@@ -739,6 +759,8 @@ export default function ContactPageOne() {
 										</div>
 									</Field>
 								</div>
+
+								{/* Phone Number */}
 								<Field
 									label={t('phone_number')}
 									error={errors.phone}
@@ -802,45 +824,46 @@ export default function ContactPageOne() {
 													inputClass("phone"),
 													"rounded-l-none rounded-r-lg"
 												)}
-											placeholder={
+												placeholder={
 													form.country && phonePatterns[form.country]
 														? ` ${phonePatterns[form.country].example}`
-														: t('enter_phone_number')
+														: t('phone_number')
 												}
 												inputMode="numeric"
 											/>
 										</div>
 									</div>
 								</Field>
-
-								
-									<Field label={t('address')} error={errors.address}>
+								<Field label={t('email')} error={errors.email}>
 										<div className="relative">
-											<span className="absolute right-4 top-3.5 text-slate-400">
-												<FiMapPin />
+											<span className="absolute start-4 top-3.5 text-slate-400">
+												<FiMail />
 											</span>
 											<input
-												name="address"
-												value={form.address}
+												name="email"
+												type="email"
+												value={form.email}
 												onChange={handleChange}
-												className={cn(inputClass("address"), "pr-11")}
-												placeholder={t('enter_address')}
+												className={cn(inputClass("email"), "ps-11")}
+												placeholder={t('email')}
+												autoComplete="email"
 											/>
 										</div>
 									</Field>
-								
 
+
+								{/* Message */}
 								<div className="md:col-span-2">
 									<Field label={t('message')} error={errors.message}>
 										<div className="relative">
-											<span className="absolute right-4 top-3.5 text-slate-400">
+											<span className="absolute start-4 top-3.5 text-slate-400">
 												<FiMessageSquare />
 											</span>
 											<textarea
 												name="message"
 												value={form.message}
 												onChange={handleChange}
-												className={cn(textareaClass("message"), "pr-11")}
+												className={cn(textareaClass("message"), "ps-11")}
 												placeholder={t('how_can_we_help')}
 											/>
 										</div>
@@ -872,8 +895,6 @@ export default function ContactPageOne() {
 							</form>
 						</div>
 					</div>
-
-					
 				</div>
 			</div>
 		</section>
