@@ -163,29 +163,7 @@ export default function TicketDetails() {
 
 					{/* محتوى التذكرة */}
 					<div className='p-6'>
-						{/* معلومات العميل */}
-						<div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-slate-50 rounded-xl'>
-							<div className='flex items-center gap-3'>
-								<FaUser className='text-slate-400' size={16} />
-								<span className='text-sm text-slate-600'>الاسم:</span>
-								<span className='text-sm font-semibold text-slate-900'>{ticket.full_name}</span>
-							</div>
-							<div className='flex items-center gap-3'>
-								<FaEnvelope className='text-slate-400' size={16} />
-								<span className='text-sm text-slate-600'>البريد:</span>
-								<span className='text-sm font-semibold text-slate-900'>{ticket.email}</span>
-							</div>
-							<div className='flex items-center gap-3'>
-								<FaPhone className='text-slate-400' size={16} />
-								<span className='text-sm text-slate-600'>الجوال:</span>
-								<span className='text-sm font-semibold text-slate-900' dir='ltr'>{ticket.phone}</span>
-							</div>
-							<div className='flex items-center gap-3'>
-								<FaMapMarkerAlt className='text-slate-400' size={16} />
-								<span className='text-sm text-slate-600'>العنوان:</span>
-								<span className='text-sm font-semibold text-slate-900'>{ticket.address}</span>
-							</div>
-						</div>
+						
 
 						{/* الرسالة الأصلية */}
 						<div className='mb-6'>

@@ -232,7 +232,7 @@ export default function SupportPage() {
 									<th className='text-start py-3 px-4 text-sm font-semibold text-slate-600'>{t('support.table.status')}</th>
 									<th className='text-start py-3 px-4 text-sm font-semibold text-slate-600'>{t('support.table.created_date')}</th>
 									<th className='text-start py-3 px-4 text-sm font-semibold text-slate-600'>{t('support.table.last_reply')}</th>
-									{/* <th className='text-start py-3 px-4 text-sm font-semibold text-slate-600'>{t('support.table.actions')}</th> */}
+									<th className='text-start py-3 px-4 text-sm font-semibold text-slate-600'>{t('support.table.actions')}</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -248,20 +248,20 @@ export default function SupportPage() {
 										</td>
 										<td className='py-3 px-4 text-sm text-slate-600'>{ticket.date}</td>
 										<td className='py-3 px-4 text-sm text-slate-600'>{ticket.lastReply}</td>
-										{/* <td className='py-3 px-4'> */}
-											{/* <Link 
+										<td className='py-3 px-4'>
+											<Link 
 												href={`/myAccount/support/tickets/${ticket.id}`}
 												className='inline-flex items-center gap-1 text-sm text-pro hover:text-pro-max transition-colors'
 											>
 												{t('support.view_details')}
-											</Link> */}
-											{/* <p 
+											</Link>
+											<p 
 												
 												className='inline-flex items-center gap-1 text-sm text-pro hover:text-pro-max transition-colors'
 											>
 												{t('support.view_details')}
-											</p> */}
-										{/* </td> */}
+											</p>
+										</td>
 									</tr>
 								))}
 							</tbody>
