@@ -181,7 +181,7 @@ export default function Home() {
         </div>
 
         {/* Popular Categories */}
-        <div className="container max-md:overflow-hidden w-full pt-8 mt-20">
+        {/* <div className="container max-md:overflow-hidden w-full pt-8 mt-20">
           {!isInitialDataReady || loadingCategories || parentCategories.length === 0 ? (
             <div className="flex items-center justify-center h-40">
               <Spinner size="lg" />
@@ -192,7 +192,7 @@ export default function Home() {
               title={t('popular_categories')}
             />
           )}
-        </div>
+        </div> */}
 
         {/* Appear in Home Categories */}
         {isInitialDataReady && appear_in_home_categories2.map((categoriess, index) => (
