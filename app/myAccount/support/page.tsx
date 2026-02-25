@@ -255,12 +255,7 @@ export default function SupportPage() {
 											>
 												{t('support.view_details')}
 											</Link>
-											<p 
-												
-												className='inline-flex items-center gap-1 text-sm text-pro hover:text-pro-max transition-colors'
-											>
-												{t('support.view_details')}
-											</p>
+										
 										</td>
 									</tr>
 								))}
