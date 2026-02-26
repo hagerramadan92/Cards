@@ -205,6 +205,8 @@ export default function Home() {
               <CategoriesSlider 
                 categories={categoriess.children} 
                 title={categoriess.name}
+                 parentCategoryId={categoriess.id} // تمرير ID القسم الرئيسي
+        parentCategorySlug={categoriess.slug} // تمرير Slug القسم الرئيسي (اختياري)
               />
             )}
           </div>

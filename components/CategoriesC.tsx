@@ -13,6 +13,8 @@ interface CategoriesSliderProps {
 	subtitle?: string;
 	inSlide?: any;
 	  onCategoryClick?: () => void;
+	 parentCategoryId?: number; 
+  parentCategorySlug?: string; 
 }
 
 function cn(...c: (string | false | undefined | null)[]) {
@@ -24,7 +26,9 @@ export default function CategoriesSlider({
 	inSlide,
 	title,
 	subtitle,
-	onCategoryClick 
+	onCategoryClick ,
+	parentCategoryId, // ✅ يجب إضافته هنا
+	parentCategorySlug // ✅ يجب إضافته هنا
 }: CategoriesSliderProps) {
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
 	const [canScrollStart, setCanScrollStart] = useState(false);
@@ -209,14 +213,16 @@ export default function CategoriesSlider({
 					</span>
 					<div>
 						<h2 className="text-base md:text-lg font-extrabold text-slate-900">
-							{title}
+							 {title || t('category')} 
 						</h2>
 					</div>
 				</div>
-				{items.length > 12 && (
+				{items.length > 5 && (
 					<Link
-						href="/category"
-						onClick={onCategoryClick}
+						 href={parentCategoryId 
+      ? `/category/${parentCategoryId}` 
+      : "/categories"}
+    onClick={onCategoryClick}
 						className="text-pro-max text-sm md:text-base font-semibold px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 transition whitespace-nowrap"
 					>
 						{t('view_all')}

@@ -1480,10 +1480,12 @@ useEffect(() => {
 					{/* Left: Info */}
 					<motion.div variants={fadeUp} initial="hidden" animate="show" className=" space-y-5 lg:col-span-5">
 						<h1 className="text-slate-900  text-xl sm:text-2xl md:text-3xl font-extrabold leading-snug">{product.name}</h1>
-
+							
 						<div className="mt-1 md:mt-3 flex items-center justify-between gap-4">
 							<div className="flex items-center gap-3">
 								
+								{/* ✅ هنا هنضيف شرط التوفر */}
+								{product?.stock ? (  // 👈 شرط التحقق من التوفر
 								<button
 									onClick={handleBuyNow}
 									aria-label={t('buy_now')}
@@ -1492,16 +1494,20 @@ useEffect(() => {
 									<span>{t('buy_now')}</span>
 									<ShoppingCart className="w-4 h-4" />
 								</button>
+								) : (
+								<div className="bg-gray-200 text-gray-600 px-4 py-2 rounded-lg font-bold flex items-center justify-center gap-2 text-sm cursor-not-allowed">
+									<span>{t('out_of_stock')}</span>
+								</div>
+								)}
+								
 								<HearComponent
-									liked={isFavorite}
-									onToggleLike={toggleFavorite}
-									ClassName="text-slate-500"
-									ClassNameP="!w-7 !h-7 border border-slate-200 hover:border-slate-300"
+								liked={isFavorite}
+								onToggleLike={toggleFavorite}
+								ClassName="text-slate-500"
+								ClassNameP="!w-7 !h-7 border border-slate-200 hover:border-slate-300"
 								/>
 							</div>
-
-							
-						</div>
+							</div>
 
 						{/* Product Description FAQ */}
 						<div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden hover:shadow-md transition">
@@ -1727,14 +1733,19 @@ useEffect(() => {
 							</div>
 										
 								</div>
-								{/* Right */}
-									<div className="min-w-[130px] md:min-w-[150px]">
-										<ButtonComponent
-											className="scale-[.8]"
-											title={t('add_to_cart')}
-											onClick={handleAddToCart}
-										/>
-								
+							{/* Right - Buy Now or Out of Stock */}
+								<div className="min-w-[130px] md:min-w-[150px]">
+								{product?.stock ? ( 
+									<ButtonComponent
+									className="scale-[.8]"
+									title={t('add_to_cart')}
+									onClick={handleAddToCart}
+									/>
+								) : (
+									<div className="w-full bg-gray-200 text-gray-600 px-3 py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 text-xs sm:text-sm cursor-not-allowed">
+									<span>{t('out_of_stock')}</span>  
+									</div>
+								)}
 								</div>
 							</div>
 						</div>

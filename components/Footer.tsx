@@ -273,24 +273,24 @@ export default function Footer() {
               {/* Contact Info */}
               <div className="flex flex-col gap-2">
                 {staticContactInfo.phone && (
-                  <Link
-                    href={`#`}
+                  <p
+                  
                     className="flex items-center gap-2 text-sm sm:text-base
                      text-white/50 hover:text-white transition underline-offset-4 hover:underline"
                   >
                     <FaPhone className="text-white/70" size={14} />
                     <span dir="ltr">{staticContactInfo.phone}</span>
-                  </Link>
+                  </p>
                 )}
                   {staticContactInfo.address && (
-                  <Link
-                    href={`#`}
+                  <p
+                  
                     className="flex items-center gap-2 text-sm sm:text-base
                      text-white/50 hover:text-white transition underline-offset-4 hover:underline"
                   >
                     <FaMapMarkerAlt className="text-white/70" size={14} />
                     <span dir="ltr">{staticContactInfo.address}</span>
-                  </Link>
+                  </p>
                 )}
              
               </div>

@@ -145,6 +145,7 @@ export const translations = {
     no_products: "لا توجد منتجات في هذا القسم حالياً",
     browse_categories: "تصفح الأقسام",
     category_description: "وصف القسم",
+    category: "القسم",
     featured: "الخيارات المميزة",
     default_sort: "الترتيب الافتراضي",
     no_description_available: "لا يوجد وصف متاح",
@@ -924,6 +925,7 @@ export const translations = {
   technical_issue: "مشكلة تقنية",
   },
   en: {
+    category: "Category",
     technical_issue: "Technical Issue",
     select_complaint_type: "Select Complaint Type",
     "dashboard.terms_and_conditions": "Terms & Conditions",
