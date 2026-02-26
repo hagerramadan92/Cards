@@ -57,11 +57,11 @@ export default function SupportPage() {
 			// تحويل البيانات من API إلى هيكل التذاكر المطلوب
 			const formattedTickets: Ticket[] = result.data.map((item: ContactMessage) => ({
 				id: item.id,
-				title: item.message.substring(0, 50) + (item.message.length > 50 ? '...' : ''), // استخدام أول 50 حرف من الرسالة كعنوان
-				status: mapStatus(item.status), // تحويل الحالة
-				date: item.created_at.split(' ')[0], // أخذ التاريخ فقط
-				lastReply: item.created_at.split(' ')[0], // استخدام نفس التاريخ كآخر رد
-				type: getMessageType(item.message), // تحديد نوع الرسالة
+				title: item.message.substring(0, 50) + (item.message.length > 50 ? '...' : ''),
+				status: mapStatus(item.status), 
+				date: item.created_at.split(' ')[0], 
+				lastReply: item.created_at.split(' ')[0], 
+				type: getMessageType(item.message), 
 			}));
 
 			setTickets(formattedTickets);

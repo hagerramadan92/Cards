@@ -40,20 +40,7 @@ interface Reply {
 	isSupport: boolean;
 }
 
-// واجهة الرد من API للردود
-interface ReplyResponse {
-	data?: {
-		id: number;
-		message: string;
-		sender_type: string;
-		created_at: string;
-		user?: {
-			name: string;
-		};
-	} | any;
-}
-
-// واجهة الرد من API للتذكرة
+// واجهة الرد من API للتذكرة (معدلة)
 interface ApiResponse {
 	data: {
 		id: number;
@@ -73,6 +60,30 @@ interface ApiResponse {
 			sender_type: string | null;
 			created_at: string | null;
 		};
+		// إضافة الـ replies هنا - الاسم قد يكون مختلف
+		replies?: Array<{
+			id: number;
+			message: string;
+			sender_type: string;
+			created_at: string;
+			user?: {
+				name: string;
+			};
+		}>;
+		// أو ممكن يكون conversation
+		conversation?: Array<{
+			id: number;
+			message: string;
+			sender_type: string;
+			created_at: string;
+		}>;
+		// أو ممكن يكون messages
+		messages?: Array<{
+			id: number;
+			message: string;
+			sender_type: string;
+			created_at: string;
+		}>;
 	};
 }
 
@@ -87,102 +98,7 @@ export default function TicketDetails() {
 	const [newReply, setNewReply] = useState('');
 	const [ticket, setTicket] = useState<Ticket | null>(null);
 	const [replies, setReplies] = useState<Reply[]>([]);
-
-	// جلب بيانات التذكرة
-	useEffect(() => {
-		const fetchTicketDetails = async () => {
-			try {
-				setLoading(true);
-				setError(null);
-				
-				const response = await fetch(`https://flashicard.renix4tech.com/api/v1/user/contact-us/${ticketId}`, {
-					headers: {
-						'Accept-Language': 'ar', 
-						'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-					},
-				});
-
-				if (!response.ok) {
-					throw new Error('فشل في جلب بيانات التذكرة');
-				}
-
-				const responseData: ApiResponse = await response.json();
-				const data = responseData.data;
-				
-				// تحويل البيانات من API إلى الشكل المطلوب
-				setTicket({
-					id: data.id,
-					title: `تذكرة من ${data.full_name}`,
-					status: mapStatus(data.status),
-					date: formatDate(data.created_at),
-					lastReply: data.last_reply?.created_at ? formatDate(data.last_reply.created_at) : 'لا يوجد ردود',
-					type: 'استفسار',
-					full_name: data.full_name,
-					email: data.email,
-					phone: data.phone,
-					address: 'غير محدد',
-					message: data.message
-				});
-
-				// جلب الردود إذا كان هناك ردود
-				if (data.replies_count > 0) {
-					await fetchReplies();
-				} else {
-					// إذا كان هناك آخر رد، نضيفه كرد
-					if (data.last_reply?.message && data.last_reply?.created_at) {
-						setReplies([{
-							id: 1,
-							user: data.last_reply.sender_type === 'support' ? 'فريق الدعم' : data.full_name,
-							message: data.last_reply.message,
-							date: formatDate(data.last_reply.created_at),
-							isSupport: data.last_reply.sender_type === 'support'
-						}]);
-					}
-				}
-				
-			} catch (err) {
-				setError(err instanceof Error ? err.message : 'حدث خطأ ما');
-				console.error('Error fetching ticket:', err);
-			} finally {
-				setLoading(false);
-			}
-		};
-
-		// جلب جميع الردود
-		const fetchReplies = async () => {
-			try {
-				const response = await fetch(`https://flashicard.renix4tech.com/api/v1/user/contact-us/${ticketId}/replies`, {
-					headers: {
-						'Accept-Language': 'ar',
-						'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-					},
-				});
-
-				if (response.ok) {
-					const repliesData = await response.json();
-					
-					// تنسيق الردود
-					if (repliesData.data && Array.isArray(repliesData.data)) {
-						const formattedReplies = repliesData.data.map((reply: any, index: number) => ({
-							id: reply.id || index + 1,
-							user: reply.sender_type === 'support' ? 'فريق الدعم' : (ticket?.full_name || 'المستخدم'),
-							message: reply.message,
-							date: formatDate(reply.created_at),
-							isSupport: reply.sender_type === 'support'
-						}));
-						
-						setReplies(formattedReplies);
-					}
-				}
-			} catch (error) {
-				console.error('Error fetching replies:', error);
-			}
-		};
-
-		if (ticketId) {
-			fetchTicketDetails();
-		}
-	}, [ticketId]);
+	const [apiData, setApiData] = useState<any>(null);
 
 	// دالة تحويل الحالة
 	const mapStatus = (apiStatus: string): 'open' | 'closed' | 'pending' => {
@@ -192,6 +108,7 @@ export default function TicketDetails() {
 			case 'closed':
 				return 'closed';
 			case 'pending':
+			case 'in_progress':
 				return 'pending';
 			default:
 				return 'pending';
@@ -210,6 +127,135 @@ export default function TicketDetails() {
 			});
 		} catch {
 			return dateString;
+		}
+	};
+
+	// دالة لتحميل الردود من البيانات
+	const loadRepliesFromData = (data: any) => {
+		try {
+			let repliesArray = [];
+			
+			// تحقق من وجود الردود في data.replies
+			if (data.replies && Array.isArray(data.replies)) {
+				repliesArray = data.replies;
+			}
+			// أو في data.conversation
+			else if (data.conversation && Array.isArray(data.conversation)) {
+				repliesArray = data.conversation;
+			}
+			// أو في data.messages
+			else if (data.messages && Array.isArray(data.messages)) {
+				repliesArray = data.messages;
+			}
+			// إذا ما فيش ردود، نحاول نستخدم last_reply
+			else if (data.last_reply?.message) {
+				repliesArray = [data.last_reply];
+			}
+			
+			if (repliesArray.length > 0) {
+				const formattedReplies = repliesArray.map((reply: any, index: number) => ({
+					id: reply.id || index + 1,
+					user: reply.sender_type === 'support' ? 'فريق الدعم' : data.full_name,
+					message: reply.message,
+					date: formatDate(reply.created_at),
+					isSupport: reply.sender_type === 'support'
+				}));
+				
+				setReplies(formattedReplies);
+			}
+		} catch (error) {
+			console.error('Error loading replies:', error);
+		}
+	};
+
+	// دالة جلب بيانات التذكرة (معرفة خارج useEffect عشان نستخدمها في handleSendReply)
+	const fetchTicketDetails = async () => {
+		try {
+			// setLoading(true);
+			setError(null);
+			
+			const response = await fetch(`https://flashicard.renix4tech.com/api/v1/user/contact-us/${ticketId}`, {
+				headers: {
+					'Accept-Language': 'ar', 
+					'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+				},
+			});
+
+			if (!response.ok) {
+				throw new Error('فشل في جلب بيانات التذكرة');
+			}
+
+			const responseData: ApiResponse = await response.json();
+			const data = responseData.data;
+			
+			// حفظ البيانات الكاملة للاستخدام
+			setApiData(data);
+			
+			// تحويل البيانات من API إلى الشكل المطلوب
+			setTicket({
+				id: data.id,
+				title: `تذكرة من ${data.full_name}`,
+				status: mapStatus(data.status),
+				date: formatDate(data.created_at),
+				lastReply: data.last_reply?.created_at ? formatDate(data.last_reply.created_at) : 'لا يوجد ردود',
+				type: 'استفسار',
+				full_name: data.full_name,
+				email: data.email,
+				phone: data.phone,
+				address: 'غير محدد',
+				message: data.message
+			});
+
+			// جلب الردود من البيانات (حسب هيكل الـ API)
+			loadRepliesFromData(data);
+			
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'حدث خطأ ما');
+			console.error('Error fetching ticket:', err);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	// جلب بيانات التذكرة عند تحميل الصفحة
+	useEffect(() => {
+		if (ticketId) {
+			fetchTicketDetails();
+		}
+	}, [ticketId]);
+
+	const handleSendReply = async () => {
+		if (!newReply.trim()) return;
+		
+		setSendingReply(true);
+		
+		try {
+			const response = await fetch(`https://flashicard.renix4tech.com/api/v1/user/contact-us/${ticketId}/replies`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept-Language': 'ar',
+					'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+				},
+				body: JSON.stringify({
+					message: newReply
+				})
+			});
+
+			if (!response.ok) {
+				throw new Error('فشل في إرسال الرد');
+			}
+
+			// جلب البيانات محدثة من API
+			await fetchTicketDetails();
+			
+			setNewReply('');
+			
+		} catch (err) {
+			console.error('Error sending reply:', err);
+			alert(err instanceof Error ? err.message : 'حدث خطأ في إرسال الرد');
+		} finally {
+			setSendingReply(false);
 		}
 	};
 
@@ -235,54 +281,9 @@ export default function TicketDetails() {
 			case 'closed':
 				return 'مغلقة';
 			case 'pending':
-				return 'قيد المراجعة';
+				return 'قيد المعالجة';
 			default:
 				return status;
-		}
-	};
-
-	const handleSendReply = async () => {
-		if (!newReply.trim()) return;
-		
-		setSendingReply(true);
-		
-		try {
-			// إرسال الرد إلى API باستخدام المسار الصحيح
-			const response = await fetch(`https://flashicard.renix4tech.com/api/v1/user/contact-us/${ticketId}/replies`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Accept-Language': 'ar',
-					'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-				},
-				body: JSON.stringify({
-					message: newReply
-				})
-			});
-
-			const responseData: ReplyResponse = await response.json();
-
-			if (!response.ok) {
-				throw new Error(responseData.message || 'فشل في إرسال الرد');
-			}
-
-			// إضافة الرد الجديد محلياً
-			const newReplyObj: Reply = {
-				id: responseData.data?.id || Date.now(),
-				user: 'أنت',
-				message: newReply,
-				date: formatDate(new Date().toISOString()),
-				isSupport: false
-			};
-			
-			setReplies(prev => [newReplyObj, ...prev]);
-			setNewReply('');
-			
-		} catch (err) {
-			console.error('Error sending reply:', err);
-			alert(err instanceof Error ? err.message : 'حدث خطأ في إرسال الرد');
-		} finally {
-			setSendingReply(false);
 		}
 	};
 
@@ -349,7 +350,7 @@ export default function TicketDetails() {
 							<span className={`inline-block px-3 py-1.5 text-xs font-semibold rounded-full border ${getStatusColor(ticket.status)}`}>
 								{getStatusText(ticket.status)}
 							</span>
-							<span className='text-sm text-slate-500'>آخر رد: {ticket.lastReply}</span>
+							<span className='text-sm text-slate-500'>عدد الردود: {apiData?.replies_count || 0}</span>
 						</div>
 					</div>
 
@@ -377,17 +378,53 @@ export default function TicketDetails() {
 
 						{/* الرسالة الأصلية */}
 						<div className='mb-6'>
-							<h3 className='text-sm font-semibold text-slate-900 mb-3'>الرسالة:</h3>
+							<h3 className='text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2'>
+								<FiMessageSquare className='text-pro' />
+								الرسالة الأصلية:
+							</h3>
 							<div className='bg-pro/5 p-4 rounded-xl border border-pro/10'>
 								<p className='text-slate-700 leading-relaxed'>{ticket.message}</p>
+								<span className='text-xs text-slate-500 mt-2 block'>
+									{ticket.date}
+								</span>
 							</div>
 						</div>
 
-						{/* الردود */}
+						{/* آخر رد (last_reply) - يظهر منفصل إذا كان مختلف عن باقي الردود */}
+						{apiData?.last_reply?.message && replies.length === 0 && (
+							<div className='mb-6'>
+								<h3 className='text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2'>
+									<FaReply className='text-pro' />
+									آخر رد:
+								</h3>
+								<div className='bg-blue-50 p-4 rounded-xl border border-blue-200'>
+									<div className='flex items-start gap-3'>
+										<div className='w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0'>
+											<FaUser className='text-blue-600' size={14} />
+										</div>
+										<div className='flex-1'>
+											<p className='text-slate-700 leading-relaxed'>{apiData.last_reply.message}</p>
+											<div className='flex items-center gap-2 mt-2'>
+												<span className='text-xs text-slate-500'>
+													{formatDate(apiData.last_reply.created_at)}
+												</span>
+												{apiData.last_reply.sender_type === 'user' && (
+													<span className='text-xs bg-blue-200 text-blue-700 px-2 py-0.5 rounded-full'>
+														مستخدم
+													</span>
+												)}
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						)}
+
+						{/* جميع الردود */}
 						<div className='space-y-4'>
 							<h3 className='text-sm font-semibold text-slate-900 flex items-center gap-2'>
 								<FaReply className='text-pro' />
-								الردود ({replies.length})
+								جميع الردود ({replies.length})
 							</h3>
 							
 							{replies.length === 0 ? (
@@ -426,7 +463,7 @@ export default function TicketDetails() {
 							)}
 						</div>
 
-						{/* إضافة رد جديد - يظهر فقط إذا كانت التذكرة مفتوحة */}
+						{/* إضافة رد جديد */}
 						{ticket.status !== 'closed' && (
 							<div className='mt-6 border-t border-slate-200 pt-6'>
 								<div className='flex gap-3'>
