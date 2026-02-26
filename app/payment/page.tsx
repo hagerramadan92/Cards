@@ -149,9 +149,9 @@ function UploadPaymentProof({
     <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-bold text-slate-800">{t('proof.title')}</h3>
-        <span className="text-sm text-slate-600 bg-blue-100 px-3 py-1 rounded-full">
+        {/* <span className="text-sm text-slate-600 bg-blue-100 px-3 py-1 rounded-full">
           {paymentMethod}
-        </span>
+        </span> */}
       </div>
 
       <p className="text-sm text-slate-600 mb-4">
