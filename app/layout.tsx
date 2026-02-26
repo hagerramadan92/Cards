@@ -1,3 +1,4 @@
+// app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
 import "@/styles/screen.css";
@@ -11,7 +12,7 @@ import LayoutShell from "./LayoutShell";
 import '@/lib/fontawesome'
 import { AuthProvider } from "@/components/LoginEmail/AuthProvider";
 import { LanguageProvider } from "@/src/context/LanguageContext";
-
+import { DataProvider } from "@/src/context/DataContext";
 
 const cairo = Cairo({
 	subsets: ["arabic"],
@@ -22,104 +23,192 @@ const cairo = Cairo({
 // Required for resolving OG/twitter image URLs. Set NEXT_PUBLIC_SITE_URL in production (e.g. https://yourdomain.com).
 const metadataBaseUrl = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000");
 
-export const metadata: Metadata = {
+// هذه دالة لجلب البيانات من API للـ Metadata
+async function getSiteData() {
+	try {
+		const API_URL = process.env.NEXT_PUBLIC_API_URL;
+		if (!API_URL) return null;
+
+		const res = await fetch(`${API_URL}/setting`, {
+			headers: {
+				"Accept-Language": "ar",
+			},
+			next: { revalidate: 3600 } // إعادة التحقق كل ساعة
+		});
+		
+		if (!res.ok) return null;
+		
+		const data = await res.json();
+		return data?.status ? data.data : null;
+	} catch (error) {
+		console.error("Error fetching site data:", error);
+		return null;
+	}
+}
+
+// دالة generateMetadata الديناميكية
+export async function generateMetadata(): Promise<Metadata> {
+	const siteData = await getSiteData();
 	
-	metadataBase: metadataBaseUrl,
-	title: {
-		default: "أكبر منصة بطاقات شحن رقمية",
-		template: "%s | LikeCard",
-	}, 
-	description: "أكبر منصة بطاقات شحن رقمية",
-	keywords: ["أكبر منصة بطاقات شحن رقمية", "LikeCard", "", "", "",],
+	// إذا وجدنا بيانات من API نستخدمها
+	if (siteData?.settings) {
+		const settings = siteData.settings;
+		const translated = settings.translated_settings;
+		const allSettings = settings.all_settings;
+		
+		const siteTitle = translated.site_title || allSettings.title_website || "LikeCard";
+		const siteDescription = translated.site_description || "أكبر منصة بطاقات شحن رقمية";
+		const siteKeywords = translated.site_keywords || "أكبر منصة بطاقات شحن رقمية, LikeCard";
+		
+		return {
+			metadataBase: metadataBaseUrl,
+			title: {
+				default: siteTitle,
+				template: `%s | ${siteTitle}`,
+			},
+			description: siteDescription,
+			// ✅修正: تحديد نوع الـ parameter بشكل صريح
+			keywords: siteKeywords.split(',').map((k: string) => k.trim()),
+			
+			authors: [{ name: "LikeCard Team" }],
+			creator: "LikeCard",
+			publisher: "LikeCard",
 
-	authors: [{ name: "LikeCard Team" }],
-	creator: "LikeCard",
-	publisher: "LikeCard",
+			robots: {
+				index: true,
+				follow: true,
+				googleBot: {
+					index: true,
+					follow: true,
+					"max-image-preview": "large",
+					"max-snippet": -1,
+					"max-video-preview": -1,
+				},
+			},
 
-	robots: {
-		index: true,
-		follow: true,
-		googleBot: {
+			alternates: {
+				canonical: "/",
+				languages: {
+					ar: "/",
+				},
+			},
+
+			openGraph: {
+				type: "website",
+				locale: "ar_AR",
+				url: "https://your-domain.com",
+				siteName: siteTitle,
+				title: siteTitle,
+				description: siteDescription,
+				images: [
+					{
+						url: "/og-image.jpg",
+						width: 1200,
+						height: 630,
+						alt: siteTitle,
+					},
+				],
+			},
+
+			twitter: {
+				card: "summary_large_image",
+				title: siteTitle,
+				description: siteDescription,
+				images: ["/og-image.jpg"],
+			},
+
+			icons: {
+				icon: "/favicon.ico",
+				shortcut: "/favicon-16x16.png",
+				apple: "/apple-touch-icon.png",
+			},
+		};
+	}
+
+	// Fallback metadata إذا لم نجد بيانات
+	return {
+		metadataBase: metadataBaseUrl,
+		title: {
+			default: "أكبر منصة بطاقات شحن رقمية",
+			template: "%s | LikeCard",
+		},
+		description: "أكبر منصة بطاقات شحن رقمية",
+		keywords: ["أكبر منصة بطاقات شحن رقمية", "LikeCard"],
+		authors: [{ name: "LikeCard Team" }],
+		creator: "LikeCard",
+		publisher: "LikeCard",
+		robots: {
 			index: true,
 			follow: true,
-			"max-image-preview": "large",
-			"max-snippet": -1,
-			"max-video-preview": -1,
-		},
-	},
-
-	alternates: {
-		canonical: "/",
-		languages: {
-			ar: "/",
-		},
-	},
-
-	openGraph: {
-		type: "website",
-		locale: "ar_AR",
-		url: "https://your-domain.com",
-		siteName: "LikeCard",
-		title: "LikeCard | أكبر منصة بطاقات شحن رقمية",
-		description:
-			"أكبر منصة بطاقات شحن رقمية",
-		images: [
-			{
-				url: "/og-image.jpg", // ✨ حط صورة OG حقيقية
-				width: 1200,
-				height: 630,
-				alt: "LikeCard متجر إلكتروني",
+			googleBot: {
+				index: true,
+				follow: true,
+				"max-image-preview": "large",
+				"max-snippet": -1,
+				"max-video-preview": -1,
 			},
-		],
-	},
-
-	twitter: {
-		card: "summary_large_image",
-		title: "LikeCard | 	أكبر منصة بطاقات شحن رقمية",
-		description:
-			"أكبر منصة بطاقات شحن رقمية",
-		images: ["/og-image.jpg"],
-	},
-
-	icons: {
-		icon: "/favicon.ico",
-		shortcut: "/favicon-16x16.png",
-		apple: "/apple-touch-icon.png",
-	},
-
-	// manifest: "/site.webmanifest",
-};
+		},
+		alternates: {
+			canonical: "/",
+			languages: {
+				ar: "/",
+			},
+		},
+		openGraph: {
+			type: "website",
+			locale: "ar_AR",
+			url: "https://your-domain.com",
+			siteName: "LikeCard",
+			title: "LikeCard | أكبر منصة بطاقات شحن رقمية",
+			description: "أكبر منصة بطاقات شحن رقمية",
+			images: [
+				{
+					url: "/og-image.jpg",
+					width: 1200,
+					height: 630,
+					alt: "LikeCard متجر إلكتروني",
+				},
+			],
+		},
+		twitter: {
+			card: "summary_large_image",
+			title: "LikeCard | أكبر منصة بطاقات شحن رقمية",
+			description: "أكبر منصة بطاقات شحن رقمية",
+			images: ["/og-image.jpg"],
+		},
+		icons: {
+			icon: "/favicon.ico",
+			shortcut: "/favicon-16x16.png",
+			apple: "/apple-touch-icon.png",
+		},
+	};
+}
 
 export default function RootLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
-
 	return (
 		<html lang="ar" dir="rtl" className={cairo.className}>
-
 			<body className="bg-white">
 				<LanguageProvider>
-				<AuthProvider>
-				<AppProvider>
-					<ToastProvider>
-						<Providers>
-							{/* <Navbar /> */}
-							<LayoutShell>{children}</LayoutShell>
-							{/* <div className=" min-h-[80vh] pt-[90px] lg:pt-[140px]"></div> */}
-
-							<Toaster
-								position="top-center"
-								containerStyle={{
-									zIndex: 99999999,
-								}}
-							/>
-							{/* <Footer /> */}
-						</Providers>
-					</ToastProvider>
-				</AppProvider>
-				</AuthProvider>
+					<AuthProvider>
+						<DataProvider>
+							<AppProvider>
+								<ToastProvider>
+									<Providers>
+										<LayoutShell>{children}</LayoutShell>
+										<Toaster
+											position="top-center"
+											containerStyle={{
+												zIndex: 99999999,
+											}}
+										/>
+									</Providers>
+								</ToastProvider>
+							</AppProvider>
+						</DataProvider>
+					</AuthProvider>
 				</LanguageProvider>
-				
 			</body>
 		</html>
 	);
