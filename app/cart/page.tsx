@@ -623,7 +623,7 @@ ${errors.join("\n")}
 
 				<div className="col-span-1">
 					<div className="border border-slate-200 rounded-2xl p-6 mt-4 bg-white shadow-sm">
-						<CoBon
+						{/* <CoBon
 							code={code}
 							setCode={setCode}
 							onApplied={(res: any) => {
@@ -640,7 +640,7 @@ ${errors.join("\n")}
 								setCouponDiscount(0);
 								setCouponNewTotal(null);
 							}}
-						/>
+						/> */}
 
 						<h4 className="text-md font-extrabold text-pro my-5">{t('cart_summary')}</h4>
 
