@@ -23,7 +23,7 @@ export default function Logo({
 	// استخراج البيانات من settings
 	const siteTitle = settings?.translated_settings?.site_title || 
 					settings?.all_settings?.title_website ;
-	
+	const siteName = settings?.translated_settings?.site_name 
 	const siteDescription = settings?.translated_settings?.site_description
 
 	// إذا كان loading، نستخدم القيم الافتراضية
@@ -32,7 +32,7 @@ export default function Logo({
 			<Link
 				href={href}
 				className={`inline-flex items-center gap-2 select-none ${className}`}
-				aria-label="LikeCard"
+				aria-label={siteName || "LikeCard"}
 			>
 				<motion.div
 					initial={{ opacity: 0, y: 8, scale: 0.96 }}
@@ -109,11 +109,11 @@ export default function Logo({
 					className="flex flex-col "
 				>
 					<span className="font-ar whitespace-nowrap font-extrabold text-slate-900 md:text-lg text-sm">
-						{siteTitle || t("logo")}
+						{siteName || t("logo")}
 					</span>
 
 					<span className="mt-[-1px] truncate max-w-[100px] md:mt-[-3px] whitespace-nowrap font-en font-bold text-slate-500 text-[7px] md:text-xs tracking-wide text-pro-max">
-						{siteDescription}
+						{siteTitle}
 					</span>
 				</motion.div>
 			</div>
