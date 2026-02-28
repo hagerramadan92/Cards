@@ -22,11 +22,9 @@ export default function Logo({
 
 	// استخراج البيانات من settings
 	const siteTitle = settings?.translated_settings?.site_title || 
-					settings?.all_settings?.title_website || 
-					"LikeCard";
+					settings?.all_settings?.title_website ;
 	
-	const siteDescription = settings?.translated_settings?.site_description || 
-						   "أكبر منصة بطاقات شحن رقمية";
+	const siteDescription = settings?.translated_settings?.site_description
 
 	// إذا كان loading، نستخدم القيم الافتراضية
 	if (loading) {
@@ -63,10 +61,10 @@ export default function Logo({
 						className="flex flex-col"
 					>
 						<span className="font-ar whitespace-nowrap font-extrabold text-slate-900 md:text-lg text-sm">
-							{t("logo")}
+							{/* {t("logo")} */}
 						</span>
 						<span className="mt-[-1px] md:mt-[-3px] whitespace-nowrap font-en font-bold text-slate-500 text-[7px] md:text-xs tracking-wide text-pro-max">
-							{t("logoTagline")}
+							{/* {t("logoTagline")} */}
 						</span>
 					</motion.div>
 				</div>
@@ -78,8 +76,8 @@ export default function Logo({
 		<Link
 			href={href}
 			className={`inline-flex items-center gap-2 select-none ${className}`}
-			aria-label={siteTitle} // 👈 استخدام siteTitle من API
-			title={siteDescription} // 👈 إضافة title للـ tooltip
+			aria-label={siteTitle} 
+			title={siteDescription} 
 		>
 			{/* Logo */}
 			<motion.div
@@ -92,7 +90,7 @@ export default function Logo({
 				<div className="relative w-[44px] h-[44px] max-md:scale-[0.795] max-md:origin-left">
 					<Image
 						src="/logo/Logo.png"
-						alt={siteTitle} // 👈 استخدام siteTitle في alt
+						alt={siteTitle?? "LikeCard Logo"} 
 						width={size}
 						height={size}
 						className="object-contain"
@@ -111,13 +109,11 @@ export default function Logo({
 					className="flex flex-col "
 				>
 					<span className="font-ar whitespace-nowrap font-extrabold text-slate-900 md:text-lg text-sm">
-						{/* استخدام siteTitle من API إذا كان متاحاً، وإلا استخدام الترجمة */}
 						{siteTitle || t("logo")}
 					</span>
 
-					<span className="mt-[-1px] md:mt-[-3px] whitespace-nowrap font-en font-bold text-slate-500 text-[7px] md:text-xs tracking-wide text-pro-max">
-						{/* وصف مختصر من API أو الترجمة */}
-						{siteDescription.substring(0, 30)}...
+					<span className="mt-[-1px] truncate max-w-[100px] md:mt-[-3px] whitespace-nowrap font-en font-bold text-slate-500 text-[7px] md:text-xs tracking-wide text-pro-max">
+						{siteDescription}
 					</span>
 				</motion.div>
 			</div>

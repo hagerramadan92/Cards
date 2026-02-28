@@ -21,7 +21,7 @@ const cairo = Cairo({
 });
 
 // Required for resolving OG/twitter image URLs. Set NEXT_PUBLIC_SITE_URL in production (e.g. https://yourdomain.com).
-const metadataBaseUrl = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000");
+const metadataBaseUrl = new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://flashicard.renix4tech.com/api/v1");
 
 // هذه دالة لجلب البيانات من API للـ Metadata
 async function getSiteData() {
@@ -33,7 +33,7 @@ async function getSiteData() {
 			headers: {
 				"Accept-Language": "ar",
 			},
-			next: { revalidate: 3600 } // إعادة التحقق كل ساعة
+			next: { revalidate: 3600 } 
 		});
 		
 		if (!res.ok) return null;
@@ -56,15 +56,16 @@ export async function generateMetadata(): Promise<Metadata> {
 		const translated = settings.translated_settings;
 		const allSettings = settings.all_settings;
 		
-		const siteTitle = translated.site_title || allSettings.title_website || "LikeCard";
-		const siteDescription = translated.site_description || "أكبر منصة بطاقات شحن رقمية";
-		const siteKeywords = translated.site_keywords || "أكبر منصة بطاقات شحن رقمية, LikeCard";
+		const siteTitle = translated.site_title || allSettings.title_website ;
+		const siteDescription = translated.site_description ;
+		const siteKeywords = translated.site_keywords ;
+		const siteName = translated.site_name || allSettings.name_website ;
 		
 		return {
 			metadataBase: metadataBaseUrl,
 			title: {
-				default: siteTitle,
-				template: `%s | ${siteTitle}`,
+				default: siteName,
+				template: `%s | ${siteName}`,
 			},
 			description: siteDescription,
 			// ✅修正: تحديد نوع الـ parameter بشكل صريح
@@ -97,7 +98,7 @@ export async function generateMetadata(): Promise<Metadata> {
 				type: "website",
 				locale: "ar_AR",
 				url: "https://your-domain.com",
-				siteName: siteTitle,
+				siteName: siteName,
 				title: siteTitle,
 				description: siteDescription,
 				images: [
@@ -105,14 +106,14 @@ export async function generateMetadata(): Promise<Metadata> {
 						url: "/og-image.jpg",
 						width: 1200,
 						height: 630,
-						alt: siteTitle,
+						alt: siteName,
 					},
 				],
 			},
 
 			twitter: {
 				card: "summary_large_image",
-				title: siteTitle,
+				title: siteName,
 				description: siteDescription,
 				images: ["/og-image.jpg"],
 			},
