@@ -54,34 +54,51 @@ export default function DropdownUser() {
 
   const handleLinkClick = () => setOpen(false);
 
-  const handleLogout = async () => {
-    try {
-      setOpen(false);
-      logout?.();
-      await nextAuthSignOut({ redirect: false });
-      localStorage.removeItem("favorites");
+const handleLogout = async () => {
+  try {
+    setOpen(false);
+    logout?.(); // استدعاء logout من context أولاً
+    
+    // الحصول على التوكن من localStorage
+    const token = localStorage.getItem("auth_token");
+    
+    // استدعاء API تسجيل الخروج
+    await fetch("https://flashicard.renix4tech.com/api/v1/auth/logout", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      }
+    }).catch(err => console.error("Logout API error:", err));
+    
+    // مسح البيانات المحلية
+    localStorage.removeItem("favorites");
+    localStorage.removeItem("auth_token");
+    
+    Swal.fire({
+      icon: "success",
+      title: t("logout"),
+      text: t("logout_success"),
+      timer: 1500,
+      showConfirmButton: false,
+    });
 
-      Swal.fire({
-        icon: "success",
-        title: t("logout"),
-        text: t("logout_success"),
-        timer: 1500,
-        showConfirmButton: false,
-      });
-
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 1500);
-    } catch (err) {
-      console.error("Logout error:", err);
-      Swal.fire({
-        icon: "error",
-        title: t("error"),
-        text: t("logout_error"),
-        confirmButtonText: t("ok"),
-      });
-    }
-  };
+    // التوجيه للصفحة الرئيسية
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 1500);
+    
+  } catch (err) {
+    console.error("Logout error:", err);
+    Swal.fire({
+      icon: "error",
+      title: t("error"),
+      text: t("logout_error"),
+      confirmButtonText: t("ok"),
+    });
+  }
+};
 
   const items = [
     { href: "/myAccount", label: t("myAccount"), icon: <FaUser size={18} /> },
