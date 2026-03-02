@@ -74,7 +74,7 @@ export default function SideBar({ active }: SideBarProps) {
 				const formData = new FormData();
 				formData.append('image', file);
 
-				const res = await fetch(`${API_URL}/auth/profile/update-image`, {
+				const res = await fetch(`${API_URL}/auth/profile`, {
 					method: 'POST',
 					headers: {
 						Authorization: `Bearer ${authToken}`,
@@ -132,20 +132,48 @@ export default function SideBar({ active }: SideBarProps) {
 	};
 
 	const handleLogout = async () => {
-		const result = await Swal.fire({
-			title: t('logout.title'),
-			text: t('logout.confirm'),
-			icon: "question",
-			showCancelButton: true,
-			confirmButtonColor: "#3085d6",
-			cancelButtonColor: "#d33",
-			confirmButtonText: t('logout.confirm_button'),
-			cancelButtonText: t('logout.cancel_button'),
+	  try {
+		// setOpen(false);
+		// logout?.();
+		
+	
+		const token = localStorage.getItem("auth_token");
+		
+	
+		await fetch("https://flashicard.renix4tech.com/api/v1/auth/logout", {
+		  method: "POST",
+		  headers: {
+			"Accept-Language": "ar",
+			...(token ? { Authorization: `Bearer ${token}` } : {}),
+		  }
+		}).catch(err => console.error("Logout API error:", err));
+		
+		// مسح البيانات المحلية
+		localStorage.removeItem("favorites");
+		localStorage.removeItem("auth_token");
+		
+		Swal.fire({
+		  icon: "success",
+		  title: t("logout"),
+		  text: t("logout_success"),
+		  timer: 1500,
+		  showConfirmButton: false,
 		});
-
-		if (result.isConfirmed) {
-			logout();
-		}
+	
+		// التوجيه للصفحة الرئيسية
+		setTimeout(() => {
+		  window.location.href = "/";
+		}, 1500);
+		
+	  } catch (err) {
+		console.error("Logout error:", err);
+		Swal.fire({
+		  icon: "error",
+		  title: t("error"),
+		  text: t("logout_error"),
+		  confirmButtonText: t("ok"),
+		});
+	  }
 	};
 
 	const items = [

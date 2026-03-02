@@ -296,25 +296,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   /* ------------------------------ LOGOUT ------------------------------ */
-  const logout = async (redirectToHome: boolean = false) => {
-  setAuthToken(null);
-  setUserName(null);
-  setUserEmail(null);
-  setUserImage(null);
-  setFullName(null);
+//   const logout = async (redirectToHome: boolean = false) => {
+//   setAuthToken(null);
+//   setUserName(null);
+//   setUserEmail(null);
+//   setUserImage(null);
+//   setFullName(null);
 
-  localStorage.clear();
+//   localStorage.clear();
   
-  // استخدام nextAuthSignOut مع منع التوجيه الافتراضي
-  await nextAuthSignOut({ 
-    redirect: false, // منع التوجيه التلقائي
-  });
+//   // استخدام nextAuthSignOut مع منع التوجيه الافتراضي
+//   await nextAuthSignOut({ 
+//     redirect: false, // منع التوجيه التلقائي
+//   });
   
-  // إذا أردنا التوجيه للصفحة الرئيسية
-  if (redirectToHome) {
-    window.location.href = "/";
-  }
-};
+//   // إذا أردنا التوجيه للصفحة الرئيسية
+//   if (redirectToHome) {
+//     window.location.href = "/";
+//   }
+// };
 
   const favoriteIdsSet = useMemo(() => {
     return new Set((favoriteProducts ?? []).map((p) => p.id));
@@ -329,7 +329,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userImage,
         fullName,
         login,
-        logout,
+        // logout,
         setAuthFromApi,
         favoriteProducts,
         favoriteProductsLoading,

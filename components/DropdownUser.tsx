@@ -23,7 +23,7 @@ export default function DropdownUser() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const { fullName, userImage, logout } = useAuth();
+  const { fullName, userImage } = useAuth();
   const { data: session } = useSession();
   const { t } = useLanguage();
 
@@ -57,17 +57,16 @@ export default function DropdownUser() {
 const handleLogout = async () => {
   try {
     setOpen(false);
-    logout?.(); // استدعاء logout من context أولاً
+    // logout?.();
     
-    // الحصول على التوكن من localStorage
+
     const token = localStorage.getItem("auth_token");
     
-    // استدعاء API تسجيل الخروج
+
     await fetch("https://flashicard.renix4tech.com/api/v1/auth/logout", {
       method: "POST",
       headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
+     	"Accept-Language": "ar",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       }
     }).catch(err => console.error("Logout API error:", err));
@@ -127,6 +126,7 @@ const handleLogout = async () => {
                   fill
                   sizes="(max-width: 768px) 30px, 35px"
                   className="relative rounded-full object-cover"
+                  
                 />
          </div>
          
