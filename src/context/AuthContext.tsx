@@ -278,6 +278,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  /* ---------------------- UPDATE USER IMAGE ---------------------- */
+  const updateUserImage = (imageUrl: string) => {
+    setUserImage(imageUrl);
+    localStorage.setItem("userImage", imageUrl);
+    
+    // Also update session if exists
+    const session = localStorage.getItem("userSession");
+    if (session) {
+      try {
+        const sessionData = JSON.parse(session);
+        if (sessionData.user) {
+          sessionData.user.image = imageUrl;
+          localStorage.setItem("userSession", JSON.stringify(sessionData));
+        }
+      } catch (error) {
+        console.error("Error updating session:", error);
+      }
+    }
+  };
+
   /* ------------------------------ API LOGIN ------------------------------ */
   const setAuthFromApi = (data: {
     token: string;
@@ -295,26 +315,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  /* ------------------------------ LOGOUT ------------------------------ */
-//   const logout = async (redirectToHome: boolean = false) => {
-//   setAuthToken(null);
-//   setUserName(null);
-//   setUserEmail(null);
-//   setUserImage(null);
-//   setFullName(null);
-
-//   localStorage.clear();
-  
-//   // استخدام nextAuthSignOut مع منع التوجيه الافتراضي
-//   await nextAuthSignOut({ 
-//     redirect: false, // منع التوجيه التلقائي
-//   });
-  
-//   // إذا أردنا التوجيه للصفحة الرئيسية
-//   if (redirectToHome) {
-//     window.location.href = "/";
-//   }
-// };
+ 
 
   const favoriteIdsSet = useMemo(() => {
     return new Set((favoriteProducts ?? []).map((p) => p.id));
@@ -329,6 +330,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userImage,
         fullName,
         login,
+        updateUserImage, 
         // logout,
         setAuthFromApi,
         favoriteProducts,

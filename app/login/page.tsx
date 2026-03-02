@@ -261,12 +261,12 @@ export default function Page() {
 							<span className="text-xs font-extrabold text-slate-500">{t('or')}</span>
 							<div className="h-px flex-1 bg-slate-200" />
 						</div>
-						<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+						<div className=" ">
 							{/* Google */}
 							<LoginWithGoogle />
 							{/* <LoginWithEmail /> */}
-							<LoginWithFaceBook />
-							<LoginWithX />
+							{/* <LoginWithFaceBook /> */}
+							{/* <LoginWithX /> */}
 						</div>
 
 					</div>

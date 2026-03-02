@@ -173,14 +173,17 @@ const handleLogout = async () => {
             <div className="rounded-3xl border border-slate-200 bg-white shadow-xl overflow-hidden">
               {/* header */}
               <div className="p-2 md:p-4 bg-slate-50 border-b border-slate-200">
-                <div className="flex items-center gap-3">
-                  <Image
+                <div className="flex items-center gap-1.5">
+                  <div className="h-[50px] overflow-hidden w-[50px] rounded-full">
+                    <Image
                     src={displayImage}
                     alt="User"
-                    width={44}
+                    width={54}
                     height={44}
-                    className="rounded-2xl object-cover border border-slate-200 bg-white"
+                    className="object-cover w-full h-full"
                   />
+                  </div>
+            
                   <div className="min-w-0">
                     <p className="text-sm font-extrabold text-slate-900 truncate">
                       {displayName}

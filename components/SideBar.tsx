@@ -33,9 +33,17 @@ interface SideBarProps {
 export default function SideBar({ active }: SideBarProps) {
 	const pathname = usePathname();
 	const router = useRouter();
-	const { userImage, logout, fullName, authToken } = useAuth();
+	const { userImage, logout, fullName, authToken, updateUserImage } = useAuth(); // ✅ أضفنا updateUserImage
 	const { t, language } = useLanguage();
 	const [uploading, setUploading] = useState(false);
+	const [imageKey, setImageKey] = useState(Date.now()); // ✅ لإجبار إعادة تحميل الصورة
+
+	// ✅ تحديث الـ key عندما يتغير userImage
+	useEffect(() => {
+		if (userImage) {
+			setImageKey(Date.now());
+		}
+	}, [userImage]);
 
 	const handleImageChange = () => {
 		const input = document.createElement('input');
@@ -74,7 +82,7 @@ export default function SideBar({ active }: SideBarProps) {
 				const formData = new FormData();
 				formData.append('image', file);
 
-				const res = await fetch(`${API_URL}/auth/profile`, {
+				const res = await fetch(`${API_URL}/auth/update-profile`, {
 					method: 'POST',
 					headers: {
 						Authorization: `Bearer ${authToken}`,
@@ -90,15 +98,18 @@ export default function SideBar({ active }: SideBarProps) {
 					throw new Error(data?.message || t('image.upload_error'));
 				}
 
-				// Update localStorage
-				const imageUrl = data?.data?.image || data?.data?.image_url;
+				// ✅ المسار الصحيح للصورة من الـ API
+				const imageUrl = data?.data?.user?.image || data?.data?.image || data?.data?.image_url;
+				
 				if (imageUrl) {
-					localStorage.setItem('userImage', imageUrl);
-					// Reload to update the image in context
-					window.location.reload();
+					// ✅ تحديث الصورة في الـ Context مباشرة
+					updateUserImage(imageUrl);
+					
+					toast.success(t('image.upload_success'));
+				} else {
+					throw new Error('Image URL not found in response');
 				}
 
-				toast.success(t('image.upload_success'));
 			} catch (error: any) {
 				console.error('Error uploading image:', error);
 				toast.error(error?.message || t('image.upload_general_error'));
@@ -296,7 +307,7 @@ export default function SideBar({ active }: SideBarProps) {
 					</button>
 				</div>
 
-				{/* Profile Image Section */}
+				{/* Profile Image Section - ✅ معدل مع imageKey */}
 				<div className="flex flex-col items-center mb-2">
 					<div className="relative group mb-4">
 						{/* Image Container with Border and Shadow - Medium Size */}
@@ -304,10 +315,17 @@ export default function SideBar({ active }: SideBarProps) {
 							<div className="relative w-full h-full rounded-full overflow-hidden bg-white">
 								<div className="relative w-full h-full">
 									<Image
+										key={imageKey} // ✅ لإجبار إعادة تحميل الصورة
 										src={userImage || "/images/de_user.webp"}
 										alt={t('profile.change_picture')}
 										fill
+										sizes="(max-width: 768px) 80px, 100px"
 										className="object-cover transition-transform duration-300 group-hover:scale-105"
+										onError={(e) => {
+											// إذا فشل تحميل الصورة، استخدم الصورة الافتراضية
+											const target = e.target as HTMLImageElement;
+											target.src = "/images/de_user.webp";
+										}}
 									/>
 								</div>
 								{/* Hover Overlay */}
