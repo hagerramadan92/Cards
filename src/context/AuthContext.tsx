@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useMemo,
   useState,
+  useRef,
 } from "react";
 import { useSession, signOut as nextAuthSignOut } from "next-auth/react";
 import { ProductI } from "../../Types/ProductsI";
@@ -24,15 +25,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { language, t } = useLanguage();
 
   const [favoriteProducts, setFavoriteProducts] = useState<ProductI[]>([]);
-  const [favoriteProductsLoading, setFavoriteProductsLoading] =
-    useState<boolean>(false);
+  const [favoriteProductsLoading, setFavoriteProductsLoading] = useState<boolean>(false);
 
-  const { data: session, status } = useSession({
-    required: false,
-    onUnauthenticated: () => {
-      // Silently handle unauthenticated state
-    },
-  });
+  const { data: session, status } = useSession();
+  
+  const socialLoginAttempted = useRef(false);
+  const socialLoginInProgress = useRef(false);
+  
+  // 👈 متغير جديد لمنع إعادة التسجيل بعد logout
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   /* ---------------------- LOAD LOCAL STORAGE + NEXTAUTH USER ---------------------- */
   useEffect(() => {
@@ -44,15 +45,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const storedImage = localStorage.getItem("userImage");
     const storedFullName = localStorage.getItem("fullName");
 
-    // Set from localStorage (only if different to avoid waterfall renders)
     if (storedToken && storedToken !== authToken) setAuthToken(storedToken);
     if (storedName && storedName !== userName) setUserName(storedName);
     if (storedEmail && storedEmail !== userEmail) setUserEmail(storedEmail);
     if (storedImage && storedImage !== userImage) setUserImage(storedImage);
     if (storedFullName && storedFullName !== fullName) setFullName(storedFullName);
 
-    // Update from NextAuth session
-    if (status === "authenticated" && session?.user) {
+    // تحديث من NextAuth session فقط إذا لم يكن في حالة logout
+    if (!isLoggingOut && status === "authenticated" && session?.user) {
       const name = session.user.name || storedName || "مستخدم";
       const email = session.user.email || storedEmail || null;
       const image = session.user.image || storedImage || "";
@@ -68,25 +68,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (image) localStorage.setItem("userImage", image);
       localStorage.setItem("fullName", full);
     }
-  }, [session, status]); // intentionally not depending on userName/authToken to avoid cascades
+  }, [session, status, isLoggingOut]); // 👈 أضفنا isLoggingOut
 
   /* ---------------------- SOCIAL LOGIN BACKEND SYNC ---------------------- */
   useEffect(() => {
+    // 👈 لا تعمل social login إذا كان في حالة logout
+    if (isLoggingOut) return;
+    if (socialLoginAttempted.current || socialLoginInProgress.current) return;
     if (status !== "authenticated" || !session?.user) return;
+    if (authToken) return;
 
     const user = session.user as any;
 
-    // We need provider_id to login with backend
-    if (user.provider_id && !authToken) {
+    if (user.provider_id) {
+      socialLoginInProgress.current = true;
+      
       const syncSocialLogin = async () => {
         const payload = {
-          provider: (user.provider || "google").toLowerCase(), // ensure lowercase
-          provider_id: String(user.provider_id), // ensure string
+          provider: (user.provider || "google").toLowerCase(),
+          provider_id: String(user.provider_id),
           email: user.email || "",
           name: user.name || "User",
         };
-
-        console.log("Attempting social login...", { url: `${process.env.NEXT_PUBLIC_API_URL}/auth/social-login`, payload });
 
         try {
           const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/social-login`, {
@@ -99,55 +102,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             body: JSON.stringify(payload),
           });
 
-          const rawText = await res.text();
-          console.log("Social login raw response:", res.status, rawText);
+          const data = await res.json();
 
-          // Check if response is not 200 (success)
-          if (!res.ok || res.status !== 200) {
-            console.error("Social login API returned non-200 status:", res.status);
-            
-            let errorMessage = t('login_error') || "حدث خطأ أثناء تسجيل الدخول";
-            
-            // Try to parse error message from response
-            if (rawText) {
-              try {
-                const errorData = JSON.parse(rawText);
-                errorMessage = errorData?.message || errorMessage;
-              } catch (e) {
-                // If parsing fails, use default message
-              }
-            }
-            
-            toast.error(errorMessage);
-            
-            // Sign out from NextAuth session if API failed
-            nextAuthSignOut({ callbackUrl: "/login" });
-            return;
-          }
-
-          if (!rawText) {
-             console.error("Empty response from social login API");
-             toast.error(t('login_error') || "حدث خطأ أثناء تسجيل الدخول");
-             nextAuthSignOut({ callbackUrl: "/login" });
-             return;
-          }
-
-          let data;
-          try {
-             data = JSON.parse(rawText);
-          } catch (e) {
-             console.error("Failed to parse social login JSON:", e);
-             toast.error(t('login_error') || "حدث خطأ أثناء تسجيل الدخول");
-             nextAuthSignOut({ callbackUrl: "/login" });
-             return;
-          }
-          
-          // Only save session if response is 200 and has valid token
-          if (res.ok && res.status === 200 && data.status && data.data?.token) {
+          if (res.ok && data.status && data.data?.token) {
             const token = data.data.token;
-            console.log("Social login success, token received:", token);
             
-            // ✅ Explicitly save to localStorage and state
             localStorage.setItem("auth_token", token);
             setAuthToken(token);
 
@@ -159,27 +118,109 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               data.data.user.name
             );
             
-            // Show success toast
             toast.success(data.message || t('login_success') || "تم تسجيل الدخول بنجاح");
           } else {
-             console.error("Social login API returned error status or missing token:", data);
-             const errorMessage = data?.message || t('login_error') || "حدث خطأ أثناء تسجيل الدخول";
-             toast.error(errorMessage);
-             nextAuthSignOut({ callbackUrl: "/login" });
+            console.error("Social login failed:", data);
+            socialLoginAttempted.current = true;
+            toast.error(data?.message || t('login_error') || "حدث خطأ أثناء تسجيل الدخول");
           }
         } catch (err) {
-          console.error("Social login network error:", err);
+          console.error("Social login error:", err);
+          socialLoginAttempted.current = true;
           toast.error(t('server_error') || "فشل الاتصال بالخادم");
-          nextAuthSignOut({ callbackUrl: "/login" });
+        } finally {
+          socialLoginInProgress.current = false;
         }
       };
 
       syncSocialLogin();
     }
-  }, [session, status, authToken, language]);
+  }, [session, status, authToken, language, isLoggingOut]); // 👈 أضفنا isLoggingOut
 
-  /* ---------------------- FETCH FAVORITES (MERGED: PRODUCTS + IDS) ---------------------- */
+  /* ---------------------- LOGOUT FUNCTION ---------------------- */
+const logout = async () => {
+  try {
+    setIsLoggingOut(true);
+    
+    const localToken = localStorage.getItem("auth_token");
+    const isGoogleUser = !localToken && status === "authenticated";
+    
+    if (isGoogleUser) {
+      console.log("تسجيل خروج من جوجل...");
+      
+      // ✅ الطريقة الصحيحة لتسجيل خروج من NextAuth
+      await nextAuthSignOut({ 
+        redirect: false
+      });
+      
+      // مسح كل شيء
+      localStorage.clear();
+      
+      // إعادة تعيين كل المتغيرات
+      setAuthToken(null);
+      setUserName(null);
+      setUserEmail(null);
+      setUserImage(null);
+      setFullName(null);
+      setFavoriteProducts([]);
+      
+      // إعادة تعيين المتغيرات المساعدة
+      socialLoginAttempted.current = false;
+      socialLoginInProgress.current = false;
+      
+      toast.success("تم تسجيل الخروج من جوجل بنجاح");
+      
+      // انتظار قليلاً ثم إعادة التوجيه
+      setTimeout(() => {
+        // استخدام window.location.replace بدلاً من href لمسح التاريخ
+        window.location.replace("/");
+      }, 500);
+      
+    } else {
+      // باقي الكود للمستخدم المحلي...
+      console.log("تسجيل خروج من المستخدم المحلي...");
+      
+      if (localToken) {
+        try {
+          await fetch("https://flashicard.renix4tech.com/api/v1/auth/logout", {
+            method: "POST",
+            headers: {
+              "Accept-Language": "ar",
+              Authorization: `Bearer ${localToken}`,
+            }
+          });
+        } catch (err) {
+          console.error("Logout API error:", err);
+        }
+      }
+      
+      localStorage.clear();
+      
+      setAuthToken(null);
+      setUserName(null);
+      setUserEmail(null);
+      setUserImage(null);
+      setFullName(null);
+      setFavoriteProducts([]);
+      
+      socialLoginAttempted.current = false;
+      socialLoginInProgress.current = false;
+      
+      toast.success(t("logout_success") || "تم تسجيل الخروج بنجاح");
+      
+      setTimeout(() => {
+        window.location.replace("/");
+      }, 500);
+    }
+    
+  } catch (err) {
+    console.error("Logout error:", err);
+    setIsLoggingOut(false);
+    toast.error(t("logout_error") || "حدث خطأ أثناء تسجيل الخروج");
+  }
+};
 
+  /* ---------------------- باقي الكود كما هو ---------------------- */
   useEffect(() => {
     let cancelled = false;
 
@@ -216,7 +257,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const dataJson = await res.json();
         const list = Array.isArray(dataJson?.data) ? dataJson.data : [];
 
-        // Products with is_favorite flag
         const favoritesWithFlag: ProductI[] = list
           .filter((fav: any) => fav?.product && fav.product.id)
           .map((fav: any) => ({
@@ -224,7 +264,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             is_favorite: true,
           }));
 
-        // IDs to localStorage (same request)
         const ids = list
           .map((fav: any) => fav?.product?.id)
           .filter(Boolean);
@@ -249,9 +288,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [authToken]);
+  }, [authToken, language]);
 
-  /* ------------------------------ LOGIN ------------------------------ */
   const login = (
     token: string,
     name: string,
@@ -272,18 +310,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (image) localStorage.setItem("userImage", image);
     localStorage.setItem("fullName", fullNameParam || name);
     
-    // Show success toast if requested
     if (showToast) {
       toast.success(t('login_success') || "تم تسجيل الدخول بنجاح");
     }
   };
 
-  /* ---------------------- UPDATE USER IMAGE ---------------------- */
   const updateUserImage = (imageUrl: string) => {
     setUserImage(imageUrl);
     localStorage.setItem("userImage", imageUrl);
     
-    // Also update session if exists
     const session = localStorage.getItem("userSession");
     if (session) {
       try {
@@ -298,7 +333,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  /* ------------------------------ API LOGIN ------------------------------ */
   const setAuthFromApi = (data: {
     token: string;
     name: string;
@@ -309,13 +343,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, showToast: boolean = true) => {
     login(data.token, data.name, data.email, data.image, data.fullName);
     
-    // Show success toast after login
     if (showToast) {
       toast.success(data.message || t('login_success') || "تم تسجيل الدخول بنجاح");
     }
   };
-
- 
 
   const favoriteIdsSet = useMemo(() => {
     return new Set((favoriteProducts ?? []).map((p) => p.id));
@@ -330,8 +361,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userImage,
         fullName,
         login,
-        updateUserImage, 
-        // logout,
+        logout,
+        updateUserImage,
         setAuthFromApi,
         favoriteProducts,
         favoriteProductsLoading,
@@ -339,6 +370,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         favoriteIdsSet,
         isLoading: status === "loading",
         isAuthenticated: !!authToken,
+        isLoggingOut, // 👈 نمرر حالة logout للمكونات الأخرى إذا احتجناها
       }}
     >
       {children}

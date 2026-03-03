@@ -22,7 +22,7 @@ import { useLanguage } from "@/src/context/LanguageContext";
 export default function DropdownUser() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-
+const { logout } = useAuth();
   const { fullName, userImage } = useAuth();
   const { data: session } = useSession();
   const { t } = useLanguage();
@@ -54,49 +54,61 @@ export default function DropdownUser() {
 
   const handleLinkClick = () => setOpen(false);
 
+// const handleLogout = async () => {
+//   try {
+//     setOpen(false);
+    
+//     // التحقق من نوع المصادقة
+//     const localToken = localStorage.getItem("auth_token");
+//     const isGoogleUser = !localToken; // أو أي طريقة أخرى للتحقق
+
+//     if (isGoogleUser) {
+//       // لمستخدمي جوجل - استخدام NextAuth signOut
+//       const { signOut } = await import("next-auth/react");
+//       await signOut({ 
+//         redirect: true,
+//         callbackUrl: "/" 
+//       });
+//     } else {
+//       // لمستخدمي API المحلي
+//       await fetch("https://flashicard.renix4tech.com/api/v1/auth/logout", {
+//         method: "POST",
+//         headers: {
+//           "Accept-Language": "ar",
+//           Authorization: `Bearer ${localToken}`,
+//         }
+//       }).catch(err => console.error("Logout API error:", err));
+      
+//       // مسح البيانات المحلية
+//       localStorage.removeItem("favorites");
+//       localStorage.removeItem("auth_token");
+      
+//       Swal.fire({
+//         icon: "success",
+//         title: t("logout"),
+//         text: t("logout_success"),
+//         timer: 1500,
+//         showConfirmButton: false,
+//       });
+
+//       setTimeout(() => {
+//         window.location.href = "/";
+//       }, 1500);
+//     }
+    
+//   } catch (err) {
+//     console.error("Logout error:", err);
+//     Swal.fire({
+//       icon: "error",
+//       title: t("error"),
+//       text: t("logout_error"),
+//       confirmButtonText: t("ok"),
+//     });
+//   }
+// };
 const handleLogout = async () => {
-  try {
-    setOpen(false);
-    // logout?.();
-    
-
-    const token = localStorage.getItem("auth_token");
-    
-
-    await fetch("https://flashicard.renix4tech.com/api/v1/auth/logout", {
-      method: "POST",
-      headers: {
-     	"Accept-Language": "ar",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      }
-    }).catch(err => console.error("Logout API error:", err));
-    
-    // مسح البيانات المحلية
-    localStorage.removeItem("favorites");
-    localStorage.removeItem("auth_token");
-    
-    Swal.fire({
-      icon: "success",
-      title: t("logout"),
-      text: t("logout_success"),
-      timer: 1500,
-      showConfirmButton: false,
-    });
-
-    // التوجيه للصفحة الرئيسية
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 1500);
-    
-  } catch (err) {
-    console.error("Logout error:", err);
-    Swal.fire({
-      icon: "error",
-      title: t("error"),
-      text: t("logout_error"),
-      confirmButtonText: t("ok"),
-    });
-  }
+  setOpen(false);
+  await logout();
 };
 
   const items = [

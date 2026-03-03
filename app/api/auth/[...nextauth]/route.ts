@@ -11,7 +11,8 @@ if (!process.env.NEXTAUTH_SECRET) {
   console.error("NEXTAUTH_SECRET is not set in environment variables");
 }
 
-const handler = NextAuth({
+// 👈 تعريف authOptions هنا
+export const authOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
@@ -30,27 +31,28 @@ const handler = NextAuth({
     signIn: "/login",
     error: "/login",
   },
-  debug: true, // process.env.NODE_ENV === "development",
+  debug: true,
   callbacks: {
-    async jwt({ token, account }) {
+    async jwt({ token, account }: { token: any; account: any }) {
       if (account) {
         token.provider = account.provider;
         token.provider_id = account.providerAccountId;
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: any; token: any }) {
       session.user = {
         name: token.name,
         email: token.email,
         image: token.picture ?? token.image ?? null,
         provider: token.provider as string,
-        // @ts-ignore
         provider_id: token.provider_id,
       };
       return session;
     },
   },
-});
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };

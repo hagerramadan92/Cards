@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/src/context/AuthContext";
 import { useLanguage } from "@/src/context/LanguageContext";
+import { signOut } from "next-auth/react";
 import {
 	User,
 	ShoppingBag,
@@ -141,51 +142,23 @@ export default function SideBar({ active }: SideBarProps) {
 		setShowDeleteModal(false);
 		Swal.fire(t('delete_account.success'), t('delete_account.success_message'), "success");
 	};
-
-	const handleLogout = async () => {
-	  try {
-		// setOpen(false);
-		// logout?.();
-		
-	
-		const token = localStorage.getItem("auth_token");
-		
-	
-		await fetch("https://flashicard.renix4tech.com/api/v1/auth/logout", {
-		  method: "POST",
-		  headers: {
-			"Accept-Language": "ar",
-			...(token ? { Authorization: `Bearer ${token}` } : {}),
-		  }
-		}).catch(err => console.error("Logout API error:", err));
-		
-		// مسح البيانات المحلية
-		localStorage.removeItem("favorites");
-		localStorage.removeItem("auth_token");
-		
-		Swal.fire({
-		  icon: "success",
-		  title: t("logout"),
-		  text: t("logout_success"),
-		  timer: 1500,
-		  showConfirmButton: false,
-		});
-	
-		// التوجيه للصفحة الرئيسية
-		setTimeout(() => {
-		  window.location.href = "/";
-		}, 1500);
-		
-	  } catch (err) {
-		console.error("Logout error:", err);
-		Swal.fire({
-		  icon: "error",
-		  title: t("error"),
-		  text: t("logout_error"),
-		  confirmButtonText: t("ok"),
-		});
-	  }
-	};
+const handleLogout = async () => {
+//   setOpen(false);
+  
+  const localToken = localStorage.getItem("auth_token");
+  const isGoogleUser = !localToken;
+  
+  if (isGoogleUser) {
+    // تسجيل خروج مباشر من جوجل
+    await signOut({ 
+      redirect: true,
+      callbackUrl: "/" 
+    });
+  } else {
+    // استخدام logout من Context للمستخدم المحلي
+    await logout();
+  }
+};
 
 	const items = [
 		{
