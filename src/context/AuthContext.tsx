@@ -141,78 +141,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 const logout = async () => {
   try {
     setIsLoggingOut(true);
-    
+
     const localToken = localStorage.getItem("auth_token");
-    const isGoogleUser = !localToken && status === "authenticated";
-    
-    if (isGoogleUser) {
-      console.log("تسجيل خروج من جوجل...");
-      
-      // ✅ الطريقة الصحيحة لتسجيل خروج من NextAuth
-      await nextAuthSignOut({ 
-        redirect: false
-      });
-      
-      // مسح كل شيء
-      localStorage.clear();
-      
-      // إعادة تعيين كل المتغيرات
-      setAuthToken(null);
-      setUserName(null);
-      setUserEmail(null);
-      setUserImage(null);
-      setFullName(null);
-      setFavoriteProducts([]);
-      
-      // إعادة تعيين المتغيرات المساعدة
-      socialLoginAttempted.current = false;
-      socialLoginInProgress.current = false;
-      
-      toast.success("تم تسجيل الخروج من جوجل بنجاح");
-      
-      // انتظار قليلاً ثم إعادة التوجيه
-      setTimeout(() => {
-        // استخدام window.location.replace بدلاً من href لمسح التاريخ
-        window.location.replace("/");
-      }, 500);
-      
-    } else {
-      // باقي الكود للمستخدم المحلي...
-      console.log("تسجيل خروج من المستخدم المحلي...");
-      
-      if (localToken) {
-        try {
-          await fetch("https://flashicard.renix4tech.com/api/v1/auth/logout", {
-            method: "POST",
-            headers: {
-              "Accept-Language": "ar",
-              Authorization: `Bearer ${localToken}`,
-            }
-          });
-        } catch (err) {
-          console.error("Logout API error:", err);
-        }
+    const isGoogleUser = session?.user?.provider === "google";
+
+    console.log("Logout started");
+
+    /* -------------------- LOGOUT FROM BACKEND (LOCAL USER) -------------------- */
+    if (localToken) {
+      try {
+        await fetch("https://flashicard.renix4tech.com/api/v1/auth/logout", {
+          method: "POST",
+          headers: {
+            "Accept-Language": "ar",
+            Authorization: `Bearer ${localToken}`,
+          },
+        });
+      } catch (err) {
+        console.error("Backend logout error:", err);
       }
-      
-      localStorage.clear();
-      
-      setAuthToken(null);
-      setUserName(null);
-      setUserEmail(null);
-      setUserImage(null);
-      setFullName(null);
-      setFavoriteProducts([]);
-      
-      socialLoginAttempted.current = false;
-      socialLoginInProgress.current = false;
-      
-      toast.success(t("logout_success") || "تم تسجيل الخروج بنجاح");
-      
-      setTimeout(() => {
-        window.location.replace("/");
-      }, 500);
     }
-    
+
+    /* -------------------- CLEAR LOCAL DATA -------------------- */
+
+    localStorage.clear();
+
+    setAuthToken(null);
+    setUserName(null);
+    setUserEmail(null);
+    setUserImage(null);
+    setFullName(null);
+    setFavoriteProducts([]);
+
+    socialLoginAttempted.current = true;
+    socialLoginInProgress.current = false;
+
+    /* -------------------- NEXTAUTH LOGOUT (GOOGLE) -------------------- */
+
+    if (isGoogleUser) {
+      console.log("Logging out from Google / NextAuth");
+
+      const data = await nextAuthSignOut({
+        redirect: false,
+        callbackUrl: "/",
+      });
+
+      toast.success("تم تسجيل الخروج بنجاح");
+
+      window.location.replace(data?.url || "/");
+      return;
+    }
+
+    /* -------------------- NORMAL USER REDIRECT -------------------- */
+
+    toast.success(t("logout_success") || "تم تسجيل الخروج بنجاح");
+
+    window.location.replace("/");
+
   } catch (err) {
     console.error("Logout error:", err);
     setIsLoggingOut(false);

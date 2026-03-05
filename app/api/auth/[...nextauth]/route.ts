@@ -23,6 +23,7 @@ export const authOptions = {
           prompt: "consent select_account",
         },
       },
+      
       checks: ["none"],
     }),
   ],
