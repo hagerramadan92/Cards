@@ -32,7 +32,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const socialLoginAttempted = useRef(false);
   const socialLoginInProgress = useRef(false);
   
-  // 👈 متغير جديد لمنع إعادة التسجيل بعد logout
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   /* ---------------------- LOAD LOCAL STORAGE + NEXTAUTH USER ---------------------- */
@@ -68,34 +67,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (image) localStorage.setItem("userImage", image);
       localStorage.setItem("fullName", full);
     }
-  }, [session, status, isLoggingOut]); // 👈 أضفنا isLoggingOut
+  }, [session, status, isLoggingOut]);
 
   /* ---------------------- SOCIAL LOGIN BACKEND SYNC ---------------------- */
   useEffect(() => {
-    // 👈 لا تعمل social login إذا كان في حالة logout
     if (isLoggingOut) return;
     if (socialLoginAttempted.current || socialLoginInProgress.current) return;
     if (status !== "authenticated" || !session?.user) return;
     if (authToken) return;
-  //       if (typeof window !== "undefined" && sessionStorage.getItem("google_login_in_progress")) {
-  //   console.log("Google login in progress, skipping social sync");
-  //   return;
-  // }
+
+    // تحقق من أن عملية تسجيل الدخول بدأت من جوجل
+    const googleInProgress = typeof window !== "undefined" && 
+      sessionStorage.getItem("google_login_in_progress");
+    
+    console.log("Google login in progress:", googleInProgress);
+
     const user = session.user as any;
 
-    if (user.provider_id) {
+    if (user.provider_id || googleInProgress) {
       socialLoginInProgress.current = true;
       
       const syncSocialLogin = async () => {
         const payload = {
           provider: (user.provider || "google").toLowerCase(),
-          provider_id: String(user.provider_id),
+          provider_id: String(user.provider_id || user.id || ""),
           email: user.email || "",
           name: user.name || "User",
         };
 
+        console.log("Syncing social login with payload:", payload);
+
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/social-login`, {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+          console.log("API URL:", apiUrl);
+
+          const res = await fetch(`${apiUrl}/auth/social-login`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -105,7 +111,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             body: JSON.stringify(payload),
           });
 
+          console.log("API Response Status:", res.status);
+
           const data = await res.json();
+          console.log("API Response Data:", data);
 
           if (res.ok && data.status && data.data?.token) {
             const token = data.data.token;
@@ -118,11 +127,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               data.data.user.name,
               data.data.user.email,
               data.data.user.image,
-              data.data.user.name
+              data.data.user.name,
+              true // showToast
             );
             
-            toast.success(data.message || t('login_success') || "تم تسجيل الدخول بنجاح");
-             sessionStorage.removeItem("google_login_in_progress");
+            sessionStorage.removeItem("google_login_in_progress");
+            socialLoginAttempted.current = true;
           } else {
             console.error("Social login failed:", data);
             socialLoginAttempted.current = true;
@@ -139,77 +149,84 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       syncSocialLogin();
     }
-  }, [session, status, authToken, language, isLoggingOut]); // 👈 أضفنا isLoggingOut
+  }, [session, status, authToken, language, isLoggingOut]);
 
   /* ---------------------- LOGOUT FUNCTION ---------------------- */
-const logout = async () => {
-  try {
-    setIsLoggingOut(true);
+  const logout = async () => {
+    try {
+      setIsLoggingOut(true);
 
-    const localToken = localStorage.getItem("auth_token");
-    const isGoogleUser = session?.user?.provider === "google";
+      const localToken = localStorage.getItem("auth_token");
+      const sessionData = session as any;
+      const isGoogleUser = sessionData?.user?.provider === "google" || sessionData?.provider === "google";
 
-    console.log("Logout started");
+      console.log("Logout started. Is Google user:", isGoogleUser);
 
-    /* -------------------- LOGOUT FROM BACKEND (LOCAL USER) -------------------- */
-    if (localToken) {
-      try {
-        await fetch("https://flashicard.renix4tech.com/api/v1/auth/logout", {
-          method: "POST",
-          headers: {
-            "Accept-Language": "ar",
-            Authorization: `Bearer ${localToken}`,
-          },
-        });
-      } catch (err) {
-        console.error("Backend logout error:", err);
+      /* -------------------- LOGOUT FROM BACKEND (LOCAL USER) -------------------- */
+      if (localToken) {
+        try {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+          console.log("Logging out from backend:", apiUrl);
+          
+          await fetch(`${apiUrl}/auth/logout`, {
+            method: "POST",
+            headers: {
+              "Accept-Language": "ar",
+              Authorization: `Bearer ${localToken}`,
+            },
+          });
+        } catch (err) {
+          console.error("Backend logout error:", err);
+        }
       }
+
+      /* -------------------- CLEAR LOCAL DATA -------------------- */
+      localStorage.clear();
+      sessionStorage.removeItem("google_login_in_progress");
+
+      setAuthToken(null);
+      setUserName(null);
+      setUserEmail(null);
+      setUserImage(null);
+      setFullName(null);
+      setFavoriteProducts([]);
+
+      socialLoginAttempted.current = false;
+      socialLoginInProgress.current = false;
+
+      /* -------------------- NEXTAUTH LOGOUT (GOOGLE) -------------------- */
+      if (isGoogleUser) {
+        console.log("Logging out from Google / NextAuth");
+        
+        try {
+          const data = await nextAuthSignOut({
+            redirect: false,
+            callbackUrl: "/",
+          });
+
+          toast.success("تم تسجيل الخروج بنجاح");
+          console.log("NextAuth signOut result:", data);
+          
+          window.location.href = data?.url || "/";
+        } catch (err) {
+          console.error("NextAuth signOut error:", err);
+          window.location.href = "/";
+        }
+        return;
+      }
+
+      /* -------------------- NORMAL USER REDIRECT -------------------- */
+      toast.success(t("logout_success") || "تم تسجيل الخروج بنجاح");
+      window.location.href = "/";
+
+    } catch (err) {
+      console.error("Logout error:", err);
+      setIsLoggingOut(false);
+      toast.error(t("logout_error") || "حدث خطأ أثناء تسجيل الخروج");
     }
+  };
 
-    /* -------------------- CLEAR LOCAL DATA -------------------- */
-
-    localStorage.clear();
-
-    setAuthToken(null);
-    setUserName(null);
-    setUserEmail(null);
-    setUserImage(null);
-    setFullName(null);
-    setFavoriteProducts([]);
-
-    socialLoginAttempted.current = true;
-    socialLoginInProgress.current = false;
-
-    /* -------------------- NEXTAUTH LOGOUT (GOOGLE) -------------------- */
-
-    if (isGoogleUser) {
-      console.log("Logging out from Google / NextAuth");
-
-      const data = await nextAuthSignOut({
-        redirect: false,
-        callbackUrl: "/",
-      });
-
-      toast.success("تم تسجيل الخروج بنجاح");
-
-      window.location.replace(data?.url || "/");
-      return;
-    }
-
-    /* -------------------- NORMAL USER REDIRECT -------------------- */
-
-    toast.success(t("logout_success") || "تم تسجيل الخروج بنجاح");
-
-    window.location.replace("/");
-
-  } catch (err) {
-    console.error("Logout error:", err);
-    setIsLoggingOut(false);
-    toast.error(t("logout_error") || "حدث خطأ أثناء تسجيل الخروج");
-  }
-};
-
-  /* ---------------------- باقي الكود كما هو ---------------------- */
+  /* ---------------------- FAVORITES ---------------------- */
   useEffect(() => {
     let cancelled = false;
 
@@ -224,7 +241,8 @@ const logout = async () => {
       }
 
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/favorites`, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        const res = await fetch(`${apiUrl}/favorites`, {
           headers: {
             Accept: "application/json",
             Authorization: `Bearer ${authToken}`,
@@ -235,12 +253,12 @@ const logout = async () => {
 
         if (!res.ok) {
           if (res.status === 401) {
-             setAuthToken(null);
-             localStorage.removeItem("auth_token");
-             setFavoriteProducts([]);
-             return; 
+            setAuthToken(null);
+            localStorage.removeItem("auth_token");
+            setFavoriteProducts([]);
+            return;
           }
-           throw new Error(`HTTP error! status: ${res.status}`);
+          throw new Error(`HTTP error! status: ${res.status}`);
         }
 
         const dataJson = await res.json();
@@ -287,6 +305,8 @@ const logout = async () => {
     fullNameParam?: string,
     showToast: boolean = false
   ) => {
+    console.log("Login called with token:", token ? "exists" : "null");
+    
     setAuthToken(token);
     setUserName(name);
     setUserEmail(email || null);
@@ -330,7 +350,7 @@ const logout = async () => {
     fullName?: string;
     message?: string;
   }, showToast: boolean = true) => {
-    login(data.token, data.name, data.email, data.image, data.fullName);
+    login(data.token, data.name, data.email, data.image, data.fullName, showToast);
     
     if (showToast) {
       toast.success(data.message || t('login_success') || "تم تسجيل الدخول بنجاح");
@@ -359,7 +379,7 @@ const logout = async () => {
         favoriteIdsSet,
         isLoading: status === "loading",
         isAuthenticated: !!authToken,
-        isLoggingOut, // 👈 نمرر حالة logout للمكونات الأخرى إذا احتجناها
+        isLoggingOut,
       }}
     >
       {children}

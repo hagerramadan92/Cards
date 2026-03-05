@@ -11,18 +11,34 @@ export default function LoginWithGoogle() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      // 👇 الأهم: منع أي تدخل من AuthContext مؤقتاً
+      console.log("Starting Google sign in...");
+      
+      // حفظ حالة أن تسجيل الدخول بدأ
       sessionStorage.setItem("google_login_in_progress", "true");
       
-      await signIn("google", { 
+      const result = await signIn("google", { 
         callbackUrl: "/",
-        redirect: true  // تأكدي إنه true
+        redirect: true
       });
+      
+      console.log("Sign in result:", result);
+      
+      // إذا كان هناك خطأ
+      if (result?.error) {
+        console.error("Sign in error:", result.error);
+        toast.error("فشل تسجيل الدخول: " + result.error);
+        sessionStorage.removeItem("google_login_in_progress");
+        setLoading(false);
+      }
+      
+      // ملاحظة: في حالة النجاح، سيتم إعادة التوجيه تلقائياً
+      // ولن يتم تنفيذ الكود بعد ذلك
+      
     } catch (error) {
       console.error("Google login error:", error);
       toast.error("فشل تسجيل الدخول بجوجل");
-      setLoading(false);
       sessionStorage.removeItem("google_login_in_progress");
+      setLoading(false);
     }
   };
 
