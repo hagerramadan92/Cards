@@ -24,7 +24,7 @@ export const authOptions = {
         },
       },
       
-      checks: ["none"],
+      // checks: ["none"],
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,

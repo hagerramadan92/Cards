@@ -77,10 +77,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (socialLoginAttempted.current || socialLoginInProgress.current) return;
     if (status !== "authenticated" || !session?.user) return;
     if (authToken) return;
-        if (typeof window !== "undefined" && sessionStorage.getItem("google_login_in_progress")) {
-    console.log("Google login in progress, skipping social sync");
-    return;
-  }
+  //       if (typeof window !== "undefined" && sessionStorage.getItem("google_login_in_progress")) {
+  //   console.log("Google login in progress, skipping social sync");
+  //   return;
+  // }
     const user = session.user as any;
 
     if (user.provider_id) {
