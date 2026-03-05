@@ -1,11 +1,13 @@
-// app/api/auth/[...nextauth]/route.ts
-import NextAuth from "next-auth";
+import NextAuth, { type NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
   debug: true,
   secret: process.env.NEXTAUTH_SECRET,
-  session: { strategy: "jwt" },
+
+  session: {
+    strategy: "jwt", // ✅ مش string
+  },
 
   providers: [
     GoogleProvider({
@@ -26,64 +28,58 @@ export const authOptions = {
   },
 
   callbacks: {
-    async jwt({ token, account, profile }: any) {
-      // أول مرة بس (وقت الرجوع من جوجل)
+    async jwt({ token, account, profile }) {
       if (account?.provider === "google") {
         token.provider = account.provider;
         token.provider_id = account.providerAccountId;
 
-        // بيانات من جوجل
         const payload = {
           provider: "google",
           provider_id: String(account.providerAccountId),
-          email: token.email || profile?.email || "",
-          name: token.name || profile?.name || "User",
+          email: (token.email as string) || (profile as any)?.email || "",
+          name: (token.name as string) || (profile as any)?.name || "User",
         };
 
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/social-login`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            body: JSON.stringify(payload),
-            // مهم: no-store عشان مايمسكش كاش في سيرفر نكست
-            cache: "no-store",
-          });
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/auth/social-login` ,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify(payload),
+              cache: "no-store",
+            }
+          );
 
           const data = await res.json();
 
           if (res.ok && data?.status && data?.data?.token) {
-            token.apiToken = data.data.token; // ✅ توكن الـ API بتاعك
-            token.apiUser = data.data.user;   // ✅ يوزر الـ API بتاعك
+            (token as any).apiToken = data.data.token;
+            (token as any).apiUser = data.data.user;
           } else {
-            // خليه واضح في اللوجز
-            token.apiToken = null;
-            token.apiUser = null;
-            token.apiError = data?.message || "social-login failed";
+            (token as any).apiToken = null;
+            (token as any).apiUser = null;
+            (token as any).apiError = data?.message || "social-login failed";
           }
         } catch (e: any) {
-          token.apiToken = null;
-          token.apiUser = null;
-          token.apiError = e?.message || "social-login error";
+          (token as any).apiToken = null;
+          (token as any).apiUser = null;
+          (token as any).apiError = e?.message || "social-login error";
         }
       }
-
       return token;
     },
 
-    async session({ session, token }: any) {
-      // Session من NextAuth + نزود عليها توكن الـ API
-      session.user = {
-        ...session.user,
-        provider: token.provider,
-        provider_id: token.provider_id,
-      };
+    async session({ session, token }) {
+      (session.user as any).provider = (token as any).provider;
+      (session.user as any).provider_id = (token as any).provider_id;
 
-      session.apiToken = token.apiToken ?? null;
-      session.apiUser = token.apiUser ?? null;
-      session.apiError = token.apiError ?? null;
+      (session as any).apiToken = (token as any).apiToken ?? null;
+      (session as any).apiUser = (token as any).apiUser ?? null;
+      (session as any).apiError = (token as any).apiError ?? null;
 
       return session;
     },
