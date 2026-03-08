@@ -34,9 +34,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
+  // ✅ متغير لتخزين دالة Firebase logout
+  const firebaseLogoutRef = useRef<(() => Promise<void>) | null>(null);
+
+  // ✅ دالة لتسجيل Firebase logout
+  const registerFirebaseLogout = (logoutFn: () => Promise<void>) => {
+    firebaseLogoutRef.current = logoutFn;
+  };
+
+  // التحقق من حالة logout عند تحميل الصفحة
+  useEffect(() => {
+    const logoutFlag = sessionStorage.getItem("force_logout");
+    if (logoutFlag === "true") {
+      setIsLoggingOut(true);
+      sessionStorage.removeItem("force_logout");
+    }
+  }, []);
+
   /* ---------------------- LOAD LOCAL STORAGE + NEXTAUTH USER ---------------------- */
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (isLoggingOut) return; 
 
     const storedToken = localStorage.getItem("auth_token");
     const storedName = localStorage.getItem("userName");
@@ -152,79 +170,94 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [session, status, authToken, language, isLoggingOut]);
 
   /* ---------------------- LOGOUT FUNCTION ---------------------- */
-  const logout = async () => {
-    try {
-      setIsLoggingOut(true);
+ /* ---------------------- LOGOUT FUNCTION ---------------------- */
+const logout = async () => {
+  try {
+    setIsLoggingOut(true);
+    
+    // منع أي عمليات خلفية
+    socialLoginAttempted.current = false;
+    socialLoginInProgress.current = false;
 
-      const localToken = localStorage.getItem("auth_token");
-      const sessionData = session as any;
-      const isGoogleUser = sessionData?.user?.provider === "google" || sessionData?.provider === "google";
+    console.log("🚀 Starting main logout process...");
 
-      console.log("Logout started. Is Google user:", isGoogleUser);
-
-      /* -------------------- LOGOUT FROM BACKEND (LOCAL USER) -------------------- */
-      if (localToken) {
-        try {
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-          console.log("Logging out from backend:", apiUrl);
-          
-          await fetch(`${apiUrl}/auth/logout`, {
-            method: "POST",
-            headers: {
-              "Accept-Language": "ar",
-              Authorization: `Bearer ${localToken}`,
-            },
-          });
-        } catch (err) {
-          console.error("Backend logout error:", err);
-        }
-      }
-
-      /* -------------------- CLEAR LOCAL DATA -------------------- */
-      localStorage.clear();
-      sessionStorage.removeItem("google_login_in_progress");
-
-      setAuthToken(null);
-      setUserName(null);
-      setUserEmail(null);
-      setUserImage(null);
-      setFullName(null);
-      setFavoriteProducts([]);
-
-      socialLoginAttempted.current = false;
-      socialLoginInProgress.current = false;
-
-      /* -------------------- NEXTAUTH LOGOUT (GOOGLE) -------------------- */
-      if (isGoogleUser) {
-        console.log("Logging out from Google / NextAuth");
+    /* -------------------- 1️⃣ CALL API LOGOUT FIRST -------------------- */
+    const localToken = localStorage.getItem("auth_token");
+    
+    if (localToken) {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        console.log("📡 Calling API logout...");
         
-        try {
-          const data = await nextAuthSignOut({
-            redirect: false,
-            callbackUrl: "/",
-          });
+        const response = await fetch(`${apiUrl}/auth/logout`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "Accept-Language": "ar",
+            Authorization: `Bearer ${localToken}`,
+          },
+        });
 
-          toast.success("تم تسجيل الخروج بنجاح");
-          console.log("NextAuth signOut result:", data);
-          
-          window.location.href = data?.url || "/";
-        } catch (err) {
-          console.error("NextAuth signOut error:", err);
-          window.location.href = "/";
+        if (response.ok) {
+          console.log("✅ API logout successful");
+        } else {
+          console.log("⚠️ API logout failed with status:", response.status);
         }
-        return;
+      } catch (apiError) {
+        console.error("❌ API logout error:", apiError);
+        // نستمر في عملية logout حتى لو فشل API
       }
-
-      /* -------------------- NORMAL USER REDIRECT -------------------- */
-      toast.success(t("logout_success") || "تم تسجيل الخروج بنجاح");
-      window.location.href = "/";
-
-    } catch (err) {
-      console.error("Logout error:", err);
-      setIsLoggingOut(false);
-      toast.error(t("logout_error") || "حدث خطأ أثناء تسجيل الخروج");
     }
-  };
+
+    /* -------------------- 2️⃣ THEN CALL FIREBASE LOGOUT -------------------- */
+    if (firebaseLogoutRef.current) {
+      console.log("🔥 Calling Firebase logout...");
+      try {
+        await firebaseLogoutRef.current();
+        console.log("✅ Firebase logout completed");
+      } catch (firebaseError) {
+        console.error("❌ Firebase logout error:", firebaseError);
+      }
+    }
+
+    /* -------------------- 3️⃣ CLEAR ALL STORAGE -------------------- */
+    console.log("🧹 Clearing all storage...");
+    
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // مسح الكوكيز
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+
+    console.log("✅ Storage cleared");
+
+    /* -------------------- 4️⃣ RESET ALL STATE -------------------- */
+    setAuthToken(null);
+    setUserName(null);
+    setUserEmail(null);
+    setUserImage(null);
+    setFullName(null);
+    setFavoriteProducts([]);
+
+    /* -------------------- 5️⃣ REDIRECT -------------------- */
+    toast.success("تم تسجيل الخروج بنجاح");
+    
+    // استخدام window.location.href مع force reload
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 100);
+
+  } catch (err) {
+    console.error("❌ Logout error:", err);
+    toast.error("حدث خطأ أثناء تسجيل الخروج");
+    setIsLoggingOut(false);
+  }
+};
 
   /* ---------------------- FAVORITES ---------------------- */
   useEffect(() => {
@@ -233,7 +266,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const fetchFavorites = async () => {
       setFavoriteProductsLoading(true);
 
-      if (!authToken) {
+      if (!authToken || isLoggingOut) {
         setFavoriteProducts([]);
         localStorage.removeItem("favorites");
         setFavoriteProductsLoading(false);
@@ -295,7 +328,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [authToken, language]);
+  }, [authToken, language, isLoggingOut]);
 
   const login = (
     token: string,
@@ -380,6 +413,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading: status === "loading",
         isAuthenticated: !!authToken,
         isLoggingOut,
+        registerFirebaseLogout, // ✅ تسجيل الدالة
       }}
     >
       {children}

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { signOut as nextAuthSignOut, useSession } from "next-auth/react";
 import {
   FaHeart,
   FaQuestionCircle,
@@ -10,32 +9,45 @@ import {
 import {
   FaArrowRightFromBracket,
   FaClipboardCheck,
-  FaMapLocationDot,
   FaUser,
 } from "react-icons/fa6";
-import Swal from "sweetalert2";
 import { useAuth } from "@/src/context/AuthContext";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLanguage } from "@/src/context/LanguageContext";
+import { useFirebaseAuth } from "@/src/context/FirebaseAuthContext"; // استيراد Firebase Auth
 
 export default function DropdownUser() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-const { logout } = useAuth();
-  const { fullName, userImage } = useAuth();
-  const { data: session } = useSession();
+  const { logout } = useAuth();
+  const { fullName, userImage, authToken } = useAuth();
   const { t } = useLanguage();
+  
+  // استخدام Firebase Auth للحصول على المستخدم الحالي
+  const { user: firebaseUser } = useFirebaseAuth();
 
-  const displayName = useMemo(
-    () => fullName || session?.user?.name || t("user"),
-    [fullName, session?.user?.name]
-  );
+  // تحديد الصورة المعروضة (الأولوية: userImage من AuthContext ثم Firebase ثم صورة افتراضية)
+  const displayImage = useMemo(() => {
+    if (userImage && userImage !== "null" && userImage !== "") {
+      return userImage;
+    }
+    if (firebaseUser?.photoURL) {
+      return firebaseUser.photoURL;
+    }
+    return "/images/de_user.webp";
+  }, [userImage, firebaseUser]);
 
-  const displayImage = useMemo(
-    () => userImage || session?.user?.image || "/images/de_user.webp",
-    [userImage, session?.user?.image]
-  );
+  // تحديد الاسم المعروض
+  const displayName = useMemo(() => {
+    if (fullName && fullName !== "null" && fullName !== "") {
+      return fullName;
+    }
+    if (firebaseUser?.displayName) {
+      return firebaseUser.displayName;
+    }
+    return t("user") || "مستخدم";
+  }, [fullName, firebaseUser, t]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -54,62 +66,10 @@ const { logout } = useAuth();
 
   const handleLinkClick = () => setOpen(false);
 
-// const handleLogout = async () => {
-//   try {
-//     setOpen(false);
-    
-//     // التحقق من نوع المصادقة
-//     const localToken = localStorage.getItem("auth_token");
-//     const isGoogleUser = !localToken; // أو أي طريقة أخرى للتحقق
-
-//     if (isGoogleUser) {
-//       // لمستخدمي جوجل - استخدام NextAuth signOut
-//       const { signOut } = await import("next-auth/react");
-//       await signOut({ 
-//         redirect: true,
-//         callbackUrl: "/" 
-//       });
-//     } else {
-//       // لمستخدمي API المحلي
-//       await fetch("https://flashicard.renix4tech.com/api/v1/auth/logout", {
-//         method: "POST",
-//         headers: {
-//           "Accept-Language": "ar",
-//           Authorization: `Bearer ${localToken}`,
-//         }
-//       }).catch(err => console.error("Logout API error:", err));
-      
-//       // مسح البيانات المحلية
-//       localStorage.removeItem("favorites");
-//       localStorage.removeItem("auth_token");
-      
-//       Swal.fire({
-//         icon: "success",
-//         title: t("logout"),
-//         text: t("logout_success"),
-//         timer: 1500,
-//         showConfirmButton: false,
-//       });
-
-//       setTimeout(() => {
-//         window.location.href = "/";
-//       }, 1500);
-//     }
-    
-//   } catch (err) {
-//     console.error("Logout error:", err);
-//     Swal.fire({
-//       icon: "error",
-//       title: t("error"),
-//       text: t("logout_error"),
-//       confirmButtonText: t("ok"),
-//     });
-//   }
-// };
-const handleLogout = async () => {
-  setOpen(false);
-  await logout();
-};
+  const handleLogout = async () => {
+    setOpen(false);
+    await logout();
+  };
 
   const items = [
     { href: "/myAccount", label: t("myAccount"), icon: <FaUser size={18} /> },
@@ -119,42 +79,37 @@ const handleLogout = async () => {
   ];
 
   return (
-    <div className="relative max-md:mt-[3px] " ref={menuRef}>
+    <div className="relative max-md:mt-[3px]" ref={menuRef}>
       {/* Trigger */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="group inline-flex items-center  md:gap-3 md:rounded-xl rounded-full border border-slate-200 bg-white/80 md:backdrop-blur md:px-3 md:py-2  md:hover:shadow-md md:hover:bg-white transition"
+        className="group inline-flex items-center md:gap-3 rounded-full border border-slate-200 bg-white/80 md:backdrop-blur md:px-3 md:py-2 md:hover:shadow-md md:hover:bg-white transition"
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        {/* avatar with ring + online dot */}
         <div className="relative">
-          <div className="absolute  -inset-1 rounded-full bg-gradient-to-tr from-slate-200 to-slate-100 opacity-0 group-hover:opacity-100 transition" />
-         <div className="relative w-[30px] h-[30px] md:w-[35px] md:h-[35px] flex items-center justify-center">
-                <Image
-                  src={displayImage}
-                  alt="User"
-                  fill
-                  sizes="(max-width: 768px) 30px, 35px"
-                  className="relative rounded-full object-cover"
-                  
-                />
-         </div>
-         
+          <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-slate-200 to-slate-100 opacity-0 group-hover:opacity-100 transition" />
+          <div className="relative w-[30px] h-[30px] md:w-[35px] md:h-[35px] flex items-center justify-center">
+            <Image
+              src={displayImage}
+              alt="User"
+              fill
+              sizes="(max-width: 768px) 30px, 35px"
+              className="relative rounded-full object-cover"
+              onError={(e) => {
+                // إذا فشل تحميل الصورة، استخدم الصورة الافتراضية
+                e.currentTarget.src = "/images/de_user.webp";
+              }}
+            />
+          </div>
           <span className="absolute -bottom-0.5 -left-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white" />
         </div>
-        
 
-        {/* name */}
         <div className="flex flex-col items-start leading-tight">
-          <span className="text-[14px] text-slate-500 font-semibold hidden md:block">{t("welcome2")} </span>
-          {/* <span className="text-sm font-extrabold text-slate-900 truncate max-w-[140px]">
-            {displayName}
-          </span> */}
+          <span className="text-[14px] text-slate-500 font-semibold hidden md:block">{t("welcome2")}</span>
         </div>
 
-        {/* chevron */}
         <motion.span
           animate={{ rotate: open ? 180 : 0 }}
           transition={{ duration: 0.2 }}
@@ -172,7 +127,7 @@ const handleLogout = async () => {
         </motion.span>
       </button>
 
-      {/* Dropdown */}
+      {/* Dropdown (باقي الكود كما هو) */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -188,26 +143,28 @@ const handleLogout = async () => {
                 <div className="flex items-center gap-1.5">
                   <div className="h-[50px] overflow-hidden w-[50px] rounded-full">
                     <Image
-                    src={displayImage}
-                    alt="User"
-                    width={54}
-                    height={44}
-                    className="object-cover w-full h-full"
-                  />
+                      src={displayImage}
+                      alt="User"
+                      width={54}
+                      height={44}
+                      className="object-cover w-full h-full"
+                      onError={(e) => {
+                        e.currentTarget.src = "/images/de_user.webp";
+                      }}
+                    />
                   </div>
-            
                   <div className="min-w-0">
                     <p className="text-sm font-extrabold text-slate-900 truncate">
                       {displayName}
                     </p>
                     <p className="text-xs text-slate-500 font-semibold truncate">
-                      { t("welcome")}
+                      {t("welcome")}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* links */}
+              {/* باقي المكون (الأزرار) كما هو */}
               <div className="p-2">
                 {items.map((it) => (
                   <Link
@@ -222,48 +179,22 @@ const handleLogout = async () => {
                       </span>
                       <span className="text-sm font-bold text-slate-800 whitespace-nowrap">{it.label}</span>
                     </div>
-
-                    {/* <span className="scale-x-[-1] hidden md:block  text-slate-300 group-hover:text-slate-400 transition">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                        <path
-                          d="M9 6l6 6-6 6"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </span> */}
                   </Link>
                 ))}
 
-                {/* divider */}
                 <div className="my-2 h-px bg-slate-200" />
 
-                {/* logout */}
                 <button
                   type="button"
                   onClick={handleLogout}
                   className="w-full flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5 hover:bg-rose-50 transition"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="h-9 w-9 rounded-2xl  border border-rose-200 bg-white flex items-center justify-center text-rose-600">
+                    <span className="h-9 w-9 rounded-2xl border border-rose-200 bg-white flex items-center justify-center text-rose-600">
                       <FaArrowRightFromBracket size={18} />
                     </span>
                     <span className="text-sm font-extrabold text-rose-700">{t("logout")}</span>
                   </div>
-
-                  {/* <span className="text-rose-300 scale-x-[-1] hidden md:block">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <path
-                        d="M9 6l6 6-6 6"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span> */}
                 </button>
               </div>
             </div>

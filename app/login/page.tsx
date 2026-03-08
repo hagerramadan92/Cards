@@ -17,6 +17,7 @@ import LoginWithEmail from "@/components/LoginEmail/LoginWithEmail";
 import LoginWithFaceBook from "@/components/login-facebook/LoginWithFaceBook";
 import LoginWithX from "@/components/login-facebook/LoginWithX";
 import { useLanguage } from "@/src/context/LanguageContext";
+import LoginWithGoogleFirebase from "@/components/LoginGoogle/LoginWithGoogleFirebase";
 
 export default function Page() {
 	const { t, language } = useLanguage();
@@ -113,12 +114,23 @@ export default function Page() {
 			setPending(false);
 		}
 	};
+	useEffect(() => {
+  // التحقق من وجود معامل logout في URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const logoutParam = urlParams.get('logout');
+  
+  if (logoutParam === 'success') {
+    // تأكيد أننا في حالة logout
+    sessionStorage.setItem('force_logout', 'true');
+  }
+}, []);
 
 	useEffect(() => {
 		if (status === "authenticated" && session?.user) {
 			localStorage.setItem("userEmail", session.user.email || "");
 			localStorage.setItem("userName", session.user.name || "");
 			localStorage.setItem("userImage", session.user.image || "");
+			
 			router.push("/");
 		}
 	}, [status, session, router]);
@@ -263,10 +275,11 @@ export default function Page() {
 						</div>
 						<div className=" ">
 							{/* Google */}
-							<LoginWithGoogle />
+							{/* <LoginWithGoogle /> */}
 							{/* <LoginWithEmail /> */}
 							{/* <LoginWithFaceBook /> */}
 							{/* <LoginWithX /> */}
+							<LoginWithGoogleFirebase />
 						</div>
 
 					</div>

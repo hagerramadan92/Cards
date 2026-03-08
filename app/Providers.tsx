@@ -9,6 +9,7 @@ import { SearchHistoryProvider } from "@/src/context/SearchHistoryContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useState } from "react";
+import { FirebaseAuthProvider } from "../src/context/FirebaseAuthContext";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -28,18 +29,19 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <SessionProvider basePath="/api/auth">
+    <SessionProvider>
       <QueryClientProvider client={queryClient}>
         <LanguageProvider>
-          <AuthProvider>
-            <CartProvider>
-              <SearchHistoryProvider> 
-                {children}
-              </SearchHistoryProvider>
-            </CartProvider>
+          <AuthProvider> 
+            <FirebaseAuthProvider> 
+              <CartProvider>
+                <SearchHistoryProvider> 
+                  {children}
+                </SearchHistoryProvider>
+              </CartProvider>
+            </FirebaseAuthProvider>
           </AuthProvider>
         </LanguageProvider>
-       
       </QueryClientProvider>
     </SessionProvider>
   );
