@@ -27,22 +27,50 @@ export default function DropdownUser() {
   
   const { user: firebaseUser } = useFirebaseAuth();
 
+  // ✅ قائمة الصور المحظورة (المواقع التي تمنع الـ hotlinking)
+  const blockedDomains = [
+    'static.vecteezy.com',
+    'vecteezy.com',
+    'placeholder.com',
+    'via.placeholder.com',
+    'placehold.co',
+    'picsum.photos',
+    'dummyimage.com'
+  ];
+
+  // ✅ التحقق إذا كانت الصورة من domain محظور
+  const isBlockedImage = (url: string) => {
+    return blockedDomains.some(domain => url.includes(domain));
+  };
+
+  // ✅ الحصول على الحرف الأول من الاسم
+  const getInitial = () => {
+    if (displayName && displayName !== "مستخدم" && displayName !== "User") {
+      return displayName.charAt(0).toUpperCase();
+    }
+    return "U";
+  };
+
   // تحديد الصورة المعروضة (الأولوية للصورة من الباك اند)
   const displayImage = useMemo(() => {
     console.log("🖼️ userImage from backend:", userImage);
     
     // 1. الأولوية الأولى: الصورة من الباك اند (userImage)
-    if (userImage && userImage !== "null" && userImage !== "" && userImage !== undefined) {
+    if (userImage && 
+        userImage !== "null" && 
+        userImage !== "" && 
+        userImage !== undefined &&
+        !isBlockedImage(userImage)) { // تجاهل الصور المحظورة
       return userImage;
     }
     
     // 2. إذا كان المستخدم مسجل دخول ولكن لا توجد صورة من الباك اند، استخدم صورة Firebase
-    if (firebaseUser?.photoURL) {
+    if (firebaseUser?.photoURL && !isBlockedImage(firebaseUser.photoURL)) {
       return firebaseUser.photoURL;
     }
     
-    // 3. الصورة الافتراضية
-    return "/images/de_user.webp";
+    // 3. لا صورة - هنستخدم الحرف الأول
+    return null;
   }, [userImage, firebaseUser]);
 
   // تحديد الاسم المعروض
@@ -76,17 +104,16 @@ export default function DropdownUser() {
     setImageError(false);
   }, [displayImage]);
 
-  // تحديث البروفايل كل فترة
+  // تحديث البروفايل كل فترة (كل 5 دقائق)
   useEffect(() => {
     if (authToken && !imageError) {
-      // جلب البروفايل كل 5 دقائق للتأكد من تحديث الصورة
       const interval = setInterval(() => {
         fetchUserProfile();
       }, 5 * 60 * 1000);
       
       return () => clearInterval(interval);
     }
-  }, [authToken, imageError]);
+  }, [authToken, imageError, fetchUserProfile]);
 
   const handleLinkClick = () => setOpen(false);
 
@@ -115,18 +142,27 @@ export default function DropdownUser() {
         <div className="relative">
           <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-slate-200 to-slate-100 opacity-0 group-hover:opacity-100 transition" />
           <div className="relative w-[30px] h-[30px] md:w-[35px] md:h-[35px] flex items-center justify-center">
-            <Image
-              key={displayImage}
-              src={imageError ? "/images/de_user.webp" : displayImage}
-              alt="User"
-              fill
-              sizes="(max-width: 768px) 30px, 35px"
-              className="relative rounded-full object-cover"
-              onError={() => {
-                console.log("❌ Image failed to load:", displayImage);
-                setImageError(true);
-              }}
-            />
+            {imageError || !displayImage ? (
+              // ✅ عرض الحرف الأول إذا فشلت الصورة أو لا توجد صورة
+              <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm md:text-base">
+                {getInitial()}
+              </div>
+            ) : (
+              <Image
+                key={displayImage}
+                src={displayImage}
+                alt={displayName}
+                fill
+                sizes="(max-width: 768px) 30px, 35px"
+                className="relative rounded-full object-cover"
+                onError={(e) => {
+                  console.log("❌ Image failed to load:", displayImage);
+                  setImageError(true);
+                  // منع المحاولات المتكررة
+                  e.currentTarget.src = "";
+                }}
+              />
+            )}
           </div>
           <span className="absolute -bottom-0.5 -left-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white" />
         </div>
@@ -167,14 +203,23 @@ export default function DropdownUser() {
               <div className="p-2 md:p-4 bg-slate-50 border-b border-slate-200">
                 <div className="flex items-center gap-1.5">
                   <div className="h-[50px] overflow-hidden w-[50px] rounded-full">
-                    <Image
-                      src={imageError ? "/images/de_user.webp" : displayImage}
-                      alt="User"
-                      width={54}
-                      height={44}
-                      className="object-cover w-full h-full"
-                      onError={() => setImageError(true)}
-                    />
+                    {imageError || !displayImage ? (
+                      <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl">
+                        {getInitial()}
+                      </div>
+                    ) : (
+                      <Image
+                        src={displayImage}
+                        alt={displayName}
+                        width={54}
+                        height={44}
+                        className="object-cover w-full h-full"
+                        onError={() => {
+                          console.log("❌ Dropdown image failed");
+                          setImageError(true);
+                        }}
+                      />
+                    )}
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-extrabold text-slate-900 truncate">
