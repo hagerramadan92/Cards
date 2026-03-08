@@ -34,10 +34,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // ✅ متغير لتخزين دالة Firebase logout
+  // متغير لتخزين دالة Firebase logout
   const firebaseLogoutRef = useRef<(() => Promise<void>) | null>(null);
 
-  // ✅ دالة لتسجيل Firebase logout
+  // دالة لتسجيل Firebase logout
   const registerFirebaseLogout = (logoutFn: () => Promise<void>) => {
     firebaseLogoutRef.current = logoutFn;
   };
@@ -111,6 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           provider_id: String(user.provider_id || user.id || ""),
           email: user.email || "",
           name: user.name || "User",
+          image: user.image || "", // إضافة الصورة
         };
 
         console.log("Syncing social login with payload:", payload);
@@ -144,7 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               token,
               data.data.user.name,
               data.data.user.email,
-              data.data.user.image,
+              data.data.user.image, // الصورة من الباك اند
               data.data.user.name,
               true // showToast
             );
@@ -169,95 +170,138 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session, status, authToken, language, isLoggingOut]);
 
-  /* ---------------------- LOGOUT FUNCTION ---------------------- */
- /* ---------------------- LOGOUT FUNCTION ---------------------- */
-const logout = async () => {
-  try {
-    setIsLoggingOut(true);
+  /* ---------------------- FETCH USER PROFILE ---------------------- */
+  const fetchUserProfile = async () => {
+    if (!authToken || isLoggingOut) return;
     
-    // منع أي عمليات خلفية
-    socialLoginAttempted.current = false;
-    socialLoginInProgress.current = false;
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!apiUrl) return;
+      
+      const response = await fetch(`${apiUrl}/auth/profile`, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${authToken}`,
+          "Accept-Language": language,
+        },
+      });
 
-    console.log("🚀 Starting main logout process...");
-
-    /* -------------------- 1️⃣ CALL API LOGOUT FIRST -------------------- */
-    const localToken = localStorage.getItem("auth_token");
-    
-    if (localToken) {
-      try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        console.log("📡 Calling API logout...");
+      const data = await response.json();
+      
+      if (response.ok && data.status && data.data) {
+        console.log("📸 Profile image from API:", data.data.image);
         
-        const response = await fetch(`${apiUrl}/auth/logout`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            "Accept-Language": "ar",
-            Authorization: `Bearer ${localToken}`,
-          },
-        });
+        // تحديث البيانات
+        setUserName(data.data.name || userName);
+        setUserEmail(data.data.email || userEmail);
+        setUserImage(data.data.image || userImage);
+        setFullName(data.data.name || fullName);
+        
+        // تحديث localStorage
+        if (data.data.name) localStorage.setItem("userName", data.data.name);
+        if (data.data.email) localStorage.setItem("userEmail", data.data.email);
+        if (data.data.image) localStorage.setItem("userImage", data.data.image);
+        if (data.data.name) localStorage.setItem("fullName", data.data.name);
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  };
 
-        if (response.ok) {
-          console.log("✅ API logout successful");
-        } else {
-          console.log("⚠️ API logout failed with status:", response.status);
+  // جلب البروفايل تلقائياً عند وجود token
+  useEffect(() => {
+    if (authToken && !isLoggingOut) {
+      fetchUserProfile();
+    }
+  }, [authToken]);
+
+  /* ---------------------- LOGOUT FUNCTION ---------------------- */
+  const logout = async () => {
+    try {
+      setIsLoggingOut(true);
+      
+      // منع أي عمليات خلفية
+      socialLoginAttempted.current = false;
+      socialLoginInProgress.current = false;
+
+      console.log("🚀 Starting main logout process...");
+
+      /* -------------------- 1️⃣ CALL API LOGOUT FIRST -------------------- */
+      const localToken = localStorage.getItem("auth_token");
+      
+      if (localToken) {
+        try {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+          console.log("📡 Calling API logout...");
+          
+          const response = await fetch(`${apiUrl}/auth/logout`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              "Accept-Language": "ar",
+              Authorization: `Bearer ${localToken}`,
+            },
+          });
+
+          if (response.ok) {
+            console.log("✅ API logout successful");
+          } else {
+            console.log("⚠️ API logout failed with status:", response.status);
+          }
+        } catch (apiError) {
+          console.error("❌ API logout error:", apiError);
         }
-      } catch (apiError) {
-        console.error("❌ API logout error:", apiError);
-        // نستمر في عملية logout حتى لو فشل API
       }
-    }
 
-    /* -------------------- 2️⃣ THEN CALL FIREBASE LOGOUT -------------------- */
-    if (firebaseLogoutRef.current) {
-      console.log("🔥 Calling Firebase logout...");
-      try {
-        await firebaseLogoutRef.current();
-        console.log("✅ Firebase logout completed");
-      } catch (firebaseError) {
-        console.error("❌ Firebase logout error:", firebaseError);
+      /* -------------------- 2️⃣ THEN CALL FIREBASE LOGOUT -------------------- */
+      if (firebaseLogoutRef.current) {
+        console.log("🔥 Calling Firebase logout...");
+        try {
+          await firebaseLogoutRef.current();
+          console.log("✅ Firebase logout completed");
+        } catch (firebaseError) {
+          console.error("❌ Firebase logout error:", firebaseError);
+        }
       }
+
+      /* -------------------- 3️⃣ CLEAR ALL STORAGE -------------------- */
+      console.log("🧹 Clearing all storage...");
+      
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // مسح الكوكيز
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+
+      console.log("✅ Storage cleared");
+
+      /* -------------------- 4️⃣ RESET ALL STATE -------------------- */
+      setAuthToken(null);
+      setUserName(null);
+      setUserEmail(null);
+      setUserImage(null);
+      setFullName(null);
+      setFavoriteProducts([]);
+
+      /* -------------------- 5️⃣ REDIRECT -------------------- */
+      toast.success("تم تسجيل الخروج بنجاح");
+      
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 100);
+
+    } catch (err) {
+      console.error("❌ Logout error:", err);
+      toast.error("حدث خطأ أثناء تسجيل الخروج");
+      setIsLoggingOut(false);
     }
-
-    /* -------------------- 3️⃣ CLEAR ALL STORAGE -------------------- */
-    console.log("🧹 Clearing all storage...");
-    
-    localStorage.clear();
-    sessionStorage.clear();
-    
-    // مسح الكوكيز
-    document.cookie.split(";").forEach((c) => {
-      document.cookie = c
-        .replace(/^ +/, "")
-        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-    });
-
-    console.log("✅ Storage cleared");
-
-    /* -------------------- 4️⃣ RESET ALL STATE -------------------- */
-    setAuthToken(null);
-    setUserName(null);
-    setUserEmail(null);
-    setUserImage(null);
-    setFullName(null);
-    setFavoriteProducts([]);
-
-    /* -------------------- 5️⃣ REDIRECT -------------------- */
-    toast.success("تم تسجيل الخروج بنجاح");
-    
-    // استخدام window.location.href مع force reload
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 100);
-
-  } catch (err) {
-    console.error("❌ Logout error:", err);
-    toast.error("حدث خطأ أثناء تسجيل الخروج");
-    setIsLoggingOut(false);
-  }
-};
+  };
 
   /* ---------------------- FAVORITES ---------------------- */
   useEffect(() => {
@@ -339,17 +383,25 @@ const logout = async () => {
     showToast: boolean = false
   ) => {
     console.log("Login called with token:", token ? "exists" : "null");
+    console.log("User image from backend:", image);
+    
+    // إذا كانت الصورة مجرد مسار وليس رابط كامل
+    let fullImageUrl = image;
+    if (image && !image.startsWith('http') && !image.startsWith('/')) {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      fullImageUrl = `${apiUrl}/storage/${image}`;
+    }
     
     setAuthToken(token);
     setUserName(name);
     setUserEmail(email || null);
-    setUserImage(image || "");
+    setUserImage(fullImageUrl || image || "");
     setFullName(fullNameParam || name);
 
     localStorage.setItem("auth_token", token);
     localStorage.setItem("userName", name);
     if (email) localStorage.setItem("userEmail", email);
-    if (image) localStorage.setItem("userImage", image);
+    if (fullImageUrl || image) localStorage.setItem("userImage", fullImageUrl || image || "");
     localStorage.setItem("fullName", fullNameParam || name);
     
     if (showToast) {
@@ -383,7 +435,16 @@ const logout = async () => {
     fullName?: string;
     message?: string;
   }, showToast: boolean = true) => {
-    login(data.token, data.name, data.email, data.image, data.fullName, showToast);
+    console.log("📸 Image from API in setAuthFromApi:", data.image);
+    
+    login(
+      data.token, 
+      data.name, 
+      data.email, 
+      data.image, 
+      data.fullName, 
+      showToast
+    );
     
     if (showToast) {
       toast.success(data.message || t('login_success') || "تم تسجيل الدخول بنجاح");
@@ -406,6 +467,7 @@ const logout = async () => {
         logout,
         updateUserImage,
         setAuthFromApi,
+        fetchUserProfile,
         favoriteProducts,
         favoriteProductsLoading,
         setFavoriteProducts,
@@ -413,7 +475,7 @@ const logout = async () => {
         isLoading: status === "loading",
         isAuthenticated: !!authToken,
         isLoggingOut,
-        registerFirebaseLogout, // ✅ تسجيل الدالة
+        registerFirebaseLogout,
       }}
     >
       {children}

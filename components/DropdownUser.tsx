@@ -15,26 +15,33 @@ import { useAuth } from "@/src/context/AuthContext";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLanguage } from "@/src/context/LanguageContext";
-import { useFirebaseAuth } from "@/src/context/FirebaseAuthContext"; // استيراد Firebase Auth
+import { useFirebaseAuth } from "@/src/context/FirebaseAuthContext";
 
 export default function DropdownUser() {
   const [open, setOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
-  const { fullName, userImage, authToken } = useAuth();
+  const { fullName, userImage, authToken, fetchUserProfile } = useAuth();
   const { t } = useLanguage();
   
-  // استخدام Firebase Auth للحصول على المستخدم الحالي
   const { user: firebaseUser } = useFirebaseAuth();
 
-  // تحديد الصورة المعروضة (الأولوية: userImage من AuthContext ثم Firebase ثم صورة افتراضية)
+  // تحديد الصورة المعروضة (الأولوية للصورة من الباك اند)
   const displayImage = useMemo(() => {
-    if (userImage && userImage !== "null" && userImage !== "") {
+    console.log("🖼️ userImage from backend:", userImage);
+    
+    // 1. الأولوية الأولى: الصورة من الباك اند (userImage)
+    if (userImage && userImage !== "null" && userImage !== "" && userImage !== undefined) {
       return userImage;
     }
+    
+    // 2. إذا كان المستخدم مسجل دخول ولكن لا توجد صورة من الباك اند، استخدم صورة Firebase
     if (firebaseUser?.photoURL) {
       return firebaseUser.photoURL;
     }
+    
+    // 3. الصورة الافتراضية
     return "/images/de_user.webp";
   }, [userImage, firebaseUser]);
 
@@ -64,6 +71,23 @@ export default function DropdownUser() {
     };
   }, []);
 
+  // إعادة تعيين حالة الخطأ عندما تتغير الصورة
+  useEffect(() => {
+    setImageError(false);
+  }, [displayImage]);
+
+  // تحديث البروفايل كل فترة
+  useEffect(() => {
+    if (authToken && !imageError) {
+      // جلب البروفايل كل 5 دقائق للتأكد من تحديث الصورة
+      const interval = setInterval(() => {
+        fetchUserProfile();
+      }, 5 * 60 * 1000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [authToken, imageError]);
+
   const handleLinkClick = () => setOpen(false);
 
   const handleLogout = async () => {
@@ -92,14 +116,15 @@ export default function DropdownUser() {
           <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-slate-200 to-slate-100 opacity-0 group-hover:opacity-100 transition" />
           <div className="relative w-[30px] h-[30px] md:w-[35px] md:h-[35px] flex items-center justify-center">
             <Image
-              src={displayImage}
+              key={displayImage}
+              src={imageError ? "/images/de_user.webp" : displayImage}
               alt="User"
               fill
               sizes="(max-width: 768px) 30px, 35px"
               className="relative rounded-full object-cover"
-              onError={(e) => {
-                // إذا فشل تحميل الصورة، استخدم الصورة الافتراضية
-                e.currentTarget.src = "/images/de_user.webp";
+              onError={() => {
+                console.log("❌ Image failed to load:", displayImage);
+                setImageError(true);
               }}
             />
           </div>
@@ -127,7 +152,7 @@ export default function DropdownUser() {
         </motion.span>
       </button>
 
-      {/* Dropdown (باقي الكود كما هو) */}
+      {/* Dropdown */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -143,14 +168,12 @@ export default function DropdownUser() {
                 <div className="flex items-center gap-1.5">
                   <div className="h-[50px] overflow-hidden w-[50px] rounded-full">
                     <Image
-                      src={displayImage}
+                      src={imageError ? "/images/de_user.webp" : displayImage}
                       alt="User"
                       width={54}
                       height={44}
                       className="object-cover w-full h-full"
-                      onError={(e) => {
-                        e.currentTarget.src = "/images/de_user.webp";
-                      }}
+                      onError={() => setImageError(true)}
                     />
                   </div>
                   <div className="min-w-0">
@@ -164,7 +187,7 @@ export default function DropdownUser() {
                 </div>
               </div>
 
-              {/* باقي المكون (الأزرار) كما هو */}
+              {/* القائمة */}
               <div className="p-2">
                 {items.map((it) => (
                   <Link

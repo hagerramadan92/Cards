@@ -10,96 +10,101 @@ import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function LoginWithGoogleFirebase() {
   const [loading, setLoading] = useState(false);
-  const { setAuthFromApi, isLoggingOut } = useAuth(); // ✅ إضافة isLoggingOut
+  const { setAuthFromApi, isLoggingOut, fetchUserProfile } = useAuth();
   const { language } = useLanguage();
 
- const handleGoogleSignIn = async () => {
-  if (isLoggingOut) {
-    toast.error("جاري تسجيل الخروج، الرجاء الانتظار");
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const provider = new GoogleAuthProvider();
-    provider.addScope("email");
-    provider.addScope("profile");
-    provider.setCustomParameters({ prompt: "select_account" });
-
-    console.log("1️⃣ Opening Google popup...");
-    const result = await signInWithPopup(auth, provider);
-    console.log("2️⃣ Google popup success:", result.user.email);
-    
-    const user = result.user;
-    
-    const payload = {
-      provider: "google",
-      provider_id: user.uid,
-      email: user.email || "",
-      name: user.displayName || "User",
-    };
-
-    console.log("3️⃣ API URL:", process.env.NEXT_PUBLIC_API_URL);
-    console.log("4️⃣ Sending to API:", payload);
-
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    
-    // تحقق من وجود API URL
-    if (!apiUrl) {
-      console.error("❌ NEXT_PUBLIC_API_URL is not defined!");
-      toast.error("خطأ في إعدادات الخادم");
+  const handleGoogleSignIn = async () => {
+    if (isLoggingOut) {
+      toast.error("جاري تسجيل الخروج، الرجاء الانتظار");
       return;
     }
-    
-    const response = await fetch(`${apiUrl}/auth/social-login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        "Accept-Language": language || "ar",
-      },
-      body: JSON.stringify(payload),
-    });
 
-    console.log("5️⃣ API Response status:", response.status);
-    
-    const data = await response.json();
-    console.log("6️⃣ API Response data:", data);
+    setLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.addScope("email");
+      provider.addScope("profile");
+      provider.setCustomParameters({ prompt: "select_account" });
 
-    if (response.ok && data.status && data.data?.token) {
-      console.log("7️⃣ Login successful!");
-      setAuthFromApi({
-        token: data.data.token,
-        name: data.data.user?.name || user.displayName || "مستخدم",
-        email: data.data.user?.email || user.email || "",
-        image: data.data.user?.image || user.photoURL || "",
-        fullName: data.data.user?.name || user.displayName || "مستخدم"
-      }, true);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
       
-      sessionStorage.removeItem("google_login_in_progress");
-      window.location.href = "/";
-    } else {
-      console.error("❌ Social login failed:", data);
-      toast.error(data?.message || "فشل تسجيل الدخول");
+      // إرسال الصورة مع البيانات للباك اند
+      const payload = {
+        provider: "google",
+        provider_id: user.uid,
+        email: user.email || "",
+        name: user.displayName || "User",
+        image: user.photoURL || "",
+      };
+
+      console.log("Sending to social-login API with image:", payload.image);
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      
+      if (!apiUrl) {
+        console.error("❌ NEXT_PUBLIC_API_URL is not defined!");
+        toast.error("خطأ في إعدادات الخادم");
+        return;
+      }
+      
+      const response = await fetch(`${apiUrl}/auth/social-login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "Accept-Language": language || "ar",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      console.log("API Response:", data);
+
+      if (response.ok && data.status && data.data?.token) {
+        // استخدم البيانات من الباك اند
+        setAuthFromApi(
+          {
+            token: data.data.token,
+            name: data.data.user?.name || user.displayName || "مستخدم",
+            email: data.data.user?.email || user.email || "",
+            image: data.data.user?.image || user.photoURL || "",
+            fullName: data.data.user?.name || user.displayName || "مستخدم",
+          },
+          true,
+        );
+        
+        sessionStorage.removeItem("google_login_in_progress");
+        
+        // جلب البروفايل بعد تسجيل الدخول مباشرة
+        await fetchUserProfile();
+        
+        window.location.href = "/";
+      } else {
+        console.error("Social login failed:", data);
+        toast.error(data?.message || "فشل تسجيل الدخول");
+      }
+      
+    } catch (error: any) {
+      console.error("Google sign-in error:", error);
+      
+      switch (error.code) {
+        case "auth/popup-closed-by-user":
+          toast.error("تم إغلاق نافذة التسجيل");
+          break;
+        case "auth/cancelled-popup-request":
+          toast.error("تم إلغاء طلب التسجيل");
+          break;
+        case "auth/unauthorized-domain":
+          toast.error("هذا النطاق غير مصرح به في Firebase");
+          break;
+        default:
+          toast.error("فشل تسجيل الدخول بجوجل");
+      }
+    } finally {
+      setLoading(false);
     }
-    
-  } catch (error: any) {
-    console.error("❌ Google sign-in error:", error);
-    console.error("Error code:", error.code);
-    console.error("Error message:", error.message);
-    
-    // رسائل خطأ أكثر تحديداً
-    if (error.code === 'auth/unauthorized-domain') {
-      toast.error("هذا النطاق غير مصرح به في Firebase");
-    } else if (error.code === 'auth/popup-blocked') {
-      toast.error("تم حظر النافذة المنبثقة، سمح للنوافذ المنبثقة");
-    } else {
-      toast.error("فشل تسجيل الدخول بجوجل");
-    }
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <button
