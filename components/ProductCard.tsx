@@ -390,8 +390,7 @@ export default function ProductCard({
          
               <div className='flex items-center gap-1 flex-wrap'>
                 <PriceComponent start price_text={product?.final_price} />
-                
-                {/* ✅ عرض السعر القديم مشطوب فقط إذا كان هناك خصم */}
+       
                 {product.has_discount && (
                   <span className="text-sm text-gray-400 line-through">
                     {product.price} 

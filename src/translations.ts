@@ -882,7 +882,7 @@ export const translations = {
   "payment.select_method_desc": "اختر الطريقة الأنسب لإتمام الطلب.",
   "payment.complete_purchase": "إتمام الشراء",
   "payment.processing": "جاري المعالجة...",
-  "payment.redirecting": "جاري توجيهك...",
+  "payment.redirecting": "تم انشاء طلب ...",
   
   // Order Summary
   "order.summary.title": "ملخص الطلب",
@@ -937,7 +937,7 @@ export const translations = {
   "payment.select_method_desc": "Choose the most suitable method to complete your order.",
   "payment.complete_purchase": "Complete Purchase",
   "payment.processing": "Processing...",
-  "payment.redirecting": "Redirecting...",
+  "payment.redirecting": "create order ...",
   
   // Order Summary
   "order.summary.title": "Order Summary",
