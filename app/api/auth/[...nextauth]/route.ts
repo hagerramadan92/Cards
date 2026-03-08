@@ -2,7 +2,7 @@ import NextAuth, { type NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
 export const authOptions: NextAuthOptions = {
-  debug: process.env.NODE_ENV === "development", // شغل الـ debug في التطوير فقط
+  debug: process.env.NODE_ENV === "development",
   secret: process.env.NEXTAUTH_SECRET,
 
   session: {
@@ -27,18 +27,6 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
     error: "/login",
-  },
-
-  cookies: {
-    sessionToken: {
-      name: `next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production", // مهم جداً للإنتاج
-      },
-    },
   },
 
   callbacks: {

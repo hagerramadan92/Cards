@@ -258,7 +258,8 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 					headers: { 
 						"Content-Type": "application/json",
 						"Accept": "application/json",
-						"Accept-Language": language
+						"Accept-Language": language,
+						"Authorization": `Bearer ${(localStorage.getItem("auth_token") || "")}`,
 					},
 					body: JSON.stringify({
 						first_name: form.first_name.trim(),
