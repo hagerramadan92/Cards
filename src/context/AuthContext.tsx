@@ -7,8 +7,9 @@ import React, {
   useMemo,
   useState,
   useRef,
+  useCallback,
 } from "react";
-import { useSession, signOut as nextAuthSignOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { ProductI } from "../../Types/ProductsI";
 import { useLanguage } from "./LanguageContext";
 import toast from "react-hot-toast";
@@ -36,6 +37,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // متغير لتخزين دالة Firebase logout
   const firebaseLogoutRef = useRef<(() => Promise<void>) | null>(null);
+
+  // ✅ قائمة الصور المحظورة
+  const blockedDomains = [
+    'static.vecteezy.com',
+    'vecteezy.com',
+    'placeholder.com',
+    'via.placeholder.com',
+    'placehold.co',
+    'picsum.photos',
+    'dummyimage.com'
+  ];
+
+  // ✅ التحقق إذا كانت الصورة من domain محظور
+  const isBlockedImage = useCallback((url: string) => {
+    return blockedDomains.some(domain => url.includes(domain));
+  }, []);
 
   // دالة لتسجيل Firebase logout
   const registerFirebaseLogout = (logoutFn: () => Promise<void>) => {
@@ -65,14 +82,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (storedToken && storedToken !== authToken) setAuthToken(storedToken);
     if (storedName && storedName !== userName) setUserName(storedName);
     if (storedEmail && storedEmail !== userEmail) setUserEmail(storedEmail);
-    if (storedImage && storedImage !== userImage) setUserImage(storedImage);
+    if (storedImage && storedImage !== userImage && !isBlockedImage(storedImage)) {
+      setUserImage(storedImage);
+    }
     if (storedFullName && storedFullName !== fullName) setFullName(storedFullName);
 
     // تحديث من NextAuth session فقط إذا لم يكن في حالة logout
     if (!isLoggingOut && status === "authenticated" && session?.user) {
       const name = session.user.name || storedName || "مستخدم";
       const email = session.user.email || storedEmail || null;
-      const image = session.user.image || storedImage || "";
+      const image = (!isBlockedImage(session.user.image || "") ? session.user.image : null) || storedImage || "";
       const full = storedFullName || session.user.name || "مستخدم";
 
       if (name !== userName) setUserName(name);
@@ -85,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (image) localStorage.setItem("userImage", image);
       localStorage.setItem("fullName", full);
     }
-  }, [session, status, isLoggingOut]);
+  }, [session, status, isLoggingOut, isBlockedImage]);
 
   /* ---------------------- SOCIAL LOGIN BACKEND SYNC ---------------------- */
   useEffect(() => {
@@ -94,7 +113,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (status !== "authenticated" || !session?.user) return;
     if (authToken) return;
 
-    // تحقق من أن عملية تسجيل الدخول بدأت من جوجل
     const googleInProgress = typeof window !== "undefined" && 
       sessionStorage.getItem("google_login_in_progress");
     
@@ -111,7 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           provider_id: String(user.provider_id || user.id || ""),
           email: user.email || "",
           name: user.name || "User",
-          image: user.image || "", // إضافة الصورة
+          image: !isBlockedImage(user.image || "") ? user.image : "", // إضافة الصورة مع التحقق
         };
 
         console.log("Syncing social login with payload:", payload);
@@ -168,10 +186,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       syncSocialLogin();
     }
-  }, [session, status, authToken, language, isLoggingOut]);
+  }, [session, status, authToken, language, isLoggingOut, t, isBlockedImage]);
 
   /* ---------------------- FETCH USER PROFILE ---------------------- */
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     if (!authToken || isLoggingOut) return;
     
     try {
@@ -195,26 +213,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // تحديث البيانات
         setUserName(data.data.name || userName);
         setUserEmail(data.data.email || userEmail);
-        setUserImage(data.data.image || userImage);
+        
+        // التحقق من الصورة قبل التحديث
+        if (data.data.image && !isBlockedImage(data.data.image)) {
+          setUserImage(data.data.image);
+          localStorage.setItem("userImage", data.data.image);
+        }
+        
         setFullName(data.data.name || fullName);
         
         // تحديث localStorage
         if (data.data.name) localStorage.setItem("userName", data.data.name);
         if (data.data.email) localStorage.setItem("userEmail", data.data.email);
-        if (data.data.image) localStorage.setItem("userImage", data.data.image);
         if (data.data.name) localStorage.setItem("fullName", data.data.name);
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
     }
-  };
+  }, [authToken, language, isLoggingOut, userName, userEmail, fullName, isBlockedImage]);
 
   // جلب البروفايل تلقائياً عند وجود token
   useEffect(() => {
     if (authToken && !isLoggingOut) {
       fetchUserProfile();
     }
-  }, [authToken]);
+  }, [authToken, fetchUserProfile, isLoggingOut]);
 
   /* ---------------------- LOGOUT FUNCTION ---------------------- */
   const logout = async () => {
@@ -385,23 +408,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log("Login called with token:", token ? "exists" : "null");
     console.log("User image from backend:", image);
     
-    // إذا كانت الصورة مجرد مسار وليس رابط كامل
-    let fullImageUrl = image;
-    if (image && !image.startsWith('http') && !image.startsWith('/')) {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      fullImageUrl = `${apiUrl}/storage/${image}`;
+    // تجاهل الصور المحظورة
+    let finalImage = "";
+    if (image && !isBlockedImage(image)) {
+      // إذا كانت الصورة مجرد مسار وليس رابط كامل
+      if (!image.startsWith('http') && !image.startsWith('/')) {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        finalImage = `${apiUrl}/storage/${image}`;
+      } else {
+        finalImage = image;
+      }
     }
     
     setAuthToken(token);
     setUserName(name);
     setUserEmail(email || null);
-    setUserImage(fullImageUrl || image || "");
+    setUserImage(finalImage || "");
     setFullName(fullNameParam || name);
 
     localStorage.setItem("auth_token", token);
     localStorage.setItem("userName", name);
     if (email) localStorage.setItem("userEmail", email);
-    if (fullImageUrl || image) localStorage.setItem("userImage", fullImageUrl || image || "");
+    if (finalImage) localStorage.setItem("userImage", finalImage);
     localStorage.setItem("fullName", fullNameParam || name);
     
     if (showToast) {
@@ -410,19 +438,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateUserImage = (imageUrl: string) => {
-    setUserImage(imageUrl);
-    localStorage.setItem("userImage", imageUrl);
-    
-    const session = localStorage.getItem("userSession");
-    if (session) {
-      try {
-        const sessionData = JSON.parse(session);
-        if (sessionData.user) {
-          sessionData.user.image = imageUrl;
-          localStorage.setItem("userSession", JSON.stringify(sessionData));
+    if (!isBlockedImage(imageUrl)) {
+      setUserImage(imageUrl);
+      localStorage.setItem("userImage", imageUrl);
+      
+      const session = localStorage.getItem("userSession");
+      if (session) {
+        try {
+          const sessionData = JSON.parse(session);
+          if (sessionData.user) {
+            sessionData.user.image = imageUrl;
+            localStorage.setItem("userSession", JSON.stringify(sessionData));
+          }
+        } catch (error) {
+          console.error("Error updating session:", error);
         }
-      } catch (error) {
-        console.error("Error updating session:", error);
       }
     }
   };
