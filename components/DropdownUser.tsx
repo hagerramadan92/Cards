@@ -202,7 +202,7 @@ export default function DropdownUser() {
               {/* header */}
               <div className="p-2 md:p-4 bg-slate-50 border-b border-slate-200">
                 <div className="flex items-center gap-1.5">
-                  <div className="h-[50px] overflow-hidden w-[50px] rounded-full">
+                  {/* <div className="h-[50px] overflow-hidden w-[50px] rounded-full">
                     {imageError || !displayImage ? (
                       <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl">
                         {getInitial()}
@@ -220,7 +220,7 @@ export default function DropdownUser() {
                         }}
                       />
                     )}
-                  </div>
+                  </div> */}
                   <div className="min-w-0">
                     <p className="text-sm font-extrabold text-slate-900 truncate">
                       {displayName}
