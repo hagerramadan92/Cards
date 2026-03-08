@@ -35,7 +35,7 @@ export default function LoginWithGoogleFirebase() {
         provider_id: user.uid,
         email: user.email || "",
         name: user.displayName || "User",
-        image: user.photoURL || "",
+        image: user.photoURL || "", // إضافة الصورة
       };
 
       console.log("Sending to social-login API with image:", payload.image);
@@ -63,16 +63,13 @@ export default function LoginWithGoogleFirebase() {
 
       if (response.ok && data.status && data.data?.token) {
         // استخدم البيانات من الباك اند
-        setAuthFromApi(
-          {
-            token: data.data.token,
-            name: data.data.user?.name || user.displayName || "مستخدم",
-            email: data.data.user?.email || user.email || "",
-            image: data.data.user?.image || user.photoURL || "",
-            fullName: data.data.user?.name || user.displayName || "مستخدم",
-          },
-          true,
-        );
+        setAuthFromApi({
+          token: data.data.token,
+          name: data.data.user?.name || user.displayName || "مستخدم",
+          email: data.data.user?.email || user.email || "",
+          image: data.data.user?.image || user.photoURL || "",
+          fullName: data.data.user?.name || user.displayName || "مستخدم"
+        }, true);
         
         sessionStorage.removeItem("google_login_in_progress");
         
