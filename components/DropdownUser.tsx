@@ -141,7 +141,7 @@ export default function DropdownUser() {
       >
         <div className="relative">
           <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-slate-200 to-slate-100 opacity-0 group-hover:opacity-100 transition" />
-          <div className="relative w-[30px] h-[30px] md:w-[35px] md:h-[35px] flex items-center justify-center">
+          {/* <div className="relative w-[30px] h-[30px] md:w-[35px] md:h-[35px] flex items-center justify-center">
             {imageError || !displayImage ? (
               // ✅ عرض الحرف الأول إذا فشلت الصورة أو لا توجد صورة
               <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm md:text-base">
@@ -163,7 +163,7 @@ export default function DropdownUser() {
                 }}
               />
             )}
-          </div>
+          </div> */}
           <span className="absolute -bottom-0.5 -left-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white" />
         </div>
 
