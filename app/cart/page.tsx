@@ -536,7 +536,7 @@ ${errors.join("\n")}
 
 														<div className="mt-2 flex flex-wrap items-center gap-2">
 															<span className="text-sm font-extrabold text-slate-900">
-																{money(n(item._unit))} <span className="text-xs">{t('currency')}</span>
+																{item.product.final_price} <span className="text-xs">{t('currency')}</span>
 															</span>
 
 															{item._real?.discount && n(item._real?.original_unit_after_options) > n(item._unit) && (

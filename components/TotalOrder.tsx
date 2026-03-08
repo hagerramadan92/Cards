@@ -61,7 +61,7 @@ export default function TotalOrder({ response }: { response?: any }) {
 			</div>
 
 			{/* رسوم الشحن */}
-			<div className="flex items-center justify-between">
+			{/* <div className="flex items-center justify-between">
 				<p className="text-sm">إجمالي رسوم الشحن</p>
 				{shippingFree ? (
 					<p className="font-semibold text-green-600">مجانا</p>
@@ -71,7 +71,7 @@ export default function TotalOrder({ response }: { response?: any }) {
 						<span className="text-sm ms-1">ريال</span>
 					</p>
 				)}
-			</div>
+			</div> */}
 
 
 

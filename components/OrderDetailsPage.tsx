@@ -127,12 +127,7 @@ function statusUi(status: string) {
         badge: "bg-blue-50 text-blue-800 border-blue-200",
         icon: <Clock3 className="w-4 h-4" />,
       };
-    case "delivering":
-      return {
-        label: "جاري التوصيل",
-        badge: "bg-indigo-50 text-indigo-800 border-indigo-200",
-        icon: <Truck className="w-4 h-4" />,
-      };
+   
     case "completed":
       return {
         label: "تم التوصيل",
@@ -257,7 +252,7 @@ export default function OrderDetailsPage({ orderId }: Props) {
 
   const [currentStep, setCurrentStep] = useState(0);
 
-  const steps = ["تم الطلب", "جاري التنفيذ", "جاري التوصيل", "تم التوصيل"];
+  const steps = ["تم الطلب", "جاري التنفيذ"];
   const statusSteps: Record<string, number> = {
     pending: 0,
     processing: 1,

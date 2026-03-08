@@ -31,8 +31,6 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async jwt({ token, account, profile }) {
-      console.log("JWT Callback - Account:", account?.provider);
-      
       if (account?.provider === "google") {
         token.provider = account.provider;
         token.provider_id = account.providerAccountId;
@@ -44,12 +42,9 @@ export const authOptions: NextAuthOptions = {
           name: (token.name as string) || (profile as any)?.name || "User",
         };
 
-        console.log("Sending to API:", payload);
-
         try {
           const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-          console.log("API URL:", apiUrl);
-
+          
           const res = await fetch(`${apiUrl}/auth/social-login`, {
             method: "POST",
             headers: {
@@ -60,43 +55,25 @@ export const authOptions: NextAuthOptions = {
             cache: "no-store",
           });
 
-          console.log("API Response Status:", res.status);
-
-          if (!res.ok) {
-            const errorText = await res.text();
-            console.error("API Error Response:", errorText);
-            token.apiError = `HTTP ${res.status}: ${errorText}`;
-          } else {
+          if (res.ok) {
             const data = await res.json();
-            console.log("API Success Response:", data);
-
             if (data?.status && data?.data?.token) {
               (token as any).apiToken = data.data.token;
               (token as any).apiUser = data.data.user;
-            } else {
-              token.apiError = data?.message || "social-login failed";
             }
           }
         } catch (e: any) {
           console.error("API Call Error:", e.message);
-          (token as any).apiToken = null;
-          (token as any).apiUser = null;
-          (token as any).apiError = e?.message || "social-login error";
         }
       }
       return token;
     },
 
     async session({ session, token }) {
-      console.log("Session Callback - User:", session.user?.email);
-      
       (session.user as any).provider = (token as any).provider;
       (session.user as any).provider_id = (token as any).provider_id;
-
       (session as any).apiToken = (token as any).apiToken ?? null;
       (session as any).apiUser = (token as any).apiUser ?? null;
-      (session as any).apiError = (token as any).apiError ?? null;
-
       return session;
     },
   },
