@@ -7,6 +7,9 @@ import notImage from "@/public/images/not.jpg"; // استيراد الصورة �
 interface ImgProp {
 	image: string;
 	alt?: string;
+	width?: number;
+	height?: number;
+	className?: string;
 }
 
 export default function ImageComponent({ image, alt = "صورة المنتج" }: ImgProp) {

@@ -21,6 +21,7 @@ import { motion } from "framer-motion";
 import { Save, CheckCircle, Warning, Info, Refresh } from "@mui/icons-material";
 import { StickerFormSkeleton } from "../../components/skeletons/HomeSkeletons";
 import { useLanguage } from "@/src/context/LanguageContext";
+import ImageComponent from "@/components/ImageComponent";
 
 interface StickerFormProps {
 	cartItemId?: number;
@@ -516,8 +517,8 @@ ${errors.join("\n")}
 											<div className="flex gap-3 w-full md:w-fit">
 												<div className="w-24 h-20 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200">
 													<Link href={`/product/${item.product.id}`}>
-														<Image
-															src={item.product.image || "/images/not.jpg"}
+														<ImageComponent
+															image={item.product.image||"/images/not.jpg"}
 															alt={item.product.name}
 															width={96}
 															height={80}
@@ -536,7 +537,8 @@ ${errors.join("\n")}
 
 														<div className="mt-2 flex flex-wrap items-center gap-2">
 															<span className="text-sm font-extrabold text-slate-900">
-																{item.product.final_price} <span className="text-xs">{t('currency')}</span>
+																{item.product.final_price} 
+																{/* <span className="text-xs">{t('currency')}</span> */}
 															</span>
 
 															{item._real?.discount && n(item._real?.original_unit_after_options) > n(item._unit) && (
