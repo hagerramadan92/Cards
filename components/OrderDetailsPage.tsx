@@ -50,12 +50,21 @@ type ParsedOption =
   | { name?: string; value?: string }
   | string;
 
+// New type for serial items
+interface SerialItem {
+  id: string;
+  serial_number: string;
+  serial_code: string;
+  voucher_code: string;
+}
+
 interface OrderItem {
   product_name: string;
   quantity: number;
   price: string; // "0.0000"
   options: string | ParsedOption[]; // API returns string JSON like "[]"
   product: ProductI;
+  serials?: SerialItem[]; // Add serials array to OrderItem
 }
 
 interface OrderData {
@@ -113,52 +122,53 @@ function calcItemSubtotal(price: any, qty: any) {
   return p * q;
 }
 
-function statusUi(status: string) {
+// Update statusUi to use translation keys
+function getStatusUi(status: string) {
   switch (status) {
     case "pending":
       return {
-        label: "تم استلام الطلب",
+        labelKey: "order_pending",
         badge: "bg-amber-50 text-amber-800 border-amber-200",
         icon: <Clock3 className="w-4 h-4" />,
       };
     case "processing":
       return {
-        label: "جاري التنفيذ",
+        labelKey: "order_processing",
         badge: "bg-blue-50 text-blue-800 border-blue-200",
         icon: <Clock3 className="w-4 h-4" />,
       };
-   
     case "completed":
       return {
-        label: "تم التوصيل",
+        labelKey: "order_completed",
         badge: "bg-emerald-50 text-emerald-800 border-emerald-200",
         icon: <CheckCircle2 className="w-4 h-4" />,
       };
     case "cancelled":
       return {
-        label: "ملغي",
+        labelKey: "order_cancelled",
         badge: "bg-rose-50 text-rose-800 border-rose-200",
         icon: <Ban className="w-4 h-4" />,
       };
     default:
       return {
-        label: status,
+        labelKey: status,
         badge: "bg-slate-50 text-slate-800 border-slate-200",
         icon: <Clock3 className="w-4 h-4" />,
       };
   }
 }
 
-function paymentUi(status_payment: string) {
+// Update paymentUi to use translation keys
+function getPaymentUi(status_payment: string) {
   switch (status_payment) {
     case "paid":
-      return { label: "تم الدفع", cls: "bg-emerald-50 text-emerald-800 border-emerald-200" };
+      return { labelKey: "payment_paid", cls: "bg-emerald-50 text-emerald-800 border-emerald-200" };
     case "pending":
-      return { label: "في انتظار الدفع", cls: "bg-amber-50 text-amber-800 border-amber-200" };
+      return { labelKey: "payment_pending", cls: "bg-amber-50 text-amber-800 border-amber-200" };
     case "failed":
-      return { label: "فشل الدفع", cls: "bg-rose-50 text-rose-800 border-rose-200" };
+      return { labelKey: "payment_failed", cls: "bg-rose-50 text-rose-800 border-rose-200" };
     default:
-      return { label: status_payment, cls: "bg-slate-50 text-slate-800 border-slate-200" };
+      return { labelKey: "payment_" + status_payment, cls: "bg-slate-50 text-slate-800 border-slate-200" };
   }
 }
 
@@ -247,12 +257,12 @@ function OrderDetailsSkeleton() {
 export default function OrderDetailsPage({ orderId }: Props) {
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
-  const { language } = useLanguage();
+  const { t, language } = useLanguage();
   const [apiToken, setApiToken] = useState<string | null>(null);
 
   const [currentStep, setCurrentStep] = useState(0);
 
-  const steps = ["تم الطلب", "جاري التنفيذ"];
+  const steps = [t("order_placed"), t("order_processing")];
   const statusSteps: Record<string, number> = {
     pending: 0,
     processing: 1,
@@ -297,6 +307,7 @@ export default function OrderDetailsPage({ orderId }: Props) {
           orderData.items = (orderData.items || []).map((item: any) => ({
             ...item,
             options: safeJsonParseOptions(item.options),
+            // serials is already an array from the API response
           }));
 
           setOrder(orderData);
@@ -312,24 +323,85 @@ export default function OrderDetailsPage({ orderId }: Props) {
     };
 
     fetchOrderDetails();
-  }, [apiToken, orderId, baseUrl]);
+  }, [apiToken, orderId, baseUrl, language]);
 
-  const status = useMemo(() => statusUi(order?.status || ""), [order?.status]);
-  const pay = useMemo(() => paymentUi(order?.status_payment || ""), [order?.status_payment]);
+  // Use useMemo with t function to get translated status
+  const status = useMemo(() => {
+    const ui = getStatusUi(order?.status || "");
+    return {
+      ...ui,
+      label: t(ui.labelKey as any) // Use type assertion if needed
+    };
+  }, [order?.status, t]);
+
+  const pay = useMemo(() => {
+    const ui = getPaymentUi(order?.status_payment || "");
+    return {
+      ...ui,
+      label: t(ui.labelKey as any) // Use type assertion if needed
+    };
+  }, [order?.status_payment, t]);
+
+  // Format date based on language
+  const formatDate = (dateString: string) => {
+    try {
+      if (!dateString) return "—";
+      const date = new Date(dateString);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return dateString;
+      }
+
+      if (language === 'ar') {
+        // Arabic date formatting
+        const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+        const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+        
+        const dayIndex = date.getDay();
+        const monthIndex = date.getMonth();
+        const day = date.getDate();
+        const year = date.getFullYear();
+        const hours = date.getHours();
+        const minutes = date.getMinutes();
+        
+        // Format time in Arabic
+        const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        const ampm = hours >= 12 ? 'م' : 'ص';
+        
+        return `${days[dayIndex]}، ${day} ${months[monthIndex]} ${year} - ${timeStr} ${ampm}`;
+      } else {
+        // English date formatting
+        const options: Intl.DateTimeFormatOptions = {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        };
+        
+        return date.toLocaleDateString('en-US', options);
+      }
+    } catch (error) {
+      return dateString || "—";
+    }
+  };
 
   if (loading) return <OrderDetailsSkeleton />;
 
   if (!order) {
     return (
-      <div className="min-h-[55vh] flex items-center justify-center px-4" dir="rtl">
+      <div className="min-h-[55vh] flex items-center justify-center px-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
         <div className="max-w-md w-full rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex items-start gap-3">
             <div className="w-11 h-11 rounded-2xl bg-rose-50 flex items-center justify-center">
               <FiAlertTriangle className="text-rose-600" size={22} />
             </div>
             <div>
-              <p className="font-extrabold text-slate-900">لم يتم العثور على الطلب</p>
-              <p className="text-sm text-slate-600 mt-1">تأكد من رقم الطلب أو حاول مرة أخرى.</p>
+              <p className="font-extrabold text-slate-900">{t("order_not_found")}</p>
+              <p className="text-sm text-slate-600 mt-1">{t("check_order_number")}</p>
             </div>
           </div>
         </div>
@@ -339,96 +411,62 @@ export default function OrderDetailsPage({ orderId }: Props) {
 
   const addressText = buildFullAddress(order.full_address, order.shipping_address);
 
-  // Format date
-  const formatDate = (dateString: string) => {
-    try {
-      if (!dateString) return order.created_at || "—";
-      const date = new Date(dateString);
-      
-      // Check if date is valid
-      if (isNaN(date.getTime())) {
-        return order.created_at || dateString;
-      }
-      
-      const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-      const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-      
-      const dayIndex = date.getDay();
-      const monthIndex = date.getMonth();
-      const day = date.getDate();
-      const year = date.getFullYear();
-      
-      // Validate indices
-      if (dayIndex < 0 || dayIndex >= days.length || monthIndex < 0 || monthIndex >= months.length) {
-        return order.created_at || dateString;
-      }
-      
-      const dayName = days[dayIndex];
-      const month = months[monthIndex];
-      
-      return `${dayName}، ${day} ${month} ${year}`;
-    } catch (error) {
-      return order.created_at || dateString || "—";
-    }
-  };
-
   return (
-    <div className="mb-16 w-full space-y-6" dir="rtl">
+    <div className="mb-16 w-full space-y-6" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Header Card */}
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex items-start justify-between mb-6">
           <div>
             <h3 className="text-2xl font-bold text-slate-900 mb-1">
-              Order #{order.order_number}
+              {t("order_number")} #{order.order_number}
             </h3>
             <p className="text-sm text-slate-500">
               {formatDate(order.created_at)}
             </p>
           </div>
-        
         </div>
 
         {/* Order Info Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-slate-200">
           <div>
-            <p className="text-xs text-slate-500 mb-1">Order Number</p>
+            <p className="text-xs text-slate-500 mb-1">{t("order_number")}</p>
             <p className="text-sm font-semibold text-slate-900">{order.order_number}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-500 mb-1">Payment Method</p>
+            <p className="text-xs text-slate-500 mb-1">{t("payment_method")}</p>
             <p className="text-sm font-semibold text-slate-900">{order.payment_method_label || "—"}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-500 mb-1">Total Rewards</p>
+            <p className="text-xs text-slate-500 mb-1">{t("total_rewards")}</p>
             <p className="text-sm font-semibold text-slate-900">
-              {order.total_rewards ? `${order.total_rewards} Points` : "—"}
+              {order.total_rewards ? `${order.total_rewards} ${t("points")}` : "—"}
             </p>
           </div>
           <div>
-            <p className="text-xs text-slate-500 mb-1">Status</p>
+            <p className="text-xs text-slate-500 mb-1">{t("status")}</p>
             <span className={`inline-flex items-center rounded-lg border px-3 py-1 text-xs font-semibold ${pay.cls}`}>
               {pay.label}
             </span>
           </div>
           {order.management_fees && (
             <div>
-              <p className="text-xs text-slate-500 mb-1">Management Fees</p>
+              <p className="text-xs text-slate-500 mb-1">{t("management_fees")}</p>
               <p className="text-sm font-semibold text-slate-900">{order.management_fees} EGP</p>
             </div>
           )}
           <div>
-            <p className="text-xs text-slate-500 mb-1">Total Paid</p>
+            <p className="text-xs text-slate-500 mb-1">{t("total_paid")}</p>
             <p className="text-sm font-bold text-pro-max">{order.formatted_total}</p>
           </div>
           {order.order_rating && (
             <div>
-              <p className="text-xs text-slate-500 mb-1">Order Rating</p>
+              <p className="text-xs text-slate-500 mb-1">{t("order_rating")}</p>
               <p className="text-sm font-semibold text-slate-900">{order.order_rating}/5</p>
             </div>
           )}
           {order.payment_method_label?.toLowerCase().includes('fawry') && order.payment_reference && (
             <div>
-              <p className="text-xs text-slate-500 mb-1">Fawry Reference</p>
+              <p className="text-xs text-slate-500 mb-1">{t("fawry_reference")}</p>
               <p className="text-sm font-semibold text-slate-900">{order.payment_reference}</p>
             </div>
           )}
@@ -437,7 +475,7 @@ export default function OrderDetailsPage({ orderId }: Props) {
         {/* Cancel banner */}
         {order.status === "cancelled" && (
           <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3">
-            <p className="text-sm font-semibold text-rose-800">تم إلغاء هذا الطلب</p>
+            <p className="text-sm font-semibold text-rose-800">{t("order_cancelled")}</p>
           </div>
         )}
       </div>
@@ -445,26 +483,56 @@ export default function OrderDetailsPage({ orderId }: Props) {
       {/* Items Card */}
       {order.items && order.items.length > 0 && (
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h4 className="text-lg font-semibold text-slate-900 mb-4">محتويات الطلب</h4>
+          <h4 className="text-lg font-semibold text-slate-900 mb-4">{t("order_items")}</h4>
           <div className="space-y-3">
             {order.items.map((item, index) => {
               const subtotal = calcItemSubtotal(item.price, item.quantity);
               const img = item?.product?.image || "/images/noimg.png";
               
               return (
-                <div key={index} className="flex gap-4 p-4 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors">
-                  <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
-                    <Image src={img} alt={item.product_name} fill className="object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-900 mb-1 line-clamp-2">{item.product_name}</p>
-                    <div className="flex items-center gap-3 text-xs text-slate-600">
-                      <span>الكمية: {item.quantity}</span>
-                      {subtotal !== null && (
-                        <span>الإجمالي: {subtotal.toFixed(2)}</span>
-                      )}
+                <div key={index} className="flex flex-col gap-4 p-4 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors">
+                  {/* Main item info */}
+                  <div className="flex gap-4">
+                    <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
+                      <Image src={img} alt={item.product_name} fill className="object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 mb-1 line-clamp-2">{item.product_name}</p>
+                      <div className="flex items-center gap-3 text-xs text-slate-600">
+                        <span>{t("quantity")}: {item.quantity}</span>
+                        {subtotal !== null && (
+                          <span>{t("total")}: {subtotal.toFixed(2)}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
+
+                  {/* Serials section - Display if serials exist */}
+                  {item.serials && item.serials.length > 0 && (
+                    <div className="mt-2 mr-4 border-r-2 border-pro-max/20 pr-4">
+                      <h5 className="text-xs font-semibold text-slate-700 mb-2">{t("serial_numbers_and_codes")}</h5>
+                      <div className="space-y-2">
+                        {item.serials.map((serial, serialIndex) => (
+                          <div key={serial.id || serialIndex} className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <span className="text-slate-500">{t("serial_number")}:</span>
+                                <span className="mr-2 font-mono text-slate-800 font-medium">{serial.serial_number}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-500">{t("serial_code")}:</span>
+                                <span className="mr-2 font-mono text-slate-800 font-medium">{serial.serial_code || ''}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-500">{t("voucher_code")}:</span>
+                                <span className="mr-2 font-mono text-slate-800 font-medium">{serial.voucher_code || ''}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -474,21 +542,21 @@ export default function OrderDetailsPage({ orderId }: Props) {
 
       {/* Summary */}
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h4 className="text-lg font-semibold text-slate-900 mb-4">ملخص الطلب</h4>
+        <h4 className="text-lg font-semibold text-slate-900 mb-4">{t("order_summary")}</h4>
         <div className="space-y-3">
           <div className="flex justify-between text-sm">
-            <span className="text-slate-600">المجموع</span>
+            <span className="text-slate-600">{t("subtotal")}</span>
             <span className="font-semibold text-slate-900">{order.total_amount}</span>
           </div>
           {order.management_fees && (
             <div className="flex justify-between text-sm">
-              <span className="text-slate-600">رسوم الإدارة</span>
+              <span className="text-slate-600">{t("management_fees")}</span>
               <span className="font-semibold text-slate-900">{order.management_fees} EGP</span>
             </div>
           )}
           <div className="h-px bg-slate-200"></div>
           <div className="flex justify-between">
-            <span className="text-base font-semibold text-slate-900">الإجمالي النهائي</span>
+            <span className="text-base font-semibold text-slate-900">{t("final_total")}</span>
             <span className="text-lg font-bold text-pro-max">{order.formatted_total}</span>
           </div>
         </div>

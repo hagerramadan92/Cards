@@ -186,11 +186,11 @@ export default function Page() {
 					</div>
 				</div>
 				
-				<Link href="/tutorials">
+				
 					<button className="w-full mt-2 px-4 py-2.5 bg-orange-50 hover:bg-orange-100 rounded-lg text-pro-max font-semibold text-sm transition-colors">
 						{t('tutorials.watch_videos')}
 					</button>
-				</Link>
+			
 			</div>
 		</div>
 	);

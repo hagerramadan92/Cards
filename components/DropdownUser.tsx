@@ -198,7 +198,7 @@ export default function DropdownUser() {
               </>
             )}
           </div>
-          <span className="absolute -bottom-0.5 -left-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white" />
+          <span className="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white" />
         </div>
 
         <div className="flex flex-col items-start leading-tight">
