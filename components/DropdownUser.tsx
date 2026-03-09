@@ -158,7 +158,7 @@ export default function DropdownUser() {
           <div className="relative w-[30px] h-[30px] md:w-[35px] md:h-[35px] flex items-center justify-center">
             {imageError || !displayImage ? (
               // ✅ عرض الحرف الأول إذا فشلت الصورة أو لا توجد صورة
-              <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm md:text-base">
+              <div className="w-full h-full rounded-full bg-gradient-to-br from-orange-500 to-yellow-600 flex items-center justify-center text-white font-bold text-sm md:text-base">
                 {getInitial()}
               </div>
             ) : (
@@ -238,7 +238,7 @@ export default function DropdownUser() {
                 <div className="flex items-center gap-1.5">
                   <div className="h-[50px] w-[50px] rounded-full overflow-hidden relative">
                     {imageError || !displayImage ? (
-                      <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl">
+                      <div className="w-full h-full rounded-full bg-gradient-to-br from-orange-500 to-yellow-600 flex items-center justify-center text-white font-bold text-xl">
                         {getInitial()}
                       </div>
                     ) : (
