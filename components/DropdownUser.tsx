@@ -139,7 +139,7 @@ export default function DropdownUser() {
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        {/* <div className="relative">
+        <div className="relative">
           <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-slate-200 to-slate-100 opacity-0 group-hover:opacity-100 transition" />
           <div className="relative w-[30px] h-[30px] md:w-[35px] md:h-[35px] flex items-center justify-center">
             {imageError || !displayImage ? (
@@ -155,6 +155,7 @@ export default function DropdownUser() {
                 fill
                 sizes="(max-width: 768px) 30px, 35px"
                 className="relative rounded-full object-cover"
+                  referrerPolicy="no-referrer"
                 onError={(e) => {
                   console.log("❌ Image failed to load:", displayImage);
                   setImageError(true);
@@ -165,7 +166,7 @@ export default function DropdownUser() {
             )}
           </div>
           <span className="absolute -bottom-0.5 -left-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white" />
-        </div> */}
+        </div>
 
         <div className="flex flex-col items-start leading-tight">
           <span className="text-[14px] text-slate-500 font-semibold hidden md:block">{t("welcome2")}</span>
@@ -202,7 +203,7 @@ export default function DropdownUser() {
               {/* header */}
               <div className="p-2 md:p-4 bg-slate-50 border-b border-slate-200">
                 <div className="flex items-center gap-1.5">
-                  {/* <div className="h-[50px] overflow-hidden w-[50px] rounded-full">
+                  <div className="h-[50px] overflow-hidden w-[50px] rounded-full">
                     {imageError || !displayImage ? (
                       <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl">
                         {getInitial()}
@@ -214,13 +215,14 @@ export default function DropdownUser() {
                         width={54}
                         height={44}
                         className="object-cover w-full h-full"
+                          referrerPolicy="no-referrer"
                         onError={() => {
                           console.log("❌ Dropdown image failed");
                           setImageError(true);
                         }}
                       />
                     )}
-                  </div> */}
+                  </div>
                   <div className="min-w-0">
                     <p className="text-sm font-extrabold text-slate-900 truncate">
                       {displayName}
