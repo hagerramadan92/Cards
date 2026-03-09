@@ -322,7 +322,7 @@ export default function ProductCard({
               >
                 <div className="w-8 h-8 rounded-full flex items-center justify-center shadow-lg ring-1 ring-black/5 bg-white text-pro">
                   {isAdding ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <IoMdCart className="w-5 h-5" />
                   )}

@@ -198,7 +198,7 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 		if (!data.message.trim()) newErrors.message = t('ticket.field.message_required');
 
 		return newErrors;
-	}, [phonePatterns, t]);
+	}, [t]);
 
 	const inputBase =
 		"w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-slate-900 placeholder:text-slate-400 outline-none transition";

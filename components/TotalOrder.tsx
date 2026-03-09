@@ -86,7 +86,7 @@ export default function TotalOrder({ response }: { response?: any }) {
 
 				<p className="text-[15px] text-pro font-bold">
 					{grandTotal}
-					<span> ريال</span>
+					{/* <span> ريال</span> */}
 				</p>
 			</div>
 		</div>

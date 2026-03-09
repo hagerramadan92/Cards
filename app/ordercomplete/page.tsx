@@ -190,13 +190,13 @@ function SummaryBlock({ summary, t }: { summary: CheckoutSummaryV1 | null; t: an
 		<div className="my-2 gap-2 flex flex-col">
 			<div className="flex text-sm items-center justify-between text-black">
 				<p className="font-semibold">{t('summary_total').replace('{count}', String(n(summary.items_length))).replace('{items}', t('items'))}</p>
-				<p>
+				{/* <p>
 					{money(n(summary.subtotal))}
 					<span className="text-sm ms-1">{t('currency')}</span>
-				</p>
+				</p> */}
 			</div>
 
-			<div className="flex items-center justify-between">
+			{/* <div className="flex items-center justify-between">
 				<p className="text-sm">{t('shipping_fee')}</p>
 				{shippingFree ? (
 					<p className="font-semibold text-green-600">{t('free')}</p>
@@ -205,7 +205,7 @@ function SummaryBlock({ summary, t }: { summary: CheckoutSummaryV1 | null; t: an
 						{money(n(summary.shipping_fee))} <span className="text-sm ms-1">{t('currency')}</span>
 					</p>
 				)}
-			</div>
+			</div> */}
 
 			{hasCoupon && (
 				<div className="flex items-center justify-between text-sm">
@@ -217,21 +217,21 @@ function SummaryBlock({ summary, t }: { summary: CheckoutSummaryV1 | null; t: an
 				</div>
 			)}
 
-			<div className="flex items-center justify-between text-sm">
+			{/* <div className="flex items-center justify-between text-sm">
 				<p>{t('vat_rate')} ({Math.round(n(summary.tax_rate) * 100) || 15}%)</p>
 				<p className="font-semibold">
 					{money(n(summary.tax_amount))}
 					<span className="text-sm ms-1">{t('currency')}</span>
 				</p>
-			</div>
+			</div> */}
 
-			<div className="flex items-center justify-between text-sm">
+			{/* <div className="flex items-center justify-between text-sm">
 				<p>{t('total_excl_vat')}</p>
 				<p className="font-semibold">
 					{money(n(summary.total_without_tax))}
 					<span className="text-sm ms-1">{t('currency')}</span>
 				</p>
-			</div>
+			</div> */}
 
 			<div className="flex items-center justify-between pb-3 pt-2">
 				<div className="flex gap-1 items-center">
@@ -239,7 +239,7 @@ function SummaryBlock({ summary, t }: { summary: CheckoutSummaryV1 | null; t: an
 				</div>
 				<p className="text-[15px] text-pro font-bold">
 					{money(n(summary.total_with_shipping))}
-					<span> {t('currency')}</span>
+					{/* <span> {t('currency')}</span> */}
 				</p>
 			</div>
 		</div>
@@ -252,7 +252,7 @@ export default function OrderCompletePage() {
 	const searchParams = useSearchParams();
 	const orderId = searchParams.get("orderId"); // ✅ from url
 
-	const steps = [t('order_status_pending'), t('order_status_processing'), "جاري التوصيل", t('order_status_completed')];
+	const steps = [t('order_status_pending'), t('order_status_processing'), t('order_status_completed')];
 	const statusSteps: Record<string, number> = {
 		pending: 0,
 		processing: 1,
@@ -557,7 +557,8 @@ export default function OrderCompletePage() {
 													<p className="text-sm text-slate-600 font-semibold mt-1">{t('quantity')}: {qty}</p>
 
 													<p className="mt-2 font-extrabold text-slate-900">
-														{money(n(it._line))} <span className="text-xs text-slate-600">{t('currency')}</span>
+														{p.final_price} 
+														{/* <span className="text-xs text-slate-600">{t('currency')}</span> */}
 													</p>
 
 													{opts.length > 0 && (
