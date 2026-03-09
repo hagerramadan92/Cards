@@ -31,7 +31,7 @@ if (typeof window !== 'undefined') {
     // محاولة تعطيل persistence
     auth.setPersistence = null;
   } catch (e) {
-    console.log("Could not disable persistence");
+  
   }
   
   analytics = getAnalytics(app);
@@ -46,12 +46,12 @@ export const clearFirebaseSession = async () => {
     const results: {[key: string]: boolean} = {};
     
     try {
-      console.log("🔍 Clearing Firebase session...");
+    
       
       // 1. تسجيل الخروج من Firebase (الأهم)
       try {
         await signOut(auth);
-        console.log("✅ Firebase signOut successful");
+      
         results.signOut = true;
       } catch (error) {
         console.error("❌ Firebase signOut error:", error);
@@ -101,7 +101,7 @@ export const clearFirebaseSession = async () => {
         });
       }, 0);
       
-      console.log("✅ Firebase session cleared");
+   
       return true;
       
     } catch (error) {
@@ -118,7 +118,7 @@ export const resetFirebase = () => {
     try {
       // محاولة إعادة تعيين الحالة
       auth.currentUser = null;
-      console.log("✅ Firebase reset");
+    
     } catch (error) {
       console.error("❌ Firebase reset error:", error);
     }

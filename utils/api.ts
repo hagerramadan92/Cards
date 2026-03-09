@@ -15,7 +15,7 @@ export const fetchWithLanguage = async (
     ...options.headers,
   };
 
-  console.log(`API Request to ${endpoint} with Accept-Language: ${language}`);
+
 
   const response = await fetch(`${baseUrl}${endpoint}`, {
     ...options,

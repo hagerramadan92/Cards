@@ -54,7 +54,7 @@ export default function DropdownUser() {
 
   // تحديد الصورة المعروضة (الأولوية للصورة من الباك اند)
   const displayImage = useMemo(() => {
-    console.log("🖼️ userImage from backend:", userImage);
+   
     
     // 1. الأولوية الأولى: الصورة من الباك اند (userImage)
     if (userImage && 
@@ -178,12 +178,12 @@ export default function DropdownUser() {
                     imageLoading ? 'opacity-0' : 'opacity-100'
                   }`}
                   onLoad={() => {
-                    console.log("✅ Image loaded successfully:", displayImage);
+                   
                     setImageLoading(false);
                     setImageError(false);
                   }}
                   onError={(e) => {
-                    console.log("❌ Image failed to load:", displayImage);
+                  
                     setImageError(true);
                     setImageLoading(false);
                     // منع المحاولات المتكررة
@@ -256,12 +256,12 @@ export default function DropdownUser() {
                             imageLoading ? 'opacity-0' : 'opacity-100'
                           }`}
                           onLoad={() => {
-                            console.log("✅ Dropdown image loaded successfully");
+                           
                             setImageLoading(false);
                             setImageError(false);
                           }}
                           onError={() => {
-                            console.log("❌ Dropdown image failed");
+                            
                             setImageError(true);
                             setImageLoading(false);
                           }}

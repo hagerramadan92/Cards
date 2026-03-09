@@ -38,7 +38,7 @@ export default function LoginWithGoogleFirebase() {
         image: user.photoURL || "", // إضافة الصورة
       };
 
-      console.log("Sending to social-login API with image:", payload.image);
+  
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       
@@ -59,7 +59,7 @@ export default function LoginWithGoogleFirebase() {
       });
 
       const data = await response.json();
-      console.log("API Response:", data);
+      
 
       if (response.ok && data.status && data.data?.token) {
         // استخدم البيانات من الباك اند

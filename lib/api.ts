@@ -65,7 +65,7 @@ export const createApiClient = () => {
     window.addEventListener("languageChanged", (e: any) => {
       if (e.detail?.language) {
         currentLanguage = e.detail.language;
-        console.log("API client language updated to:", currentLanguage);
+        
       }
     });
   }

@@ -146,7 +146,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     document.documentElement.setAttribute("dir", dir || "rtl");
     document.documentElement.setAttribute("lang", langCode || "ar");
     
-    console.log(`Language updated to "${langCode}". Total active requests aborted. Ready to re-fetch.`);
+   
   };
 
   // دالة fetch محسنة مع إدارة headers ولغة
@@ -166,7 +166,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         signal: controller.signal,
       };
       
-      console.log(`Fetching ${url} with Accept-Language: ${language}`);
+    
       
       const response = await fetch(url, mergedOptions);
       
@@ -184,7 +184,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         domExceptionIsAbort(error);
         
       if (isAbort) {
-        console.log(`Request to ${url} was aborted (Language change triggered)`);
+       
         return null;
       }
       throw error;
@@ -289,7 +289,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const setLanguage = (langCode: Language) => {
     if (!langCode) return;
     
-    console.log(`Setting application language to: ${langCode}...`);
+  
     
     // Always update and trigger, even if same language (as per user request: "every select make request")
     updateAllRequestsLanguage(langCode);

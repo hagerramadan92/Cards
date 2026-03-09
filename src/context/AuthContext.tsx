@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const googleInProgress = typeof window !== "undefined" && 
       sessionStorage.getItem("google_login_in_progress");
     
-    console.log("Google login in progress:", googleInProgress);
+   
 
     const user = session.user as any;
 
@@ -132,11 +132,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           image: !isBlockedImage(user.image || "") ? user.image : "", // إضافة الصورة مع التحقق
         };
 
-        console.log("Syncing social login with payload:", payload);
+       
 
         try {
           const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-          console.log("API URL:", apiUrl);
+         
 
           const res = await fetch(`${apiUrl}/auth/social-login`, {
             method: "POST",
@@ -148,10 +148,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             body: JSON.stringify(payload),
           });
 
-          console.log("API Response Status:", res.status);
+          
 
           const data = await res.json();
-          console.log("API Response Data:", data);
+          
 
           if (res.ok && data.status && data.data?.token) {
             const token = data.data.token;
@@ -208,7 +208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await response.json();
       
       if (response.ok && data.status && data.data) {
-        console.log("📸 Profile image from API:", data.data.image);
+        
         
         // تحديث البيانات
         setUserName(data.data.name || userName);
@@ -248,7 +248,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       socialLoginAttempted.current = false;
       socialLoginInProgress.current = false;
 
-      console.log("🚀 Starting main logout process...");
+     
 
       /* -------------------- 1️⃣ CALL API LOGOUT FIRST -------------------- */
       const localToken = localStorage.getItem("auth_token");
@@ -256,7 +256,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (localToken) {
         try {
           const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-          console.log("📡 Calling API logout...");
+          
           
           const response = await fetch(`${apiUrl}/auth/logout`, {
             method: "POST",
@@ -269,9 +269,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           });
 
           if (response.ok) {
-            console.log("✅ API logout successful");
+           
           } else {
-            console.log("⚠️ API logout failed with status:", response.status);
+            
           }
         } catch (apiError) {
           console.error("❌ API logout error:", apiError);
@@ -280,17 +280,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       /* -------------------- 2️⃣ THEN CALL FIREBASE LOGOUT -------------------- */
       if (firebaseLogoutRef.current) {
-        console.log("🔥 Calling Firebase logout...");
+      
         try {
           await firebaseLogoutRef.current();
-          console.log("✅ Firebase logout completed");
+          
         } catch (firebaseError) {
           console.error("❌ Firebase logout error:", firebaseError);
         }
       }
 
       /* -------------------- 3️⃣ CLEAR ALL STORAGE -------------------- */
-      console.log("🧹 Clearing all storage...");
+
       
       localStorage.clear();
       sessionStorage.clear();
@@ -302,7 +302,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
       });
 
-      console.log("✅ Storage cleared");
+ 
 
       /* -------------------- 4️⃣ RESET ALL STATE -------------------- */
       setAuthToken(null);
@@ -405,9 +405,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fullNameParam?: string,
     showToast: boolean = false
   ) => {
-    console.log("Login called with token:", token ? "exists" : "null");
-    console.log("User image from backend:", image);
-    
+  
+   
     // تجاهل الصور المحظورة
     let finalImage = "";
     if (image && !isBlockedImage(image)) {
@@ -465,7 +464,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fullName?: string;
     message?: string;
   }, showToast: boolean = true) => {
-    console.log("📸 Image from API in setAuthFromApi:", data.image);
+   
     
     login(
       data.token, 

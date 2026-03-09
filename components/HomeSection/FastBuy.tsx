@@ -56,7 +56,7 @@ export default function FastBuy({
                 
     //             if (json.status && json.data?.sub_categories) {
     //                 setSubCategories(json.data.sub_categories);
-    //                 console.log("SubCategories (FastBuy):", json.data.sub_categories); 
+    //                 
     //             }
     //         } catch (error) {
     //             console.error("Error fetching fast buy data:", error);

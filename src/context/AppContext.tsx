@@ -83,7 +83,7 @@ const refreshAppData = useCallback(async (language?: string) => {
     }
     setError(null);
 
-    console.log(`Refreshing app data with language: ${lang}`);
+
 
     // 🔥 **الحل: تقسيم API calls إلى مجموعتين**
     
@@ -152,7 +152,7 @@ const refreshAppData = useCallback(async (language?: string) => {
     const handleLanguageChange = (e: any) => {
       const newLang = e.detail?.language;
       if (newLang) {
-        console.log(`Event languageChanged: Refreshing data for ${newLang}`);
+       
         refreshAppData(newLang);
       }
     };

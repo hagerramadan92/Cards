@@ -44,30 +44,24 @@ export function FirebaseAuthProvider({ children }: { children: React.ReactNode }
 
     // إنشاء اشتراك جديد
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log("🔥 Firebase auth state changed:", firebaseUser?.email, {
-        isLoggingOut: isLoggingOut.current,
-        autoLoginBlocked: autoLoginBlocked.current,
-        logoutInProgress: logoutInProgress.current,
-        timestamp: new Date().toISOString()
-      });
-      
+    
       // ✅ إذا كان logout قيد التنفيذ، تجاهل كل شيء
       if (logoutInProgress.current) {
-        console.log("🚫 Logout in progress, ignoring auth change");
+        
         setUser(null);
         return;
       }
       
       // ✅ إذا كنا في حالة logout، لا تفعل شيئاً
       if (isLoggingOut.current) {
-        console.log("🚫 Currently logging out, ignoring auth state change");
+       
         setUser(null);
         return;
       }
 
       // ✅ إذا كان auto login محظور (بعد logout)، لا تفعل شيئاً
       if (autoLoginBlocked.current) {
-        console.log("🚫 Auto login blocked, ignoring");
+       
         setUser(null);
         return;
       }
@@ -86,7 +80,7 @@ export function FirebaseAuthProvider({ children }: { children: React.ReactNode }
           !logoutInProgress.current) {
         
         try {
-          console.log("🔄 Attempting auto login...");
+         
           
           const payload = {
             provider: "google",
@@ -137,11 +131,11 @@ export function FirebaseAuthProvider({ children }: { children: React.ReactNode }
 const firebaseLogout = async () => {
   // ✅ منع التنفيذ المتكرر
   if (logoutInProgress.current) {
-    console.log("⏳ Logout already in progress");
+    
     return;
   }
   
-  console.log("🚀 Starting Firebase logout process...");
+
   
   logoutInProgress.current = true;
   autoLoginBlocked.current = true;
@@ -161,10 +155,10 @@ const firebaseLogout = async () => {
     try {
       if (auth) {
         await firebaseSignOut(auth);
-        console.log("✅ Firebase signOut successful");
+       
       }
     } catch (signOutError) {
-      console.log("⚠️ Firebase signOut error (continuing anyway):", signOutError);
+      
     }
     
     // 4. مسح Firebase session بالكامل - مع تحسين الأداء
@@ -173,20 +167,20 @@ const firebaseLogout = async () => {
       clearFirebaseSession().catch(e => 
         console.log("⚠️ Background Firebase session clear warning:", e)
       );
-      console.log("✅ Firebase session clear initiated");
+     
     } catch (clearError) {
-      console.log("⚠️ Error initiating Firebase session clear:", clearError);
+     
     }
     
     // 5. إعادة تعيين Firebase
     try {
       resetFirebase();
-      console.log("✅ Firebase reset");
+    
     } catch (resetError) {
-      console.log("⚠️ Error resetting Firebase:", resetError);
+      
     }
     
-    console.log("✅ Firebase logout completed successfully");
+   
     
   } catch (error) {
     console.error("❌ Firebase logout error:", error);

@@ -11,7 +11,7 @@ export default function LoginWithGoogle() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      console.log("Starting Google sign in...");
+    
       
       // حفظ حالة أن تسجيل الدخول بدأ
       sessionStorage.setItem("google_login_in_progress", "true");
@@ -21,7 +21,7 @@ export default function LoginWithGoogle() {
         redirect: true
       });
       
-      console.log("Sign in result:", result);
+  
       
       // إذا كان هناك خطأ
       if (result?.error) {

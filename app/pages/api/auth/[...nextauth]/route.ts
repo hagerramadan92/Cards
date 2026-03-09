@@ -32,7 +32,7 @@
 //           token.image = data.picture ?? null;
 //           token.provider = account.provider;
 //         } catch (err) {
-//           console.log("Error fetching Google profile image:", err);
+//         
 //           token.image = null;
 //         }
 //       }

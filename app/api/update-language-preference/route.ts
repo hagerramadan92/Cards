@@ -8,10 +8,7 @@ export async function POST(request: NextRequest) {
     
     // قراءة Accept-Language header من الطلب
     const acceptLanguage = request.headers.get('accept-language');
-    console.log('Language change request:', {
-      requestedLanguage: language,
-      acceptLanguageHeader: acceptLanguage
-    });
+  
     
     // حفظ تفضيل اللغة في cookie
     const cookieStore = await cookies();

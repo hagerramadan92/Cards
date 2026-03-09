@@ -4,7 +4,7 @@ export async function GET(request: Request) {
   try {
     // قراءة Accept-Language header
     const acceptLanguage = request.headers.get('accept-language');
-    console.log('Accept-Language:', acceptLanguage);
+  
     
     // البيانات التي ستُرجع (بنفس هيكل الرد الذي قدمته)
     const languages = [
