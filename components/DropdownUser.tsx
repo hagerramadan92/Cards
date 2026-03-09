@@ -20,6 +20,7 @@ import { useFirebaseAuth } from "@/src/context/FirebaseAuthContext";
 export default function DropdownUser() {
   const [open, setOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
   const { fullName, userImage, authToken, fetchUserProfile } = useAuth();
@@ -59,9 +60,11 @@ export default function DropdownUser() {
     if (userImage && 
         userImage !== "null" && 
         userImage !== "" && 
-        userImage !== undefined &&
-        !isBlockedImage(userImage)) { // تجاهل الصور المحظورة
-      return userImage;
+        userImage !== undefined) {
+      // تجاهل الصور المحظورة فقط إذا كانت من domains المحظورة
+      if (!isBlockedImage(userImage)) {
+        return userImage;
+      }
     }
     
     // 2. إذا كان المستخدم مسجل دخول ولكن لا توجد صورة من الباك اند، استخدم صورة Firebase
@@ -99,9 +102,10 @@ export default function DropdownUser() {
     };
   }, []);
 
-  // إعادة تعيين حالة الخطأ عندما تتغير الصورة
+  // إعادة تعيين حالة الخطأ والتحميل عندما تتغير الصورة
   useEffect(() => {
     setImageError(false);
+    setImageLoading(true);
   }, [displayImage]);
 
   // تحديث البروفايل كل فترة (كل 5 دقائق)
@@ -129,6 +133,16 @@ export default function DropdownUser() {
     { href: "/myAccount/help", label: t("help"), icon: <FaQuestionCircle size={18} /> },
   ];
 
+  // دالة للتحقق مما إذا كانت الصورة من نفس النطاق (للتعامل مع CORS)
+  const isSameOrigin = (url: string) => {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.origin === window.location.origin;
+    } catch {
+      return false;
+    }
+  };
+
   return (
     <div className="relative max-md:mt-[3px]" ref={menuRef}>
       {/* Trigger */}
@@ -148,21 +162,40 @@ export default function DropdownUser() {
                 {getInitial()}
               </div>
             ) : (
-              <Image
-                key={displayImage}
-                src={displayImage}
-                alt={displayName}
-                fill
-                sizes="(max-width: 768px) 30px, 35px"
-                className="relative rounded-full object-cover"
-                  referrerPolicy="no-referrer"
-                onError={(e) => {
-                  console.log("❌ Image failed to load:", displayImage);
-                  setImageError(true);
-                  // منع المحاولات المتكررة
-                  e.currentTarget.src = "";
-                }}
-              />
+              <>
+                {imageLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-full">
+                    <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  key={displayImage}
+                  src={displayImage}
+                  alt={displayName}
+                  
+                  className={`w-full h-full rounded-full object-cover transition-opacity duration-300 ${
+                    imageLoading ? 'opacity-0' : 'opacity-100'
+                  }`}
+                  onLoad={() => {
+                    console.log("✅ Image loaded successfully:", displayImage);
+                    setImageLoading(false);
+                    setImageError(false);
+                  }}
+                  onError={(e) => {
+                    console.log("❌ Image failed to load:", displayImage);
+                    setImageError(true);
+                    setImageLoading(false);
+                    // منع المحاولات المتكررة
+                    e.currentTarget.src = "";
+                  }}
+                  // إضافة referrerPolicy و crossOrigin إذا كانت الصورة من نطاق مختلف
+                  {...(!isSameOrigin(displayImage) && {
+                    referrerPolicy: "no-referrer",
+                    crossOrigin: "anonymous"
+                  })}
+                />
+              </>
             )}
           </div>
           <span className="absolute -bottom-0.5 -left-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white" />
@@ -203,24 +236,41 @@ export default function DropdownUser() {
               {/* header */}
               <div className="p-2 md:p-4 bg-slate-50 border-b border-slate-200">
                 <div className="flex items-center gap-1.5">
-                  <div className="h-[50px] overflow-hidden w-[50px] rounded-full">
+                  <div className="h-[50px] w-[50px] rounded-full overflow-hidden relative">
                     {imageError || !displayImage ? (
                       <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl">
                         {getInitial()}
                       </div>
                     ) : (
-                      <Image
-                        src={displayImage}
-                        alt={displayName}
-                        width={54}
-                        height={44}
-                        className="object-cover w-full h-full"
-                          referrerPolicy="no-referrer"
-                        onError={() => {
-                          console.log("❌ Dropdown image failed");
-                          setImageError(true);
-                        }}
-                      />
+                      <>
+                        {imageLoading && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                            <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                          </div>
+                        )}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={displayImage}
+                          alt={displayName}
+                          className={`w-full h-full object-cover transition-opacity duration-300 ${
+                            imageLoading ? 'opacity-0' : 'opacity-100'
+                          }`}
+                          onLoad={() => {
+                            console.log("✅ Dropdown image loaded successfully");
+                            setImageLoading(false);
+                            setImageError(false);
+                          }}
+                          onError={() => {
+                            console.log("❌ Dropdown image failed");
+                            setImageError(true);
+                            setImageLoading(false);
+                          }}
+                          {...(!isSameOrigin(displayImage) && {
+                            referrerPolicy: "no-referrer",
+                            crossOrigin: "anonymous"
+                          })}
+                        />
+                      </>
                     )}
                   </div>
                   <div className="min-w-0">

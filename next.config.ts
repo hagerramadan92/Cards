@@ -2,7 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
  images: {
+    domains: ['flashicard.renix4tech.com'],
   remotePatterns: [
+     {
+        protocol: 'https',
+        hostname: 'flashicard.renix4tech.com',
+        pathname: '/storage/**',
+      },
     {
       protocol: "https",
       hostname: "img.freepik.com",
@@ -51,12 +57,7 @@ const nextConfig: NextConfig = {
       port: "",
       pathname: "/**",
     },
-    {
-      protocol: "https",
-      hostname: "flashicard.renix4tech.com",
-      port: "",
-      pathname: "/**",
-    },
+   
     {
       protocol: "https",
       hostname: "i.ibb.co",

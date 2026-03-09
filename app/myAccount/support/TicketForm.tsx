@@ -181,14 +181,14 @@ export default function TicketForm({ onClose, onSuccess }: TicketFormCustomProps
 		if (!data.first_name.trim()) newErrors.first_name = t('ticket.field.full_name_required');
 		if (!data.last_name.trim()) newErrors.last_name = t('ticket.field.full_name_required');
 
-		if (!data.phone.trim()) {
-			newErrors.phone = t('ticket.field.phone_required');
-		} else if (data.country && phonePatterns[data.country]) {
-			const phoneValidation = phonePatterns[data.country];
-			if (!phoneValidation.pattern.test(data.phone.trim())) {
-				newErrors.phone = phoneValidation.message;
-			}
-		}
+		// if (!data.phone.trim()) {
+		// 	newErrors.phone = t('ticket.field.phone_required');
+		// } else if (data.country && phonePatterns[data.country]) {
+		// 	const phoneValidation = phonePatterns[data.country];
+		// 	if (!phoneValidation.pattern.test(data.phone.trim())) {
+		// 		newErrors.phone = phoneValidation.message;
+		// 	}
+		// }
 
 		if (!data.email.trim()) newErrors.email = t('ticket.field.email_required');
 		else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim()))
