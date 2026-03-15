@@ -7,6 +7,7 @@ import {
 	useEffect,
 	ReactNode,
 	useCallback,
+	useRef,
 } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "./AuthContext";
@@ -15,40 +16,12 @@ import { useLanguage } from "./LanguageContext";
 interface AddToCartPayload {
 	product_id: number;
 	quantity?: number;
-	// size_id?: number | null;
-	// color_id?: number | null;
-	// material_id?: number | null;
-	// printing_method_id?: number | null;
-	// print_locations?: number[];
-	// embroider_locations?: number[];
-	// selected_options?: { option_name: string; option_value: string }[];
-	// design_service_id?: number | null;
-	// is_sample?: boolean;
-	// note?: string;
-	// image_design?: string | null;
 }
 
 interface CartItem {
 	cart_item_id: number;
 	product: any;
 	quantity: number;
-	// price_per_unit: string;
-	// line_total: string;
-	// size?: string | null;
-	// size_id?: number | null;
-	// color?: { name: string; hex_code?: string; hex?: string } | null;
-	// color_id?: number | null;
-	// material?: string | null;
-	// material_id?: number | null;
-	// printing_method?: string | null;
-	// printing_method_id?: number | null;
-	// print_locations?: number[];
-	// embroider_locations?: number[];
-	// selected_options?: any[];
-	// design_service?: string | null;
-	// design_service_id?: number | null;
-	// is_sample?: boolean;
-	// image_design ?: string ;
 }
 
 interface CartContextType {
@@ -57,9 +30,10 @@ interface CartContextType {
 	subtotal: number;
 	total: number;
 	loading: boolean;
-  apiSubtotal?: number;
-  apiTotal?: number;
-  apiItemsCount?: number;
+	apiSubtotal?: number;
+	apiTotal?: number;
+	apiItemsCount?: number;
+	
 	addToCart: (
 		productId: number,
 		options?: Partial<Omit<AddToCartPayload, "product_id">>
@@ -70,20 +44,6 @@ interface CartContextType {
 	updateCartItem: (cartItemId: number, updates: any) => Promise<boolean>;
 	clearCart: () => Promise<void>;
 	refreshCart: () => Promise<void>;
-
-	// updateSelectedOption: (
-	// 	cartItemId: number,
-	// 	optionName: string,
-	// 	optionValue: string
-	// ) => Promise<boolean>;
-
-	// stickerFormValues: any;
-	// setStickerFormValues: (values: any) => void;
-	// validateStickerForm: (fields: any) => boolean;
-
-	// fetchCartItemOptions: (cartItemId: number) => Promise<any>;
-
-	// loadItemOptions: (cartItemId: number) => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -95,18 +55,17 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 	const { language, t } = useLanguage();
 	const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-	const [stickerFormValues, setStickerFormValues] = useState<any>({
-		size: "",
-		color: "",
-		material: "",
-		selectedFeatures: {},
-	});
-const [apiSubtotal, setApiSubtotal] = useState<number>(0);
-  const [apiTotal, setApiTotal] = useState<number>(0);
-  const [apiItemsCount, setApiItemsCount] = useState<number>(0);
+	const [apiSubtotal, setApiSubtotal] = useState<number>(0);
+	const [apiTotal, setApiTotal] = useState<number>(0);
+	const [apiItemsCount, setApiItemsCount] = useState<number>(0);
+
+	// ✅ Ref لمنع الـ concurrent calls - مع قيمة افتراضية
+	const isRefreshing = useRef<boolean>(false);
+	const lastRefreshTime = useRef<number>(0);
+	const refreshTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
+
 	const parseSelectedOptions = (selectedOptionsStr: string): any[] => {
 		if (!selectedOptionsStr) return [];
-
 		try {
 			const parsed = JSON.parse(selectedOptionsStr);
 			if (Array.isArray(parsed)) {
@@ -119,15 +78,26 @@ const [apiSubtotal, setApiSubtotal] = useState<number>(0);
 		}
 	};
 
-	const fetchCart = async () => {
+	const fetchCart = async (skipLoading = false) => {
 		if (!token) {
 			setCart([]);
+			setApiSubtotal(0);
+			setApiTotal(0);
+			setApiItemsCount(0);
 			setLoading(false);
 			return;
 		}
 
+		// ✅ منع الـ concurrent calls
+		if (isRefreshing.current) {
+			console.log("Refresh already in progress, skipping...");
+			return;
+		}
+
 		try {
-			setLoading(true);
+			isRefreshing.current = true;
+			if (!skipLoading) setLoading(true);
+			
 			const res = await fetch(`${API_URL}/cart`, {
 				headers: {
 					Authorization: `Bearer ${token}`,
@@ -135,68 +105,74 @@ const [apiSubtotal, setApiSubtotal] = useState<number>(0);
 					"Accept-Language": language,
 				},
 			});
- 
+
 			if (res.status === 401) {
- 				localStorage.removeItem("auth_token");
+				localStorage.removeItem("auth_token");
 				localStorage.removeItem("fullName");
 				localStorage.removeItem("userName");
 				localStorage.removeItem("userEmail");
 				setCart([]);
+				setApiSubtotal(0);
+				setApiTotal(0);
+				setApiItemsCount(0);
 				return;
 			}
 
 			const data = await res.json();
 
 			if (res.ok && data.status && data.data?.items) {
-				const items = data.data.items.map((item: any) => {
-					const selectedOptions = parseSelectedOptions(item.selected_options);
-					return {
-						cart_item_id: item.id,
-						product: item.product,
-						quantity: item.quantity,
-						// price_per_unit: item.price_per_unit,
-						// line_total: item.line_total,
-						// size: item.size,
-						// size_id: item.size_id,
-						// color: item.color,
-						// color_id: item.color_id,
-						// material: item.material,
-						// material_id: item.material_id,
-						// printing_method: item.printing_method,
-						// printing_method_id: item.printing_method_id,
-						// print_locations: item.print_locations
-							// 	? JSON.parse(item.print_locations)
-							// 	: [],
-						// embroidered_locations: item.embroider_locations
-							// 	? JSON.parse(item.embroider_locations)
-							// 	: [],
-						// selected_options: selectedOptions,
-						// design_service: item.design_service,
-						// design_service_id: item.design_service_id,
-						// is_sample: item.is_sample === 1,
-						// ...item
-					};
-				});
+				const items = data.data.items.map((item: any) => ({
+					cart_item_id: item.id,
+					product: item.product,
+					quantity: item.quantity,
+				}));
+				
 				setCart(items);
 				setApiSubtotal(parseFloat(data.data.subtotal || "0"));
-        setApiTotal(parseFloat(data.data.total || "0"));
-        setApiItemsCount(data.data.items_count || 0);
-        
+				setApiTotal(parseFloat(data.data.total || "0"));
+				setApiItemsCount(data.data.items_count || 0);
+				
 			} else {
 				setCart([]);
+				setApiSubtotal(0);
+				setApiTotal(0);
+				setApiItemsCount(0);
 			}
 		} catch (err) {
 			console.error("Failed to fetch cart:", err);
 			toast.error(t("fetch_cart_error"));
 			setCart([]);
+			setApiSubtotal(0);
+			setApiTotal(0);
+			setApiItemsCount(0);
 		} finally {
-			setLoading(false);
+			isRefreshing.current = false;
+			if (!skipLoading) setLoading(false);
+			lastRefreshTime.current = Date.now();
 		}
 	};
 
-	const refreshCart = async () => {
-		await fetchCart();
-	};
+	// ✅ Throttled refresh - متعملش refresh أكتر من مرة كل 2 ثانية
+	const refreshCart = useCallback(async () => {
+		// لو في refresh already scheduled، نلغيه
+		if (refreshTimeout.current) {
+			clearTimeout(refreshTimeout.current);
+			refreshTimeout.current = undefined;
+		}
+
+		// لو آخر refresh كان من أقل من 2 ثانية، نأجله
+		const timeSinceLastRefresh = Date.now() - lastRefreshTime.current;
+		if (timeSinceLastRefresh < 2000) {
+			refreshTimeout.current = setTimeout(() => {
+				fetchCart(true);
+				refreshTimeout.current = undefined;
+			}, 2000 - timeSinceLastRefresh);
+			return;
+		}
+
+		// Otherwise, refresh immediately
+		await fetchCart(true);
+	}, [token, language]);
 
 	const fetchCartItemOptions = useCallback(async (cartItemId: number) => {
 		if (!token) return null;
@@ -216,8 +192,6 @@ const [apiSubtotal, setApiSubtotal] = useState<number>(0);
 				const cartItem = data.data.items.find((item: any) => item.id === cartItemId);
 				if (cartItem) {
 					const selectedOptions = parseSelectedOptions(cartItem.selected_options);
-
-
 
 					return {
 						selected_options: selectedOptions,
@@ -259,7 +233,6 @@ const [apiSubtotal, setApiSubtotal] = useState<number>(0);
 							: item
 					)
 				);
-
 			}
 		} catch (err) {
 			console.error("Failed to load item options:", err);
@@ -270,13 +243,7 @@ const [apiSubtotal, setApiSubtotal] = useState<number>(0);
 		setCart((prevCart) =>
 			prevCart.map((item) =>
 				item.cart_item_id === cartItemId
-					? {
-						...item,
-						quantity,
-						line_total: (
-							parseFloat(item.product.price || "0") * quantity
-						).toFixed(4),
-					}
+					? { ...item, quantity }
 					: item
 			)
 		);
@@ -299,18 +266,6 @@ const [apiSubtotal, setApiSubtotal] = useState<number>(0);
 		const payload: AddToCartPayload = {
 			product_id: productId,
 			quantity: 1,
-			// size_id: null,
-			// color_id: null,
-			// material_id: null,
-			// printing_method_id: null,
-			// print_locations: [],
-			// embroider_locations: [],
-			// selected_options: [],
-			// design_service_id: null,
-			// is_sample: false,
-			// note: "",
-			// image_design: null,
-			// ...options,
 		};
 
 		try {
@@ -329,7 +284,7 @@ const [apiSubtotal, setApiSubtotal] = useState<number>(0);
 			if (res.ok && data.status) {
 				toast.success(t("add_to_cart_success"));
 				await refreshCart();
-				return data;
+				return true;
 			} else {
 				toast.error(data.message || t("add_to_cart_error"));
 				return false;
@@ -357,6 +312,7 @@ const [apiSubtotal, setApiSubtotal] = useState<number>(0);
 					"Accept-Language": language,
 				},
 			});
+			await refreshCart();
 			toast.success(t("remove_from_cart_success"));
 		} catch (err) {
 			await refreshCart();
@@ -392,6 +348,7 @@ const [apiSubtotal, setApiSubtotal] = useState<number>(0);
 				await refreshCart();
 				toast.error(t("update_quantity_error"));
 			} else {
+				await refreshCart();
 				toast.success(t("update_quantity_success", { quantity }));
 			}
 		} catch (err) {
@@ -406,7 +363,6 @@ const [apiSubtotal, setApiSubtotal] = useState<number>(0);
 	): Promise<boolean> => {
 		if (!token) return false;
 
-
 		try {
 			const response = await fetch(`${API_URL}/cart/items/${cartItemId}`, {
 				method: "PUT",
@@ -420,10 +376,10 @@ const [apiSubtotal, setApiSubtotal] = useState<number>(0);
 			});
 
 			const data = await response.json();
- 
+
 			if (response.ok && data.status) {
 				await loadItemOptions(cartItemId);
-				// toast.success("تم تحديث العنصر بنجاح");
+				await refreshCart();
 				return true;
 			} else {
 				await refreshCart();
@@ -436,50 +392,6 @@ const [apiSubtotal, setApiSubtotal] = useState<number>(0);
 			return false;
 		}
 	};
-
-	// const updateSelectedOption = async (
-	// 	cartItemId: number,
-	// 	optionName: string,
-	// 	optionValue: string
-	// ): Promise<boolean> => {
-	// 	if (!token) return false;
-
-	// 	try {
-	// 		const currentItem = cart.find((item) => item.cart_item_id === cartItemId);
-	// 		const updatedOptions = [
-	// 			...(currentItem?.selected_options || []).filter(
-	// 				(opt) => opt.option_name !== optionName
-	// 			),
-	// 			{ option_name: optionName, option_value: optionValue },
-	// 		];
-
-	// 		const response = await fetch(`${API_URL}/cart/items/${cartItemId}`, {
-	// 			method: "PUT",
-	// 			headers: {
-	// 				"Content-Type": "application/json",
-	// 				Authorization: `Bearer ${token}`,
-	// 				Accept: "application/json",
-	// 			},
-	// 			body: JSON.stringify({ selected_options: updatedOptions }),
-	// 		});
-
-	// 		const data = await response.json();
-
-	// 		if (response.ok && data.status) {
-	// 			await loadItemOptions(cartItemId);
-	// 			toast.success("تم تحديث الخيار بنجاح");
-	// 			return true;
-	// 		} else {
-	// 			await refreshCart();
-	// 			toast.error(data.message || "فشل تحديث الخيار");
-	// 			return false;
-	// 		}
-	// 	} catch (err) {
-	// 		await refreshCart();
-	// 		toast.error("خطأ في الاتصال، حاول مرة أخرى");
-	// 		return false;
-	// 	}
-	// };
 
 	const clearCart = async () => {
 		if (!token || cart.length === 0) return;
@@ -495,6 +407,7 @@ const [apiSubtotal, setApiSubtotal] = useState<number>(0);
 					"Accept-Language": language,
 				},
 			});
+			await refreshCart();
 			toast.success(t("clear_cart_success"));
 		} catch (err) {
 			await refreshCart();
@@ -515,31 +428,26 @@ const [apiSubtotal, setApiSubtotal] = useState<number>(0);
 			window.addEventListener("languageChanged", handleLanguageChange as any);
 			return () => {
 				window.removeEventListener("languageChanged", handleLanguageChange as any);
+				if (refreshTimeout.current) {
+					clearTimeout(refreshTimeout.current);
+				}
 			};
 		}
 	}, [token, language]);
 
 	const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-	// const subtotal = cart.reduce(
-	// 	(sum, item) => sum + parseFloat(item.product.price || "0"),
-	// 	0
-	// );
-	// const total = subtotal;
-	  const subtotal = apiSubtotal;
-  const total = apiTotal;
+	const subtotal = apiSubtotal;
+	const total = apiTotal;
 
 	const validateStickerForm = (fields: any) => {
 		if (!fields) return false;
-
 		if (!fields.size || !fields.color || !fields.material) return false;
-
 		if (fields.selectedFeatures) {
 			for (const key in fields.selectedFeatures) {
 				const value = fields.selectedFeatures[key];
 				if (!value || value.trim() === "") return false;
 			}
 		}
-
 		return true;
 	};
 
@@ -551,10 +459,10 @@ const [apiSubtotal, setApiSubtotal] = useState<number>(0);
 				subtotal,
 				total,
 				loading,
+				apiSubtotal,
+				apiTotal,
+				apiItemsCount,
 				addToCart,
-				  apiSubtotal,   // optional
-    apiTotal,       // optional
-    apiItemsCount, 
 				removeFromCart,
 				updateQuantity,
 				updateCartItem,

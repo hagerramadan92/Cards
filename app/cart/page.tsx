@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -87,58 +86,14 @@ function pickBasePrice(p: any) {
 	return price > 0 ? price : finalPrice > 0 ? finalPrice : lowest;
 }
 
-/**
- * Extras from selected_options:
- * - By default these are per-unit (multiplied by qty)
- * - BUT "خدمة تصميم" if NOT "لدى تصميم" => one-time fee (not multiplied)
- */
 function computeExtrasFromSelectedOptions(item: any, p: any) {
-	// const selectedOptions = safeParseSelectedOptions(item.selected_options);
-
 	let extrasPerUnit = 0;
 	let oneTimeExtras = 0;
 	let hasAnyAdditional = false;
 
-	// for (const opt of selectedOptions) {
-	// 	if (typeof opt?.additional_price !== "undefined") {
-	// 		const add = n(opt.additional_price);
-	// 		const name = String(opt.option_name || "").trim();
-	// 		const val = String(opt.option_value || "").trim();
-
-	// 		// ✅ one-time for design service (any option except "لدى تصميم")
-	// 		if (name === "خدمة تصميم" && val && !val.includes("لدى تصميم") && add > 0) {
-	// 			oneTimeExtras += add;
-	// 		} else {
-	// 			extrasPerUnit += add;
-	// 		}
-	// 		hasAnyAdditional = true;
-	// 	}
-	// }
-
 	if (hasAnyAdditional) return { extrasPerUnit, oneTimeExtras };
 
-	// fallback: lookup product options
 	const productOptions = Array.isArray(p?.options) ? p.options : [];
-	// for (const sel of selectedOptions) {
-	// 	const match = productOptions.find(
-	// 		(x: any) =>
-	// 			String(x.option_name).trim() === String(sel.option_name).trim() &&
-	// 			String(x.option_value).trim() === String(sel.option_value).trim()
-	// 	);
-
-	// 	if (match) {
-	// 		const add = n(match.additional_price);
-	// 		const name = String(sel.option_name || "").trim();
-	// 		const val = String(sel.option_value || "").trim();
-
-	// 		// ✅ one-time for design service (any option except "لدى تصميم")
-	// 		if (name === "خدمة تصميم" && val && !val.includes("لدى تصميم") && add > 0) {
-	// 			oneTimeExtras += add;
-	// 		} else {
-	// 			extrasPerUnit += add;
-	// 		}
-	// 	}
-	// }
 
 	return { extrasPerUnit, oneTimeExtras };
 }
@@ -147,7 +102,6 @@ function computePricing(item: any) {
 	const p = item.product || {};
 	const selected = safeParseSelectedOptions(item.selected_options);
 
-	// tier info might still exist (older behavior). keep compatibility
 	const tierQty = n(selected.find((o) => o.option_name?.includes("كمية المقاس"))?.option_value);
 	const tierTotal = n(selected.find((o) => o.option_name?.includes("سعر المقاس الإجمالي"))?.option_value);
 
@@ -166,11 +120,11 @@ function computePricing(item: any) {
 
 	const originalBaseUnit = n(p?.price) > 0 ? n(p?.price) : base;
 	const discountBaseUnit = n(p?.final_price) > 0 ? n(p?.final_price) : base;
-
+  
 	const showRealProductPrice = {
 		discount: !!p?.has_discount,
 		unit_after_options: unitAfterOptions,
-		original_unit_after_options: originalBaseUnit + extrasPerUnit, // per-unit only (oneTime not shown per unit)
+		original_unit_after_options: originalBaseUnit + extrasPerUnit,
 		discount_unit_after_options: discountBaseUnit + extrasPerUnit,
 		extras: extrasPerUnit,
 		one_time_extras: oneTimeExtras,
@@ -185,11 +139,6 @@ function computePricing(item: any) {
 	return { unit, line, showRealProductPrice, effectiveQty: qty };
 }
 
-/**
- * ✅ Live pricing from StickerForm draft selections (before saving).
- * - Per-unit extras multiplied by qty
- * - "خدمة تصميم" (not "لدى تصميم") counted ONCE
- */
 function computePricingWithDraft(item: any, draft: any) {
 	const p = item.product || {};
 	const qty = n(draft?.size_tier_qty) > 0 ? n(draft?.size_tier_qty) : n(item.quantity || 1);
@@ -201,12 +150,10 @@ function computePricingWithDraft(item: any, draft: any) {
 	let extrasPerUnit = 0;
 	let oneTimeExtras = 0;
 
-	// product.options
 	const productOptions = Array.isArray(p?.options) ? p.options : [];
 	const groups = draft?.optionGroups || {};
 	for (const [groupName, val] of Object.entries(groups)) {
 		const v = String(val || "").trim();
-		// if (!v || v === "اختر") continue;
 
 		const row = productOptions.find(
 			(o: any) =>
@@ -216,47 +163,20 @@ function computePricingWithDraft(item: any, draft: any) {
 
 		if (row) {
 			const add = n(row.additional_price);
-
-			// ✅ one-time for design service (any option except "لدى تصميم")
-			// if (String(groupName).trim() === "خدمة تصميم" && v && !v.includes("لدى تصميم") && add > 0) {
-			// 	oneTimeExtras += add;
-			// } else {
-			// 	extrasPerUnit += add;
-			// }
 		}
 	}
 
-	// material additional
 	const materials = Array.isArray(p?.materials) ? p.materials : [];
 	const matName = String(draft?.material || "").trim();
-	// if (matName && matName !== "اختر") {
-	// 	const m = materials.find((x: any) => String(x.name).trim() === matName);
-	// 	if (m) extrasPerUnit += n(m.additional_price);
-	// }
 
-	// color additional
 	const colors = Array.isArray(p?.colors) ? p.colors : [];
 	const colorName = String(draft?.color || "").trim();
-	// if (colorName && colorName !== "اختر") {
-	// 	const c = colors.find((x: any) => String(x.name).trim() === colorName);
-	// 	if (c) extrasPerUnit += n(c.additional_price);
-	// }
 
-	// printing method additional
 	const printingMethods = Array.isArray(p?.printing_methods) ? p.printing_methods : [];
 	const pmName = String(draft?.printing_method || "").trim();
-	// if (pmName && pmName !== "اختر") {
-	// 	const pm = printingMethods.find((x: any) => String(x.name).trim() === pmName);
-	// 	if (pm) extrasPerUnit += n(pm.pivot_price ?? pm.base_price);
-	// }
 
-	// print locations additional
 	const printLocations = Array.isArray(p?.print_locations) ? p.print_locations : [];
 	const selectedLocNames: string[] = Array.isArray(draft?.print_locations) ? draft.print_locations : [];
-	for (const locName of selectedLocNames) {
-		// const loc = printLocations.find((x: any) => String(x.name).trim() === String(locName).trim());
-		// if (loc) extrasPerUnit += n(loc.pivot_price ?? loc.additional_price);
-	}
 
 	const line = baseLine + extrasPerUnit * qty + oneTimeExtras;
 	const unit = qty > 0 ? line / qty : 0;
@@ -295,37 +215,7 @@ function productNeedsSelection(p: any) {
 
 function missingRequiredFields(item: any) {
 	const p = item.product || {};
-	// const selected = safeParseSelectedOptions(item.selected_options);
-
-	// const hasSize = (p?.sizes?.length ?? 0) > 0;
-	// const hasColors = (p?.colors?.length ?? 0) > 0;
-	// const hasMaterials = (p?.materials?.length ?? 0) > 0;
-
-	// const requiredOpts = (Array.isArray(p?.options) ? p.options : []).filter((o: any) => o.is_required);
 	const miss: any[] = [];
-
-	// if (hasSize && !String(item?.size || "").trim() && !selected.some((o) => o.option_name?.includes("المقاس"))) miss.push("المقاس");
-	// if (hasColors && !String(item?.color?.name || item?.color || "").trim() && !selected.some((o) => o.option_name?.includes("اللون"))) miss.push("اللون");
-	// if (hasMaterials && !String(item?.material || "").trim() && !selected.some((o) => o.option_name?.includes("الخامة"))) miss.push("الخامة");
-
-	// const requiredNames = Array.from(new Set(requiredOpts.map((o: any) => String(o.option_name).trim())));
-	// for (const name of requiredNames) {
-	// 	const ok = selected.some((s) => String(s.option_name).trim() === name && String(s.option_value).trim());
-	// 	if (!ok) miss.push(name);
-	// }
-
-	// if ((p?.printing_methods?.length ?? 0) > 0 && !String(item?.printing_method || "").trim() && !selected.some((o) => o.option_name?.includes("طريقة الطباعة")))
-	// 	miss.push("طريقة الطباعة");
-
-	// const locIds = safeParseIds(item?.print_locations);
-	// if ((p?.print_locations?.length ?? 0) > 0 && locIds.length === 0 && !selected.some((o) => o.option_name?.includes("مكان الطباعة")))
-	// 	miss.push("مكان الطباعة");
-
-	// const sizeName = String(item?.size || "").trim() || selected.find((o) => o.option_name?.includes("المقاس"))?.option_value;
-	// const sizeObj = sizeName ? (p?.sizes || []).find((s: any) => String(s.name).trim() === String(sizeName).trim()) : null;
-	// if (sizeObj?.tiers?.length) {
-	// 	if (n(item?.quantity) <= 0) miss.push("كمية المقاس");
-	// }
 
 	return miss;
 }
@@ -333,11 +223,11 @@ function missingRequiredFields(item: any) {
 export default function CartPage() {
 	const { t } = useLanguage();
 	const router = useRouter();
-	const { cart, cartCount, removeFromCart, updateQuantity, loading, subtotal, total } = useCart();
+	const { cart, cartCount, removeFromCart, updateQuantity, loading, subtotal, total, refreshCart } = useCart();
 	const [code, setCode] = useState("");
 	const [couponDiscount, setCouponDiscount] = useState<number>(0);
 	const [couponNewTotal, setCouponNewTotal] = useState<number | null>(null);
-
+const [updatingItems, setUpdatingItems] = useState<Record<number, boolean>>({});
 	const [draftById, setDraftById] = useState<Record<number, any>>({});
 
 	const handleOptionsChange = useCallback((cartItemId: number, opt: any) => {
@@ -348,86 +238,87 @@ export default function CartPage() {
 			return { ...prev, [cartItemId]: opt };
 		});
 	}, []);
-
+// ودالة الـ handleQuantityChange
+const handleQuantityChange = useCallback(async (cartItemId: number, newQuantity: number) => {
+  // منع الـ double click السريع
+  if (updatingItems[cartItemId]) return;
+  
+  setUpdatingItems(prev => ({ ...prev, [cartItemId]: true }));
+  
+  try {
+    await updateQuantity(cartItemId, newQuantity);
+  } finally {
+    setUpdatingItems(prev => ({ ...prev, [cartItemId]: false }));
+  }
+}, [updateQuantity, updatingItems]);
 	const computed = useMemo(() => {
-		const items = cart.map((it: any) => {
-			const id = n(it.cart_item_id || it.id);
-			const draft = id ? draftById[id] : null;
-
-			const pr = draft ? computePricingWithDraft(it, draft) : computePricing(it);
-
-			return {
-				...it,
-				_unit: pr.unit,
-				_line: pr.line,
-				_real: pr.showRealProductPrice,
-				_effectiveQty: pr.effectiveQty,
-			};
-		});
-
-		const localSubtotal = items.reduce((acc: number, it: any) => acc + n(it._line), 0);
-		return { items, localSubtotal };
-	}, [cart, draftById]);
+  const items = cart.map((it: any) => {
+    const id = n(it.cart_item_id || it.id);
+    const draft = id ? draftById[id] : null;
+    const pr = draft ? computePricingWithDraft(it, draft) : computePricing(it);
+    
+    return {
+      ...it,
+      _unit: pr.unit,
+      _line: pr.line,
+      _real: pr.showRealProductPrice,
+      _effectiveQty: pr.effectiveQty,
+    };
+  });
+  
+  const localSubtotal = items.reduce((acc: number, it: any) => acc + n(it._line), 0);
+  return { items, localSubtotal };
+}, [cart, draftById]); // ✅ ده كويس
 
 	const backendSubtotal = n(subtotal);
 	const backendTotal = n(total);
 
-	// ✅ Save summary + coupon in localStorage for payment page
-const persistCheckoutSummary = useCallback(() => {
-  const shippingFree = true;
-  const shippingFee = shippingFree ? 0 : 48;
+	const persistCheckoutSummary = useCallback(() => {
+		const shippingFree = true;
+		const shippingFee = shippingFree ? 0 : 48;
 
-  const totalAfterCoupon =
-    couponNewTotal !== null && couponNewTotal !== undefined
-      ? Math.max(0, n(couponNewTotal))
-      : Math.max(0, backendTotal - n(couponDiscount));
+		const totalAfterCoupon =
+			couponNewTotal !== null && couponNewTotal !== undefined
+				? Math.max(0, n(couponNewTotal))
+				: Math.max(0, backendTotal - n(couponDiscount));
 
-  const totalWithShipping = totalAfterCoupon + shippingFee;
-  
-  // Calculate total VAT from cart items
-  const totalVAT = cart.reduce((sum: number, item: any) => {
-    return sum + n(item.product?.tax_amount || 0) * n(item.quantity);
-  }, 0);
-  
-  const grandTotal = totalWithShipping + totalVAT;
+		const totalWithShipping = totalAfterCoupon + shippingFee;
+		
+		const totalVAT = cart.reduce((sum: number, item: any) => {
+			return sum + n(item.product?.tax_amount || 0) * n(item.quantity);
+		}, 0);
+		
+		const grandTotal = totalWithShipping + totalVAT;
 
-  const payload = {
-    version: "v1",
-    created_at: new Date().toISOString(),
-    items_count: cartCount,
-    items_length: Array.isArray(cart) ? cart.length : 0,
+		const payload = {
+			version: "v1",
+			created_at: new Date().toISOString(),
+			items_count: cartCount,
+			items_length: Array.isArray(cart) ? cart.length : 0,
+			subtotal: backendSubtotal,
+			total: backendTotal,
+			coupon_discount: n(couponDiscount),
+			coupon_name: code,
+			coupon_new_total: couponNewTotal !== null && couponNewTotal !== undefined ? n(couponNewTotal) : null,
+			shipping_fee: shippingFee,
+			total_after_coupon: totalAfterCoupon,
+			total_with_shipping: totalWithShipping,
+			vat_amount: totalVAT,
+			grand_total: grandTotal,
+			items_vat_details: cart.map((item: any) => ({
+				product_id: item.product?.id,
+				product_name: item.product?.name,
+				unit_price: n(item._unit),
+				quantity: n(item.quantity),
+				unit_vat: n(item.product?.tax_amount || 0),
+				total_vat: n(item.product?.tax_amount || 0) * n(item.quantity)
+			}))
+		};
 
-    // backend totals
-    subtotal: backendSubtotal,
-    total: backendTotal,
-
-    // coupon
-    coupon_discount: n(couponDiscount),
-    coupon_name: code,
-    coupon_new_total: couponNewTotal !== null && couponNewTotal !== undefined ? n(couponNewTotal) : null,
-
-    // derived totals
-    shipping_fee: shippingFee,
-    total_after_coupon: totalAfterCoupon,
-    total_with_shipping: totalWithShipping,
-    vat_amount: totalVAT,
-    grand_total: grandTotal,
-    
-    // individual item VAT for reference
-    items_vat_details: cart.map((item: any) => ({
-      product_id: item.product?.id,
-      product_name: item.product?.name,
-      unit_price: n(item._unit),
-      quantity: n(item.quantity),
-      unit_vat: n(item.product?.tax_amount || 0),
-      total_vat: n(item.product?.tax_amount || 0) * n(item.quantity)
-    }))
-  };
-
-  try {
-    sessionStorage.setItem("checkout_summary_v1", JSON.stringify(payload));
-  } catch { }
-}, [backendSubtotal, backendTotal, couponDiscount, couponNewTotal, cartCount, cart]);
+		try {
+			sessionStorage.setItem("checkout_summary_v1", JSON.stringify(payload));
+		} catch { }
+	}, [backendSubtotal, backendTotal, couponDiscount, couponNewTotal, cartCount, cart, code]);
 
 	useEffect(() => {
 		persistCheckoutSummary();
@@ -465,7 +356,6 @@ ${errors.join("\n")}
 			return;
 		}
 
-		// ✅ ensure saved before leaving
 		persistCheckoutSummary();
 		router.push("/payment");
 	};
@@ -474,7 +364,7 @@ ${errors.join("\n")}
 
 	if (!cart || cart.length === 0) {
 		return (
-			<div className="p-10 text-center flex flex-col items-center justify-center min-h-[60vh]" >
+			<div className="p-10 text-center flex flex-col items-center justify-center min-h-[60vh]">
 				<Image src="/images/cart2.webp" alt="empty cart" width={300} height={250} />
 				<h2 className="text-2xl font-bold mb-6 text-gray-700">{t('empty_cart')}</h2>
 				<Link href="/" className="bg-pro text-white py-3 px-8 rounded-2xl hover:bg-pro-max transition text-lg font-bold">
@@ -498,10 +388,8 @@ ${errors.join("\n")}
 				<div className="col-span-1 lg:col-span-2">
 					<div className="flex flex-col my-4 bg-transparent overflow-hidden">
 						{computed.items.map((item: any) => {
-							const miss = missingRequiredFields(item);
 							const hasVariants = productNeedsSelection(item.product);
 
-							// NOTE: tier qty may be backend quantity, not selected_options
 							const hasTierQty = (() => {
 								const p = item.product || {};
 								const sizeName = String(item?.size || "").trim();
@@ -518,7 +406,7 @@ ${errors.join("\n")}
 												<div className="w-24 h-20 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200">
 													<Link href={`/product/${item.product.id}`}>
 														<ImageComponent
-															image={item.product.image||"/images/not.jpg"}
+															image={item.product.image || "/images/not.jpg"}
 															alt={item.product.name}
 															width={96}
 															height={80}
@@ -536,9 +424,9 @@ ${errors.join("\n")}
 														)}
 
 														<div className="mt-2 flex flex-wrap items-center gap-2">
+															{/* ✅ عرض السعر المحسوب بدلاً من final_price */}
 															<span className="text-sm font-extrabold text-slate-900">
-																{item.product.final_price} 
-																{/* <span className="text-xs">{t('currency')}</span> */}
+																{item.product.price}
 															</span>
 
 															{item._real?.discount && n(item._real?.original_unit_after_options) > n(item._unit) && (
@@ -559,17 +447,21 @@ ${errors.join("\n")}
 											<div className="flex max-md:mt-6 max-md:justify-end items-center gap-2">
 												<div className={`flex items-center gap-3 border border-slate-200 rounded-2xl overflow-hidden ${hasTierQty ? "opacity-50 pointer-events-none" : ""}`}>
 													<button
-														onClick={() => {
-															if (item.quantity >= 10) {
-																toast.error(t('max_qty_reached').replace('{qty}', '10'), { icon: "معلومة", duration: 4000 });
-															} else {
-																updateQuantity(item.cart_item_id, item.quantity + 1);
-															}
-														}}
-														className="w-10 h-9 text-slate-600 cursor-pointer border-slate-200 border-l transition flex items-center justify-center hover:bg-slate-50"
-													>
-														<FaPlus size={16} />
-													</button>
+  onClick={() => {
+    if (item.quantity >= 10) {
+      toast.error(t('max_qty_reached').replace('{qty}', '10'), { 
+        icon: "معلومة", 
+        duration: 4000 
+      });
+    } else {
+      handleQuantityChange(item.cart_item_id, item.quantity + 1);
+    }
+  }}
+  disabled={updatingItems[item.cart_item_id]}
+  className={`w-10 h-9 text-slate-600 cursor-pointer border-slate-200 border-l transition flex items-center justify-center hover:bg-slate-50 ${updatingItems[item.cart_item_id] ? 'opacity-50 cursor-not-allowed' : ''}`}
+>
+  <FaPlus size={16} />
+</button>
 
 													<span className="font-extrabold w-6 text-lg text-center bg-white text-slate-900">{item._effectiveQty}</span>
 
@@ -613,10 +505,6 @@ ${errors.join("\n")}
 											</div>
 										</div>
 									</div>
-
-								
-
-								
 								</div>
 							);
 						})}
@@ -625,25 +513,6 @@ ${errors.join("\n")}
 
 				<div className="col-span-1">
 					<div className="border border-slate-200 rounded-2xl p-6 mt-4 bg-white shadow-sm">
-						{/* <CoBon
-							code={code}
-							setCode={setCode}
-							onApplied={(res: any) => {
-								const disc = Number(res?.data?.discount_amount || 0);
-								const nt = res?.data?.new_total;
-								setCouponDiscount(disc > 0 ? disc : 0);
-								setCouponNewTotal(nt !== undefined && nt !== null ? Number(nt) : null);
-							}}
-							onCleared={() => {
-								setCouponDiscount(0);
-								setCouponNewTotal(null);
-							}}
-							onError={() => {
-								setCouponDiscount(0);
-								setCouponNewTotal(null);
-							}}
-						/> */}
-
 						<h4 className="text-md font-extrabold text-pro my-5">{t('cart_summary')}</h4>
 
 						<TotalOrder
@@ -713,15 +582,13 @@ const StickerForm = forwardRef(function StickerForm(
 	const [designFile, setDesignFile] = useState<File | null>(null);
 	const [designPreview, setDesignPreview] = useState<string | null>(null);
 
-	// ✅ design delivery method when "لدى تصميم"
 	const [designDelivery, setDesignDelivery] = useState<"upload" | "email">("upload");
 
-	// ---- primitives from cartItem to avoid effect firing بسبب object identity ----
 	const cartSelectedOptionsRaw = cartItem?.selected_options;
 	const cartSizeRaw = cartItem?.size;
 	const cartColorRaw = cartItem?.color?.name || cartItem?.color;
 	const cartMaterialRaw = cartItem?.material;
-	const cartMaterialIdRaw = cartItem?.material_id; // ✅ important
+	const cartMaterialIdRaw = cartItem?.material_id;
 	const cartPrintingRaw = cartItem?.printing_method;
 	const cartPrintLocationsRaw = cartItem?.print_locations;
 	const cartQuantityRaw = cartItem?.quantity;
@@ -799,14 +666,10 @@ const StickerForm = forwardRef(function StickerForm(
 
 		if (needSizeTier && !sizeTierId) isValid = false;
 
-		// ✅ Design rules when "لدى تصميم"
 		const designServiceValue = optionGroups?.["خدمة تصميم"];
 		if (designServiceValue && String(designServiceValue).includes("لدى تصميم")) {
 			if (designDelivery === "upload") {
-				// must have either existing image_design OR new file
 				if (!existingDesignUrl && !designFile) isValid = false;
-			} else {
-				// email mode: allow without file
 			}
 		}
 
@@ -886,7 +749,6 @@ const StickerForm = forwardRef(function StickerForm(
 		onOptionsChange,
 	]);
 
-	// ✅ Prefill (stable deps)
 	useEffect(() => {
 		setApiError(null);
 		setFormLoading(true);
@@ -910,7 +772,6 @@ const StickerForm = forwardRef(function StickerForm(
 			const cartColor = String(cartColorRaw || "").trim();
 			const cartPrinting = String(cartPrintingRaw || "").trim();
 
-			// ✅ material: from material value OR material_id mapping (FIX #2)
 			let cartMaterial = String(cartMaterialRaw?.name || "").trim();
 			if (!cartMaterial) {
 				const mid = n(cartMaterialIdRaw);
@@ -937,7 +798,6 @@ const StickerForm = forwardRef(function StickerForm(
 			setSizeTierQty(tierQtyFromSel ? n(tierQtyFromSel) : qFromCart > 0 ? qFromCart : null);
 			setSizeTierTotal(tierTotalFromSel ? n(tierTotalFromSel) : null);
 
-			// print locations: ids -> names
 			const locIds = safeParseIds(cartPrintLocationsRaw);
 			const locList = Array.isArray(productData?.print_locations) ? productData.print_locations : [];
 			const namesByIds = locIds
@@ -947,7 +807,6 @@ const StickerForm = forwardRef(function StickerForm(
 
 			setPrintLocations(Array.from(new Set(namesByIds)));
 
-			// product option groups prefill
 			selected.forEach((opt) => {
 				const name = String(opt.option_name || "").trim();
 				const value = String(opt.option_value || "").trim();
@@ -955,11 +814,9 @@ const StickerForm = forwardRef(function StickerForm(
 				if (Object.prototype.hasOwnProperty.call(out, name)) out[name] = value;
 			});
 
-			// ✅ design existing image
 			const imgDesign = cartImageDesignRaw ? String(cartImageDesignRaw) : null;
 			setExistingDesignUrl(imgDesign || null);
 
-			// if backend already has design image => default delivery upload
 			setDesignDelivery("upload");
 
 			if (imgDesign && Object.prototype.hasOwnProperty.call(out, "خدمة تصميم")) {
@@ -968,7 +825,6 @@ const StickerForm = forwardRef(function StickerForm(
 
 			setOptionGroups(out);
 
-			// reset local file (but keep server image)
 			setDesignFile(null);
 			if (designPreview) URL.revokeObjectURL(designPreview);
 			setDesignPreview(null);
@@ -982,7 +838,6 @@ const StickerForm = forwardRef(function StickerForm(
 		} finally {
 			setFormLoading(false);
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		productData,
 		cartItemId,
@@ -997,7 +852,6 @@ const StickerForm = forwardRef(function StickerForm(
 		cartImageDesignRaw,
 	]);
 
-	// ✅ restore tier meta (id/unit/total) from qty when tiers exist
 	useEffect(() => {
 		if (!needSizeTier) {
 			setSizeTierId(null);
@@ -1043,7 +897,6 @@ const StickerForm = forwardRef(function StickerForm(
 		setSizeTierUnit(null);
 		setSizeTierTotal(null);
 
-		// design reset
 		setExistingDesignUrl(null);
 		setDesignFile(null);
 		if (designPreview) URL.revokeObjectURL(designPreview);
@@ -1114,7 +967,6 @@ const StickerForm = forwardRef(function StickerForm(
 			return next;
 		});
 
-		// ✅ design toggles
 		if (String(groupName).trim() === "خدمة تصميم") {
 			const v = String(value || "");
 			if (!v.includes("لدى تصميم")) {
@@ -1189,7 +1041,7 @@ const StickerForm = forwardRef(function StickerForm(
 			selected_options,
 			size_id: sizeObj?.id ?? null,
 			color_id: colorObj?.id ?? null,
-			material_id: materialObj?.id ?? null, // ✅ will be used by next prefill too
+			material_id: materialObj?.id ?? null,
 			printing_method_id: methodObj?.id ?? null,
 			print_locations: print_location_ids,
 			embroider_locations: embroider_location_ids,
@@ -1200,7 +1052,6 @@ const StickerForm = forwardRef(function StickerForm(
 			payload.quantity = Number(sizeTierQty);
 		}
 
-		// ✅ If user uploaded new design file -> send FormData
 		const designServiceValue = optionGroups?.["خدمة تصميم"];
 		const isHasDesign = !!designServiceValue && String(designServiceValue).includes("لدى تصميم");
 		const shouldUploadFile = isHasDesign && designDelivery === "upload" && !!designFile;
@@ -1254,11 +1105,7 @@ const StickerForm = forwardRef(function StickerForm(
 	const needColor = apiData?.colors?.length > 0;
 	const needMaterial = apiData?.materials?.length > 0;
 
-	const needPrintingMethod = Array.isArray(apiData?.printing_methods) && apiData.printing_methods.length > 0;
-	const needPrintLocation = Array.isArray(apiData?.print_locations) && apiData.print_locations.length > 0;
-
 	const designServiceValue = optionGroups?.["خدمة تصميم"];
-	const showDesignSection = !!designServiceValue && String(designServiceValue).includes("لدى تصميم");
 
 	return (
 		<motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="pt-4 mt-4">
@@ -1438,15 +1285,9 @@ const StickerForm = forwardRef(function StickerForm(
 
 								{fieldError && <FormHelperText className="text-red-500 text-xs">يجب اختيار {groupName}</FormHelperText>}
 							</FormControl>
-
-						
 						</Box>
 					);
 				})}
-
-			
-
-			
 			</div>
 
 			{apiData?.options_note && (
@@ -1462,124 +1303,110 @@ const StickerForm = forwardRef(function StickerForm(
 });
 
 function TotalOrder({
-  items_count,
-  subtotal,
-  total,
-  items,
-  couponDiscount = 0,
-  couponNewTotal = null,
+	items_count,
+	subtotal,
+	total,
+	items,
+	couponDiscount = 0,
+	couponNewTotal = null,
 }: {
-  items_count: number;
-  subtotal: number;
-  total: number;
-  items: any[];
-  couponDiscount?: number;
-  couponNewTotal?: number | null;
+	items_count: number;
+	subtotal: number;
+	total: number;
+	items: any[];
+	couponDiscount?: number;
+	couponNewTotal?: number | null;
 }) {
-  const { t } = useLanguage();
-  const shippingFree = true;
-  const shippingFee = shippingFree ? 0 : 48;
+	const { t } = useLanguage();
+	const shippingFree = true;
+	const shippingFee = shippingFree ? 0 : 48;
 
-  // Calculate total after coupon
-  const totalAfterCoupon =
-    couponNewTotal !== null && couponNewTotal !== undefined
-      ? Math.max(0, n(couponNewTotal))
-      : Math.max(0, n(total) - n(couponDiscount));
+	const totalAfterCoupon =
+		couponNewTotal !== null && couponNewTotal !== undefined
+			? Math.max(0, n(couponNewTotal))
+			: Math.max(0, n(total) - n(couponDiscount));
 
-  // Calculate total with shipping
-  const totalWithShipping = totalAfterCoupon + shippingFee;
-  
-  // Calculate total VAT from all items
-  const totalVAT = items.reduce((sum: number, item: any) => {
-    return sum + n(item.product?.tax_amount || 0) * n(item.quantity);
-  }, 0);
-  
-  // Calculate grand total (including VAT)
-  const grandTotal = totalWithShipping + totalVAT;
+	const totalWithShipping = totalAfterCoupon + shippingFee;
+	
+	const totalVAT = items.reduce((sum: number, item: any) => {
+		return sum + n(item.product?.tax_amount || 0) * n(item.quantity);
+	}, 0);
+	
+	const grandTotal = totalWithShipping + totalVAT;
 
-  // Formatting functions
-  const formattedSubtotal = n(subtotal).toLocaleString("en-US", { 
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2 
-  });
-  
-  const formattedVAT = n(totalVAT).toLocaleString("en-US", { 
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2 
-  });
-  
-  const formattedTotalBeforeVAT = n(totalWithShipping).toLocaleString("en-US", { 
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2 
-  });
-  
-  const formattedGrandTotal = n(grandTotal).toLocaleString("en-US", { 
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2 
-  });
-  
-  const formattedCoupon = n(couponDiscount).toLocaleString("en-US", { 
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2 
-  });
+	const formattedSubtotal = n(subtotal).toLocaleString("en-US", { 
+		minimumFractionDigits: 2, 
+		maximumFractionDigits: 2 
+	});
+	
+	const formattedVAT = n(totalVAT).toLocaleString("en-US", { 
+		minimumFractionDigits: 2, 
+		maximumFractionDigits: 2 
+	});
+	
+	const formattedTotalBeforeVAT = n(totalWithShipping).toLocaleString("en-US", { 
+		minimumFractionDigits: 2, 
+		maximumFractionDigits: 2 
+	});
+	
+	const formattedGrandTotal = n(grandTotal).toLocaleString("en-US", { 
+		minimumFractionDigits: 2, 
+		maximumFractionDigits: 2 
+	});
+	
+	const formattedCoupon = n(couponDiscount).toLocaleString("en-US", { 
+		minimumFractionDigits: 2, 
+		maximumFractionDigits: 2 
+	});
 
-  return (
-    <div className="my-1 gap-2 flex flex-col">
-      {/* Subtotal */}
-      <div className="flex text-sm items-center justify-between text-black">
-        <p className="font-semibold">
-          {t('summary_total')
-            .replace('{count}', String(items?.length))
-            .replace('{items}', t('items'))}
-        </p>
-      
-      </div>
+	return (
+		<div className="my-1 gap-2 flex flex-col">
+			<div className="flex text-sm items-center justify-between text-black">
+				<p className="font-semibold">
+					{t('summary_total')
+						.replace('{count}', String(items?.length))
+						.replace('{items}', t('items'))}
+				</p>
+				{/* يمكنك إضافة subtotal هنا إذا أردت */}
+			</div>
 
-      
+			{(n(couponDiscount) > 0 || (couponNewTotal !== null && couponNewTotal !== undefined)) && (
+				<div className="flex items-center justify-between text-sm">
+					<p className="text-emerald-800 font-semibold">{t('coupon_discount')}</p>
+					<p className="font-extrabold text-emerald-700">
+						- {formattedCoupon}
+						<span className="text-sm ms-1">{t('currency')}</span>
+					</p>
+				</div>
+			)}
 
-      {/* Coupon Discount */}
-      {(n(couponDiscount) > 0 || (couponNewTotal !== null && couponNewTotal !== undefined)) && (
-        <div className="flex items-center justify-between text-sm">
-          <p className="text-emerald-800 font-semibold">{t('coupon_discount')}</p>
-          <p className="font-extrabold text-emerald-700">
-            - {formattedCoupon}
-            <span className="text-sm ms-1">{t('currency')}</span>
-          </p>
-        </div>
-      )}
+			<div className="flex items-center justify-between text-sm pt-2 border-t border-slate-200">
+				<p className="font-semibold">{t('total_before_vat')}</p>
+				<p className="font-semibold">
+					{formattedTotalBeforeVAT}
+					<span className="text-sm ms-1">{t('currency')}</span>
+				</p>
+			</div>
 
-      {/* Total Before VAT */}
-      <div className="flex items-center justify-between text-sm pt-2 border-t border-slate-200">
-        <p className="font-semibold">{t('total_before_vat')}</p>
-        <p className="font-semibold">
-          {formattedTotalBeforeVAT}
-          <span className="text-sm ms-1">{t('currency')}</span>
-        </p>
-      </div>
+			<div className="flex items-center justify-between text-sm">
+				<p>{t('vat')}</p>
+				<p className="font-semibold">
+					+ {formattedVAT}
+					<span className="text-sm ms-1">{t('currency')}</span>
+				</p>
+			</div>
 
-      {/* VAT */}
-      <div className="flex items-center justify-between text-sm">
-        <p>
-          {t('vat')}
-        </p>
-        <p className="font-semibold">
-          + {formattedVAT}
-          <span className="text-sm ms-1">{t('currency')}</span>
-        </p>
-      </div>
-
-      {/* Grand Total */}
-      <div className="flex items-center justify-between pb-3 pt-2 border-t border-slate-200">
-        <div className="flex gap-1 items-center">
-          <p className="text-nowrap text-md text-pro font-semibold">
-            {t('grand_total')}
-          </p>
-        </div>
-        <p className="text-[15px] text-pro font-bold">
-          {formattedGrandTotal}
-          <span> {t('currency')}</span>
-        </p>
-      </div>
-    </div>
-  );
+			<div className="flex items-center justify-between pb-3 pt-2 border-t border-slate-200">
+				<div className="flex gap-1 items-center">
+					<p className="text-nowrap text-md text-pro font-semibold">
+						{t('grand_total')}
+					</p>
+				</div>
+				<p className="text-[15px] text-pro font-bold">
+					{formattedGrandTotal}
+					<span> {t('currency')}</span>
+				</p>
+			</div>
+		</div>
+	);
 }
