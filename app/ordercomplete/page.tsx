@@ -190,22 +190,7 @@ function SummaryBlock({ summary, t }: { summary: CheckoutSummaryV1 | null; t: an
 		<div className="my-2 gap-2 flex flex-col">
 			<div className="flex text-sm items-center justify-between text-black">
 				<p className="font-semibold">{t('summary_total').replace('{count}', String(n(summary.items_length))).replace('{items}', t('items'))}</p>
-				{/* <p>
-					{money(n(summary.subtotal))}
-					<span className="text-sm ms-1">{t('currency')}</span>
-				</p> */}
 			</div>
-
-			{/* <div className="flex items-center justify-between">
-				<p className="text-sm">{t('shipping_fee')}</p>
-				{shippingFree ? (
-					<p className="font-semibold text-green-600">{t('free')}</p>
-				) : (
-					<p className="text-md">
-						{money(n(summary.shipping_fee))} <span className="text-sm ms-1">{t('currency')}</span>
-					</p>
-				)}
-			</div> */}
 
 			{hasCoupon && (
 				<div className="flex items-center justify-between text-sm">
@@ -217,29 +202,12 @@ function SummaryBlock({ summary, t }: { summary: CheckoutSummaryV1 | null; t: an
 				</div>
 			)}
 
-			{/* <div className="flex items-center justify-between text-sm">
-				<p>{t('vat_rate')} ({Math.round(n(summary.tax_rate) * 100) || 15}%)</p>
-				<p className="font-semibold">
-					{money(n(summary.tax_amount))}
-					<span className="text-sm ms-1">{t('currency')}</span>
-				</p>
-			</div> */}
-
-			{/* <div className="flex items-center justify-between text-sm">
-				<p>{t('total_excl_vat')}</p>
-				<p className="font-semibold">
-					{money(n(summary.total_without_tax))}
-					<span className="text-sm ms-1">{t('currency')}</span>
-				</p>
-			</div> */}
-
 			<div className="flex items-center justify-between pb-3 pt-2">
 				<div className="flex gap-1 items-center">
 					<p className=" text-nowrap text-md text-pro font-semibold">{t('total_colon')}</p>
 				</div>
 				<p className="text-[15px] text-pro font-bold">
 					{money(n(summary.total_with_shipping))}
-					{/* <span> {t('currency')}</span> */}
 				</p>
 			</div>
 		</div>
@@ -320,7 +288,7 @@ export default function OrderCompletePage() {
 		};
 
 		fetchOrder();
-	}, [orderId]);
+	}, [orderId, language]);
 
 	// ✅ compute totals from items.products + options (kept for items line prices display)
 	const computed = useMemo(() => {
@@ -346,6 +314,23 @@ export default function OrderCompletePage() {
 				icon: "success",
 				title: t('copied'),
 				text: t('order_number_copied'),
+				timer: 1400,
+				showConfirmButton: false,
+			});
+		} catch {
+			Swal.fire(t('error'), t('connect_error'), "warning");
+		}
+	};
+
+	const copySerialCode = async (code: string, type: string) => {
+		if (!code) return;
+		
+		try {
+			await navigator.clipboard.writeText(code);
+			Swal.fire({
+				icon: "success",
+				title: t('copied'),
+				text: `${t('copied')} ${type}`,
 				timer: 1400,
 				showConfirmButton: false,
 			});
@@ -476,8 +461,6 @@ export default function OrderCompletePage() {
 								</div>
 							</div>
 
-						
-
 							{/* Payment */}
 							<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6">
 								<h5 className="font-extrabold md:text-xl text-md text-slate-900 mb-3">{t('payment_method')}</h5>
@@ -544,6 +527,7 @@ export default function OrderCompletePage() {
 									const name = it.product_name || p.name || t('product_singular');
 									const qty = it._qty || 1;
 									const opts = Array.isArray(it._opts) ? it._opts : [];
+									const serials = Array.isArray(it.serials) ? it.serials : [];
 
 									return (
 										<div key={idx} className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
@@ -558,7 +542,6 @@ export default function OrderCompletePage() {
 
 													<p className="mt-2 font-extrabold text-slate-900">
 														{p.final_price} 
-														{/* <span className="text-xs text-slate-600">{t('currency')}</span> */}
 													</p>
 
 													{opts.length > 0 && (
@@ -574,6 +557,93 @@ export default function OrderCompletePage() {
 															{opts.length > 6 && (
 																<span className="text-xs font-extrabold text-slate-500">+{opts.length - 6} {t('more')}</span>
 															)}
+														</div>
+													)}
+
+													{/* عرض الأرقام التسلسلية */}
+													{serials.length > 0 && (
+														<div className="mt-4 border-t border-slate-200 pt-3">
+															<p className="font-bold text-sm text-slate-900 mb-2">
+																{t('serial_number') || "الأرقام التسلسلية"}:
+															</p>
+															<div className="space-y-2">
+																{serials.map((serial: any, serialIdx: number) => (
+																	<div key={serial.id || serialIdx} 
+																		className="bg-white rounded-xl border border-slate-200 p-3 text-xs">
+																		
+																		{/* الرقم التسلسلي */}
+																		{serial.serial_number && (
+																			<div className="flex justify-between items-center mb-1 pb-1 border-b border-slate-100">
+																				<span className="text-slate-600">{t('serial_number')}:</span>
+																				<div className="flex items-center gap-1">
+																					<span className="font-mono font-bold text-slate-900 dir-ltr text-left">
+																						{serial.serial_number}
+																					</span>
+																					<button
+																						onClick={() => copySerialCode(serial.serial_number, t('serial_number'))}
+																						className="text-pro hover:opacity-80"
+																						title={t('copy')}
+																					>
+																						<TbCopy size={14} />
+																					</button>
+																				</div>
+																			</div>
+																		)}
+																		
+																		{/* رمز السريال */}
+																		{serial.serial_code && (
+																			<div className="flex justify-between items-center mb-1 pb-1 border-b border-slate-100">
+																				<span className="text-slate-600">{t('serial_code')}:</span>
+																				<div className="flex items-center gap-1">
+																					<span className="font-mono text-slate-700 dir-ltr text-left">
+																						{serial.serial_code}
+																					</span>
+																					<button
+																						onClick={() => copySerialCode(serial.serial_code, t('serial_code'))}
+																						className="text-pro hover:opacity-80"
+																						title={t('copy')}
+																					>
+																						<TbCopy size={14} />
+																					</button>
+																				</div>
+																			</div>
+																		)}
+																		
+																		{/* كود القسيمة */}
+																		{serial.voucher_code && (
+																			<div className="flex justify-between items-center mb-1 pb-1 border-b border-slate-100">
+																				<span className="text-slate-600">{t('voucher_code')}:</span>
+																				<div className="flex items-center gap-1">
+																					<span className="font-mono font-bold text-emerald-600 dir-ltr text-left">
+																						{serial.voucher_code}
+																					</span>
+																					<button
+																						onClick={() => copySerialCode(serial.voucher_code, t('voucher_code'))}
+																						className="text-pro hover:opacity-80"
+																						title={t('copy')}
+																					>
+																						<TbCopy size={14} />
+																					</button>
+																				</div>
+																			</div>
+																		)}
+																		
+																		{/* تاريخ الصلاحية */}
+																		{/* {serial.valid_to && (
+																			<div className="flex justify-between items-center">
+																				<span className="text-slate-600">{t('voucher_code')}:</span>
+																				<span className="text-slate-700">
+																					{new Date(serial.valid_to).toLocaleDateString('ar-EG', {
+																						year: 'numeric',
+																						month: 'long',
+																						day: 'numeric'
+																					})}
+																				</span>
+																			</div>
+																		)} */}
+																	</div>
+																))}
+															</div>
 														</div>
 													)}
 												</div>
