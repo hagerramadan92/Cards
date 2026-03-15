@@ -57,7 +57,9 @@ interface CartContextType {
 	subtotal: number;
 	total: number;
 	loading: boolean;
-
+  apiSubtotal?: number;
+  apiTotal?: number;
+  apiItemsCount?: number;
 	addToCart: (
 		productId: number,
 		options?: Partial<Omit<AddToCartPayload, "product_id">>
@@ -99,7 +101,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 		material: "",
 		selectedFeatures: {},
 	});
-
+const [apiSubtotal, setApiSubtotal] = useState<number>(0);
+  const [apiTotal, setApiTotal] = useState<number>(0);
+  const [apiItemsCount, setApiItemsCount] = useState<number>(0);
 	const parseSelectedOptions = (selectedOptionsStr: string): any[] => {
 		if (!selectedOptionsStr) return [];
 
@@ -174,6 +178,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 					};
 				});
 				setCart(items);
+				setApiSubtotal(parseFloat(data.data.subtotal || "0"));
+        setApiTotal(parseFloat(data.data.total || "0"));
+        setApiItemsCount(data.data.items_count || 0);
+        
 			} else {
 				setCart([]);
 			}
@@ -512,11 +520,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 	}, [token, language]);
 
 	const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-	const subtotal = cart.reduce(
-		(sum, item) => sum + parseFloat(item.product.price || "0"),
-		0
-	);
-	const total = subtotal;
+	// const subtotal = cart.reduce(
+	// 	(sum, item) => sum + parseFloat(item.product.price || "0"),
+	// 	0
+	// );
+	// const total = subtotal;
+	  const subtotal = apiSubtotal;
+  const total = apiTotal;
 
 	const validateStickerForm = (fields: any) => {
 		if (!fields) return false;
@@ -542,6 +552,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 				total,
 				loading,
 				addToCart,
+				  apiSubtotal,   // optional
+    apiTotal,       // optional
+    apiItemsCount, 
 				removeFromCart,
 				updateQuantity,
 				updateCartItem,

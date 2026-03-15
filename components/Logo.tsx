@@ -17,7 +17,7 @@ export default function Logo({
 	size = 44, 
 	className = "",
 }: Props) {
-	const { t } = useLanguage();
+	const { t  } = useLanguage();
 	const { settings, loading } = useData();
 
 	// استخراج البيانات من settings
