@@ -8,14 +8,30 @@ import { MdKeyboardArrowLeft } from "react-icons/md";
 import { IoIosCloseCircle } from "react-icons/io";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useEffect, useCallback, useImperativeHandle, forwardRef } from "react";
+import {
+  useMemo,
+  useState,
+  useEffect,
+  useCallback,
+  useImperativeHandle,
+  forwardRef,
+} from "react";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import { useCart } from "@/src/context/CartContext";
 import CoBon from "@/components/cobon";
 import Button from "@mui/material/Button";
 import CartSkeleton from "@/components/skeletons/CartSkeleton";
-import { Box, FormControl, InputLabel, Select, MenuItem, FormHelperText, CircularProgress, Alert } from "@mui/material";
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
 import { motion } from "framer-motion";
 import { Save, CheckCircle, Warning, Info, Refresh } from "@mui/icons-material";
 import { StickerFormSkeleton } from "../../components/skeletons/HomeSkeletons";
@@ -23,1390 +39,1725 @@ import { useLanguage } from "@/src/context/LanguageContext";
 import ImageComponent from "@/components/ImageComponent";
 
 interface StickerFormProps {
-	cartItemId?: number;
-	productId: number;
-	productData?: any;
-	cartItem?: any;
-	onOptionsChange?: (cartItemId: number, options: any) => void;
-	showValidation?: boolean;
+  cartItemId?: number;
+  productId: number;
+  productData?: any;
+  cartItem?: any;
+  onOptionsChange?: (cartItemId: number, options: any) => void;
+  showValidation?: boolean;
 }
 
-type SelectedOpt = { option_name: string; option_value: string; additional_price?: number };
+type SelectedOpt = {
+  option_name: string;
+  option_value: string;
+  additional_price?: number;
+};
 
 function n(v: any) {
-	const x = typeof v === "string" ? Number(v) : typeof v === "number" ? v : Number(v ?? 0);
-	return Number.isFinite(x) ? x : 0;
+  const x =
+    typeof v === "string"
+      ? Number(v)
+      : typeof v === "number"
+        ? v
+        : Number(v ?? 0);
+  return Number.isFinite(x) ? x : 0;
 }
 
 function money(v: number) {
-	return v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return v.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 function safeParseSelectedOptions(raw: any): SelectedOpt[] {
-	if (!raw) return [];
-	if (Array.isArray(raw)) return raw as SelectedOpt[];
-	if (typeof raw === "string") {
-		try {
-			const parsed = JSON.parse(raw);
-			return Array.isArray(parsed) ? (parsed as SelectedOpt[]) : [];
-		} catch {
-			return [];
-		}
-	}
-	return [];
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw as SelectedOpt[];
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? (parsed as SelectedOpt[]) : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
 }
 
 function safeParseIds(raw: any): number[] {
-	if (!raw) return [];
-	if (Array.isArray(raw)) return raw.map((x) => n(x)).filter((x) => x > 0);
-	if (typeof raw === "string") {
-		try {
-			const parsed = JSON.parse(raw);
-			if (Array.isArray(parsed)) return parsed.map((x) => n(x)).filter((x) => x > 0);
-		} catch {
-			return raw
-				.replace(/\[|\]/g, "")
-				.split(",")
-				.map((x) => n(String(x).trim()))
-				.filter((x) => x > 0);
-		}
-	}
-	return [];
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw.map((x) => n(x)).filter((x) => x > 0);
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed))
+        return parsed.map((x) => n(x)).filter((x) => x > 0);
+    } catch {
+      return raw
+        .replace(/\[|\]/g, "")
+        .split(",")
+        .map((x) => n(String(x).trim()))
+        .filter((x) => x > 0);
+    }
+  }
+  return [];
 }
 
 function pickBasePrice(p: any) {
-	const price = n(p?.price);
-	const finalPrice = n(p?.final_price);
-	const lowest = n(p?.lowest_price);
+  const price = n(p?.price);
+  const finalPrice = n(p?.final_price);
+  const lowest = n(p?.lowest_price);
 
-	if (p?.has_discount) {
-		return finalPrice > 0 ? finalPrice : price > 0 ? price : lowest;
-	}
+  if (p?.has_discount) {
+    return finalPrice > 0 ? finalPrice : price > 0 ? price : lowest;
+  }
 
-	return price > 0 ? price : finalPrice > 0 ? finalPrice : lowest;
+  return price > 0 ? price : finalPrice > 0 ? finalPrice : lowest;
 }
 
 function computeExtrasFromSelectedOptions(item: any, p: any) {
-	let extrasPerUnit = 0;
-	let oneTimeExtras = 0;
-	let hasAnyAdditional = false;
+  let extrasPerUnit = 0;
+  let oneTimeExtras = 0;
+  let hasAnyAdditional = false;
 
-	if (hasAnyAdditional) return { extrasPerUnit, oneTimeExtras };
+  if (hasAnyAdditional) return { extrasPerUnit, oneTimeExtras };
 
-	const productOptions = Array.isArray(p?.options) ? p.options : [];
+  const productOptions = Array.isArray(p?.options) ? p.options : [];
 
-	return { extrasPerUnit, oneTimeExtras };
+  return { extrasPerUnit, oneTimeExtras };
 }
 
 function computePricing(item: any) {
-	const p = item.product || {};
-	const selected = safeParseSelectedOptions(item.selected_options);
+  const p = item.product || {};
+  const selected = safeParseSelectedOptions(item.selected_options);
 
-	const tierQty = n(selected.find((o) => o.option_name?.includes("كمية المقاس"))?.option_value);
-	const tierTotal = n(selected.find((o) => o.option_name?.includes("سعر المقاس الإجمالي"))?.option_value);
+  const tierQty = n(
+    selected.find((o) => o.option_name?.includes("كمية المقاس"))?.option_value,
+  );
+  const tierTotal = n(
+    selected.find((o) => o.option_name?.includes("سعر المقاس الإجمالي"))
+      ?.option_value,
+  );
 
-	const qty = tierQty > 0 ? tierQty : n(item.quantity || 1);
+  const qty = tierQty > 0 ? tierQty : n(item.quantity || 1);
 
-	const apiUnit = n(item.price_per_unit);
-	const apiLine = n(item.line_total);
+  const apiUnit = n(item.price_per_unit);
+  const apiLine = n(item.line_total);
 
-	const base = pickBasePrice(p);
+  const base = pickBasePrice(p);
 
-	const { extrasPerUnit, oneTimeExtras } = computeExtrasFromSelectedOptions(item, p);
+  const { extrasPerUnit, oneTimeExtras } = computeExtrasFromSelectedOptions(
+    item,
+    p,
+  );
 
-	const baseLineFromTier = tierTotal > 0 ? tierTotal : base * qty;
-	const lineAfterOptions = baseLineFromTier + extrasPerUnit * qty + oneTimeExtras;
-	const unitAfterOptions = qty > 0 ? lineAfterOptions / qty : 0;
+  const baseLineFromTier = tierTotal > 0 ? tierTotal : base * qty;
+  const lineAfterOptions =
+    baseLineFromTier + extrasPerUnit * qty + oneTimeExtras;
+  const unitAfterOptions = qty > 0 ? lineAfterOptions / qty : 0;
 
-	const originalBaseUnit = n(p?.price) > 0 ? n(p?.price) : base;
-	const discountBaseUnit = n(p?.final_price) > 0 ? n(p?.final_price) : base;
-  
-	const showRealProductPrice = {
-		discount: !!p?.has_discount,
-		unit_after_options: unitAfterOptions,
-		original_unit_after_options: originalBaseUnit + extrasPerUnit,
-		discount_unit_after_options: discountBaseUnit + extrasPerUnit,
-		extras: extrasPerUnit,
-		one_time_extras: oneTimeExtras,
-		base_used: base,
-		tier_qty: tierQty,
-		tier_total: tierTotal,
-	};
+  const originalBaseUnit = n(p?.price) > 0 ? n(p?.price) : base;
+  const discountBaseUnit = n(p?.final_price) > 0 ? n(p?.final_price) : base;
 
-	const unit = unitAfterOptions > 0 ? unitAfterOptions : apiUnit;
-	const line = lineAfterOptions > 0 ? lineAfterOptions : apiLine;
+  const showRealProductPrice = {
+    discount: !!p?.has_discount,
+    unit_after_options: unitAfterOptions,
+    original_unit_after_options: originalBaseUnit + extrasPerUnit,
+    discount_unit_after_options: discountBaseUnit + extrasPerUnit,
+    extras: extrasPerUnit,
+    one_time_extras: oneTimeExtras,
+    base_used: base,
+    tier_qty: tierQty,
+    tier_total: tierTotal,
+  };
 
-	return { unit, line, showRealProductPrice, effectiveQty: qty };
+  const unit = unitAfterOptions > 0 ? unitAfterOptions : apiUnit;
+  const line = lineAfterOptions > 0 ? lineAfterOptions : apiLine;
+
+  return { unit, line, showRealProductPrice, effectiveQty: qty };
 }
 
 function computePricingWithDraft(item: any, draft: any) {
-	const p = item.product || {};
-	const qty = n(draft?.size_tier_qty) > 0 ? n(draft?.size_tier_qty) : n(item.quantity || 1);
+  const p = item.product || {};
+  const qty =
+    n(draft?.size_tier_qty) > 0
+      ? n(draft?.size_tier_qty)
+      : n(item.quantity || 1);
 
-	const base = pickBasePrice(p);
-	const tierTotal = n(draft?.size_tier_total);
-	const baseLine = tierTotal > 0 ? tierTotal : base * qty;
+  const base = pickBasePrice(p);
+  const tierTotal = n(draft?.size_tier_total);
+  const baseLine = tierTotal > 0 ? tierTotal : base * qty;
 
-	let extrasPerUnit = 0;
-	let oneTimeExtras = 0;
+  let extrasPerUnit = 0;
+  let oneTimeExtras = 0;
 
-	const productOptions = Array.isArray(p?.options) ? p.options : [];
-	const groups = draft?.optionGroups || {};
-	for (const [groupName, val] of Object.entries(groups)) {
-		const v = String(val || "").trim();
+  const productOptions = Array.isArray(p?.options) ? p.options : [];
+  const groups = draft?.optionGroups || {};
+  for (const [groupName, val] of Object.entries(groups)) {
+    const v = String(val || "").trim();
 
-		const row = productOptions.find(
-			(o: any) =>
-				String(o.option_name).trim() === String(groupName).trim() &&
-				String(o.option_value).trim() === String(v).trim()
-		);
+    const row = productOptions.find(
+      (o: any) =>
+        String(o.option_name).trim() === String(groupName).trim() &&
+        String(o.option_value).trim() === String(v).trim(),
+    );
 
-		if (row) {
-			const add = n(row.additional_price);
-		}
-	}
+    if (row) {
+      const add = n(row.additional_price);
+    }
+  }
 
-	const materials = Array.isArray(p?.materials) ? p.materials : [];
-	const matName = String(draft?.material || "").trim();
+  const materials = Array.isArray(p?.materials) ? p.materials : [];
+  const matName = String(draft?.material || "").trim();
 
-	const colors = Array.isArray(p?.colors) ? p.colors : [];
-	const colorName = String(draft?.color || "").trim();
+  const colors = Array.isArray(p?.colors) ? p.colors : [];
+  const colorName = String(draft?.color || "").trim();
 
-	const printingMethods = Array.isArray(p?.printing_methods) ? p.printing_methods : [];
-	const pmName = String(draft?.printing_method || "").trim();
+  const printingMethods = Array.isArray(p?.printing_methods)
+    ? p.printing_methods
+    : [];
+  const pmName = String(draft?.printing_method || "").trim();
 
-	const printLocations = Array.isArray(p?.print_locations) ? p.print_locations : [];
-	const selectedLocNames: string[] = Array.isArray(draft?.print_locations) ? draft.print_locations : [];
+  const printLocations = Array.isArray(p?.print_locations)
+    ? p.print_locations
+    : [];
+  const selectedLocNames: string[] = Array.isArray(draft?.print_locations)
+    ? draft.print_locations
+    : [];
 
-	const line = baseLine + extrasPerUnit * qty + oneTimeExtras;
-	const unit = qty > 0 ? line / qty : 0;
+  const line = baseLine + extrasPerUnit * qty + oneTimeExtras;
+  const unit = qty > 0 ? line / qty : 0;
 
-	const originalBaseUnit = n(p?.price) > 0 ? n(p?.price) : base;
-	const discountBaseUnit = n(p?.final_price) > 0 ? n(p?.final_price) : base;
+  const originalBaseUnit = n(p?.price) > 0 ? n(p?.price) : base;
+  const discountBaseUnit = n(p?.final_price) > 0 ? n(p?.final_price) : base;
 
-	return {
-		unit,
-		line,
-		effectiveQty: qty,
-		showRealProductPrice: {
-			discount: !!p?.has_discount,
-			unit_after_options: unit,
-			original_unit_after_options: originalBaseUnit + extrasPerUnit,
-			discount_unit_after_options: discountBaseUnit + extrasPerUnit,
-			extras: extrasPerUnit,
-			one_time_extras: oneTimeExtras,
-			base_used: base,
-			tier_qty: n(draft?.size_tier_qty),
-			tier_total: n(draft?.size_tier_total),
-		},
-	};
+  return {
+    unit,
+    line,
+    effectiveQty: qty,
+    showRealProductPrice: {
+      discount: !!p?.has_discount,
+      unit_after_options: unit,
+      original_unit_after_options: originalBaseUnit + extrasPerUnit,
+      discount_unit_after_options: discountBaseUnit + extrasPerUnit,
+      extras: extrasPerUnit,
+      one_time_extras: oneTimeExtras,
+      base_used: base,
+      tier_qty: n(draft?.size_tier_qty),
+      tier_total: n(draft?.size_tier_total),
+    },
+  };
 }
 
 function productNeedsSelection(p: any) {
-	return (
-		(p?.sizes?.length ?? 0) > 0 ||
-		(p?.colors?.length ?? 0) > 0 ||
-		(p?.materials?.length ?? 0) > 0 ||
-		(p?.options?.length ?? 0) > 0 ||
-		(p?.printing_methods?.length ?? 0) > 0 ||
-		(p?.print_locations?.length ?? 0) > 0
-	);
+  return (
+    (p?.sizes?.length ?? 0) > 0 ||
+    (p?.colors?.length ?? 0) > 0 ||
+    (p?.materials?.length ?? 0) > 0 ||
+    (p?.options?.length ?? 0) > 0 ||
+    (p?.printing_methods?.length ?? 0) > 0 ||
+    (p?.print_locations?.length ?? 0) > 0
+  );
 }
 
 function missingRequiredFields(item: any) {
-	const p = item.product || {};
-	const miss: any[] = [];
+  const p = item.product || {};
+  const miss: any[] = [];
 
-	return miss;
+  return miss;
 }
 
 export default function CartPage() {
-	const { t } = useLanguage();
-	const router = useRouter();
-	const { cart, cartCount, removeFromCart, updateQuantity, loading, subtotal, total, refreshCart } = useCart();
-	const [code, setCode] = useState("");
-	const [couponDiscount, setCouponDiscount] = useState<number>(0);
-	const [couponNewTotal, setCouponNewTotal] = useState<number | null>(null);
-const [updatingItems, setUpdatingItems] = useState<Record<number, boolean>>({});
-	const [draftById, setDraftById] = useState<Record<number, any>>({});
+  const { t } = useLanguage();
+  const router = useRouter();
+  const {
+    cart,
+    cartCount,
+    removeFromCart,
+    updateQuantity,
+    loading,
+    subtotal,
+    total,
+    refreshCart,
+  } = useCart();
+  const [code, setCode] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState<number>(0);
+  const [couponNewTotal, setCouponNewTotal] = useState<number | null>(null);
+  const [updatingItems, setUpdatingItems] = useState<Record<number, boolean>>(
+    {},
+  );
+  const [draftById, setDraftById] = useState<Record<number, any>>({});
 
-	const handleOptionsChange = useCallback((cartItemId: number, opt: any) => {
-		setDraftById((prev) => {
-			const prevStr = JSON.stringify(prev[cartItemId] ?? null);
-			const nextStr = JSON.stringify(opt ?? null);
-			if (prevStr === nextStr) return prev;
-			return { ...prev, [cartItemId]: opt };
-		});
-	}, []);
-// ودالة الـ handleQuantityChange
-const handleQuantityChange = useCallback(async (cartItemId: number, newQuantity: number) => {
-  // منع الـ double click السريع
-  if (updatingItems[cartItemId]) return;
-  
-  setUpdatingItems(prev => ({ ...prev, [cartItemId]: true }));
-  
-  try {
-    await updateQuantity(cartItemId, newQuantity);
-  } finally {
-    setUpdatingItems(prev => ({ ...prev, [cartItemId]: false }));
-  }
-}, [updateQuantity, updatingItems]);
-	const computed = useMemo(() => {
-  const items = cart.map((it: any) => {
-    const id = n(it.cart_item_id || it.id);
-    const draft = id ? draftById[id] : null;
-    const pr = draft ? computePricingWithDraft(it, draft) : computePricing(it);
-    
-    return {
-      ...it,
-      _unit: pr.unit,
-      _line: pr.line,
-      _real: pr.showRealProductPrice,
-      _effectiveQty: pr.effectiveQty,
+  const handleOptionsChange = useCallback((cartItemId: number, opt: any) => {
+    setDraftById((prev) => {
+      const prevStr = JSON.stringify(prev[cartItemId] ?? null);
+      const nextStr = JSON.stringify(opt ?? null);
+      if (prevStr === nextStr) return prev;
+      return { ...prev, [cartItemId]: opt };
+    });
+  }, []);
+  // ودالة الـ handleQuantityChange
+  const handleQuantityChange = useCallback(
+    async (cartItemId: number, newQuantity: number) => {
+      // منع الـ double click السريع
+      if (updatingItems[cartItemId]) return;
+
+      setUpdatingItems((prev) => ({ ...prev, [cartItemId]: true }));
+
+      try {
+        await updateQuantity(cartItemId, newQuantity);
+      } finally {
+        setUpdatingItems((prev) => ({ ...prev, [cartItemId]: false }));
+      }
+    },
+    [updateQuantity, updatingItems],
+  );
+  const computed = useMemo(() => {
+    const items = cart.map((it: any) => {
+      const id = n(it.cart_item_id || it.id);
+      const draft = id ? draftById[id] : null;
+      const pr = draft
+        ? computePricingWithDraft(it, draft)
+        : computePricing(it);
+
+      return {
+        ...it,
+        _unit: pr.unit,
+        _line: pr.line,
+        _real: pr.showRealProductPrice,
+        _effectiveQty: pr.effectiveQty,
+      };
+    });
+
+    const localSubtotal = items.reduce(
+      (acc: number, it: any) => acc + n(it._line),
+      0,
+    );
+    return { items, localSubtotal };
+  }, [cart, draftById]); 
+
+  const backendSubtotal = n(subtotal);
+  const backendTotal = n(total);
+
+  const persistCheckoutSummary = useCallback(() => {
+    const shippingFree = true;
+    const shippingFee = shippingFree ? 0 : 48;
+
+    const totalAfterCoupon =
+      couponNewTotal !== null && couponNewTotal !== undefined
+        ? Math.max(0, n(couponNewTotal))
+        : Math.max(0, backendTotal - n(couponDiscount));
+
+    const totalWithShipping = totalAfterCoupon + shippingFee;
+
+    const totalVAT = cart.reduce((sum: number, item: any) => {
+      return sum + n(item.product?.tax_amount || 0) * n(item.quantity);
+    }, 0);
+
+    const grandTotal = totalWithShipping + totalVAT;
+
+    const payload = {
+      version: "v1",
+      created_at: new Date().toISOString(),
+      items_count: cartCount,
+      items_length: Array.isArray(cart) ? cart.length : 0,
+      subtotal: backendSubtotal,
+      total: backendTotal,
+      coupon_discount: n(couponDiscount),
+      coupon_name: code,
+      coupon_new_total:
+        couponNewTotal !== null && couponNewTotal !== undefined
+          ? n(couponNewTotal)
+          : null,
+      shipping_fee: shippingFee,
+      total_after_coupon: totalAfterCoupon,
+      total_with_shipping: totalWithShipping,
+      vat_amount: totalVAT,
+      grand_total: grandTotal,
+      items_vat_details: cart.map((item: any) => ({
+        product_id: item.product?.id,
+        product_name: item.product?.name,
+        unit_price: n(item._unit),
+        quantity: n(item.quantity),
+        unit_vat: n(item.product?.tax_amount || 0),
+        total_vat: n(item.product?.tax_amount || 0) * n(item.quantity),
+      })),
     };
-  });
-  
-  const localSubtotal = items.reduce((acc: number, it: any) => acc + n(it._line), 0);
-  return { items, localSubtotal };
-}, [cart, draftById]); // ✅ ده كويس
 
-	const backendSubtotal = n(subtotal);
-	const backendTotal = n(total);
+    try {
+      sessionStorage.setItem("checkout_summary_v1", JSON.stringify(payload));
+    } catch {}
+  }, [
+    backendSubtotal,
+    backendTotal,
+    couponDiscount,
+    couponNewTotal,
+    cartCount,
+    cart,
+    code,
+  ]);
 
-	const persistCheckoutSummary = useCallback(() => {
-		const shippingFree = true;
-		const shippingFee = shippingFree ? 0 : 48;
+  useEffect(() => {
+    persistCheckoutSummary();
+  }, [persistCheckoutSummary]);
 
-		const totalAfterCoupon =
-			couponNewTotal !== null && couponNewTotal !== undefined
-				? Math.max(0, n(couponNewTotal))
-				: Math.max(0, backendTotal - n(couponDiscount));
+  const handleClick = () => {
+    let hasMissing = false;
+    const errors: string[] = [];
 
-		const totalWithShipping = totalAfterCoupon + shippingFee;
-		
-		const totalVAT = cart.reduce((sum: number, item: any) => {
-			return sum + n(item.product?.tax_amount || 0) * n(item.quantity);
-		}, 0);
-		
-		const grandTotal = totalWithShipping + totalVAT;
+    computed.items.forEach((item: any, idx: number) => {
+      const miss = missingRequiredFields(item);
+      if (miss.length) {
+        hasMissing = true;
+        errors.push(
+          `• المنتج ${idx + 1}: ${item.product?.name} (${miss.join("، ")})`,
+        );
+      }
+    });
 
-		const payload = {
-			version: "v1",
-			created_at: new Date().toISOString(),
-			items_count: cartCount,
-			items_length: Array.isArray(cart) ? cart.length : 0,
-			subtotal: backendSubtotal,
-			total: backendTotal,
-			coupon_discount: n(couponDiscount),
-			coupon_name: code,
-			coupon_new_total: couponNewTotal !== null && couponNewTotal !== undefined ? n(couponNewTotal) : null,
-			shipping_fee: shippingFee,
-			total_after_coupon: totalAfterCoupon,
-			total_with_shipping: totalWithShipping,
-			vat_amount: totalVAT,
-			grand_total: grandTotal,
-			items_vat_details: cart.map((item: any) => ({
-				product_id: item.product?.id,
-				product_name: item.product?.name,
-				unit_price: n(item._unit),
-				quantity: n(item.quantity),
-				unit_vat: n(item.product?.tax_amount || 0),
-				total_vat: n(item.product?.tax_amount || 0) * n(item.quantity)
-			}))
-		};
-
-		try {
-			sessionStorage.setItem("checkout_summary_v1", JSON.stringify(payload));
-		} catch { }
-	}, [backendSubtotal, backendTotal, couponDiscount, couponNewTotal, cartCount, cart, code]);
-
-	useEffect(() => {
-		persistCheckoutSummary();
-	}, [persistCheckoutSummary]);
-
-	const handleClick = () => {
-		let hasMissing = false;
-		const errors: string[] = [];
-
-		computed.items.forEach((item: any, idx: number) => {
-			const miss = missingRequiredFields(item);
-			if (miss.length) {
-				hasMissing = true;
-				errors.push(`• المنتج ${idx + 1}: ${item.product?.name} (${miss.join("، ")})`);
-			}
-		});
-
-		if (hasMissing) {
-			const msg = `
+    if (hasMissing) {
+      const msg = `
 الرجاء اختيار كل الحقول المطلوبة قبل المتابعة
 المنتجات التي تحتاج إكمال البيانات:
 ${errors.join("\n")}
       `;
 
-			Swal.fire({
-				icon: "error",
-				title: "الحقول غير مكتملة",
-				html: msg.replace(/\n/g, "<br/>"),
-				confirmButtonText: "حسنًا",
-				customClass: {
-					popup: "font-sans text-sm",
-					confirmButton: "bg-pro text-white font-bold",
-				},
-			});
-			return;
-		}
-
-		persistCheckoutSummary();
-		router.push("/payment");
-	};
-
-	if (loading) return <CartSkeleton />;
-
-	if (!cart || cart.length === 0) {
-		return (
-			<div className="p-10 text-center flex flex-col items-center justify-center min-h-[60vh]">
-				<Image src="/images/cart2.webp" alt="empty cart" width={300} height={250} />
-				<h2 className="text-2xl font-bold mb-6 text-gray-700">{t('empty_cart')}</h2>
-				<Link href="/" className="bg-pro text-white py-3 px-8 rounded-2xl hover:bg-pro-max transition text-lg font-bold">
-					{t('continue_shopping')}
-				</Link>
-			</div>
-		);
-	}
-
-	return (
-		<div className="container pb-8 !pt-5">
-			<div className="flex items-center gap-2 text-sm mb-2">
-				<Link href="/" aria-label="go to home" className="text-pro-max font-bold">
-					{t('home')}
-				</Link>
-				<MdKeyboardArrowLeft />
-				<h6 className="text-gray-600 font-bold">{t('cart')}</h6>
-			</div>
-
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-				<div className="col-span-1 lg:col-span-2">
-					<div className="flex flex-col my-4 bg-transparent overflow-hidden">
-						{computed.items.map((item: any) => {
-							const hasVariants = productNeedsSelection(item.product);
-
-							const hasTierQty = (() => {
-								const p = item.product || {};
-								const sizeName = String(item?.size || "").trim();
-								const sizeObj = sizeName ? (p?.sizes || []).find((s: any) => String(s?.name).trim() === sizeName) : null;
-								const hasTiers = !!sizeObj?.tiers?.length;
-								return hasTiers && n(item?.quantity) > 0;
-							})();
-
-							return (
-								<div key={item.cart_item_id} className="p-5 relative border rounded-2xl border-slate-200 bg-white shadow-sm mb-4">
-									<div className="relative md:border-0 border-b border-slate-200 pb-4">
-										<div className="md:flex justify-between items-start md:flex-row flex-col gap-3">
-											<div className="flex gap-3 w-full md:w-fit">
-												<div className="w-24 h-20 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200">
-													<Link href={`/product/${item.product.id}`}>
-														<ImageComponent
-															image={item.product.image || "/images/not.jpg"}
-															alt={item.product.name}
-															width={96}
-															height={80}
-															className="w-full h-full object-cover"
-														/>
-													</Link>
-												</div>
-
-												<div className="flex flex-col justify-between">
-													<div>
-														<h3 className="font-extrabold text-[15px] text-slate-900">{item.product.name}</h3>
-
-														{hasTierQty && (
-															<p className="text-xs font-extrabold text-slate-600 mt-1">{t('item_qty').replace('{qty}', String(n(item?.quantity)))}</p>
-														)}
-
-														<div className="mt-2 flex flex-wrap items-center gap-2">
-															{/* ✅ عرض السعر المحسوب بدلاً من final_price */}
-															<span className="text-sm font-extrabold text-slate-900">
-																{item.product.price}
-															</span>
-
-															{item._real?.discount && n(item._real?.original_unit_after_options) > n(item._unit) && (
-																<>
-																	<span className="text-xs font-extrabold text-slate-500 line-through">
-																		{money(n(item._real?.original_unit_after_options))} {t('currency')}
-																	</span>
-																	<span className="text-[11px] font-extrabold px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-																		{t('discount')}
-																	</span>
-																</>
-															)}
-														</div>
-													</div>
-												</div>
-											</div>
-
-											<div className="flex max-md:mt-6 max-md:justify-end items-center gap-2">
-												<div className={`flex items-center gap-3 border border-slate-200 rounded-2xl overflow-hidden ${hasTierQty ? "opacity-50 pointer-events-none" : ""}`}>
-													<button
-  onClick={() => {
-    if (item.quantity >= 10) {
-      toast.error(t('max_qty_reached').replace('{qty}', '10'), { 
-        icon: "معلومة", 
-        duration: 4000 
+      Swal.fire({
+        icon: "error",
+        title: "الحقول غير مكتملة",
+        html: msg.replace(/\n/g, "<br/>"),
+        confirmButtonText: "حسنًا",
+        customClass: {
+          popup: "font-sans text-sm",
+          confirmButton: "bg-pro text-white font-bold",
+        },
       });
-    } else {
-      handleQuantityChange(item.cart_item_id, item.quantity + 1);
+      return;
     }
-  }}
-  disabled={updatingItems[item.cart_item_id]}
-  className={`w-10 h-9 text-slate-600 cursor-pointer border-slate-200 border-l transition flex items-center justify-center hover:bg-slate-50 ${updatingItems[item.cart_item_id] ? 'opacity-50 cursor-not-allowed' : ''}`}
->
-  <FaPlus size={16} />
-</button>
 
-													<span className="font-extrabold w-6 text-lg text-center bg-white text-slate-900">{item._effectiveQty}</span>
+    persistCheckoutSummary();
+    router.push("/payment");
+  };
 
-													<button
-														onClick={() => {
-															if (item.quantity <= 1) removeFromCart(item.cart_item_id);
-															else updateQuantity(item.cart_item_id, item.quantity - 1);
-														}}
-														className="w-10 h-9 border-slate-200 border-r cursor-pointer transition flex items-center justify-center hover:bg-slate-50"
-													>
-														{item.quantity <= 1 ? <BsTrash3 className="text-rose-600" size={16} /> : <FaMinus className="text-slate-600" size={14} />}
-													</button>
-												</div>
+  if (loading) return <CartSkeleton />;
 
-												<button
-													onClick={async () => {
-														const result = await Swal.fire({
-															title: t('are_you_sure'),
-															text: t('remove_confirm_text'),
-															icon: "warning",
-															showCancelButton: true,
-															confirmButtonColor: "#d33",
-															cancelButtonColor: "#3085d6",
-															confirmButtonText: t('yes_remove'),
-															cancelButtonText: t('cancel'),
-															reverseButtons: true,
-															customClass: {
-																popup: "animate__animated animate__fadeInDown",
-																confirmButton: "font-bold",
-																cancelButton: "font-bold",
-															},
-														});
+  if (!cart || cart.length === 0) {
+    return (
+      <div className="p-10 text-center flex flex-col items-center justify-center min-h-[60vh]">
+        <Image
+          src="/images/cart2.webp"
+          alt="empty cart"
+          width={300}
+          height={250}
+        />
+        <h2 className="text-2xl font-bold mb-6 text-gray-700">
+          {t("empty_cart")}
+        </h2>
+        <Link
+          href="/"
+          className="bg-pro text-white py-3 px-8 rounded-2xl hover:bg-pro-max transition text-lg font-bold"
+        >
+          {t("continue_shopping")}
+        </Link>
+      </div>
+    );
+  }
 
-														if (result.isConfirmed) await removeFromCart(item.cart_item_id);
-													}}
-													className="cursor-pointer md:relative"
-													aria-label="remove"
-												>
-													<IoIosCloseCircle className="text-rose-500" size={40} />
-												</button>
-											</div>
-										</div>
-									</div>
-								</div>
-							);
-						})}
-					</div>
-				</div>
+  return (
+    <div className="container pb-8 !pt-5">
+      <div className="flex items-center gap-2 text-sm mb-2">
+        <Link
+          href="/"
+          aria-label="go to home"
+          className="text-pro-max font-bold"
+        >
+          {t("home")}
+        </Link>
+        <MdKeyboardArrowLeft />
+        <h6 className="text-gray-600 font-bold">{t("cart")}</h6>
+      </div>
 
-				<div className="col-span-1">
-					<div className="border border-slate-200 rounded-2xl p-6 mt-4 bg-white shadow-sm">
-						<h4 className="text-md font-extrabold text-pro my-5">{t('cart_summary')}</h4>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <div className="col-span-1 lg:col-span-2">
+          <div className="flex flex-col my-4 bg-transparent overflow-hidden">
+            {computed.items.map((item: any) => {
+              const hasVariants = productNeedsSelection(item.product);
 
-						<TotalOrder
-							items_count={cartCount}
-							subtotal={backendSubtotal}
-							total={backendTotal}
-							items={cart}
-							couponDiscount={couponDiscount}
-							couponNewTotal={couponNewTotal}
-						/>
+              const hasTierQty = (() => {
+                const p = item.product || {};
+                const sizeName = String(item?.size || "").trim();
+                const sizeObj = sizeName
+                  ? (p?.sizes || []).find(
+                      (s: any) => String(s?.name).trim() === sizeName,
+                    )
+                  : null;
+                const hasTiers = !!sizeObj?.tiers?.length;
+                return hasTiers && n(item?.quantity) > 0;
+              })();
 
-						<Button
-							variant="contained"
-							onClick={handleClick}
-							fullWidth
-							sx={{
-								mt: 3,
-								py: 1.5,
-								fontSize: "1.1rem",
-								fontWeight: "bold",
-								backgroundColor: "#14213d",
-								"&:hover": { backgroundColor: "#0f1a31" },
-								borderRadius: "14px",
-								textTransform: "none",
-							}}
-							endIcon={<KeyboardBackspaceIcon className="mx-2" />}
-						>
-							{t('checkout')}
-						</Button>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
+              return (
+                <div
+                  key={item.cart_item_id}
+                  className="p-5 relative border rounded-2xl border-slate-200 bg-white shadow-sm mb-4"
+                >
+                  <div className="relative md:border-0 border-b border-slate-200 pb-4">
+                    <div className="md:flex justify-between items-start md:flex-row flex-col gap-3">
+                      <div className="flex gap-3 w-full md:w-fit">
+                        <div className="w-24 h-20 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200">
+                          <Link href={`/product/${item.product.id}`}>
+                            <ImageComponent
+                              image={item.product.image || "/images/not.jpg"}
+                              alt={item.product.name}
+                              width={96}
+                              height={80}
+                              className="w-full h-full object-cover"
+                            />
+                          </Link>
+                        </div>
+
+                        <div className="flex flex-col justify-between">
+                          <div>
+                            <h3 className="font-extrabold text-[15px] text-slate-900">
+                              {item.product.name}
+                            </h3>
+
+                            {hasTierQty && (
+                              <p className="text-xs font-extrabold text-slate-600 mt-1">
+                                {t("item_qty").replace(
+                                  "{qty}",
+                                  String(n(item?.quantity)),
+                                )}
+                              </p>
+                            )}
+
+                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                              {/* ✅ عرض السعر المحسوب بدلاً من final_price */}
+                              <span className="text-sm font-extrabold text-slate-900">
+                                {item.product.price}
+                              </span>
+
+                              {item._real?.discount &&
+                                n(item._real?.original_unit_after_options) >
+                                  n(item._unit) && (
+                                  <>
+                                    <span className="text-xs font-extrabold text-slate-500 line-through">
+                                      {money(
+                                        n(
+                                          item._real
+                                            ?.original_unit_after_options,
+                                        ),
+                                      )}{" "}
+                                      {t("currency")}
+                                    </span>
+                                    <span className="text-[11px] font-extrabold px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                      {t("discount")}
+                                    </span>
+                                  </>
+                                )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex max-md:mt-6 max-md:justify-end items-center gap-2">
+                        <div
+                          className={`flex items-center gap-3 border border-slate-200 rounded-2xl overflow-hidden ${hasTierQty ? "opacity-50 pointer-events-none" : ""}`}
+                        >
+                          <button
+                            onClick={() => {
+                              if (item.quantity >= 40) {
+                                toast.error(
+                                  t("max_qty_reached").replace("{qty}", "40"),
+                                  {
+                                   
+                                    duration: 4000,
+                                  },
+                                );
+                              } else {
+                                handleQuantityChange(
+                                  item.cart_item_id,
+                                  item.quantity + 1,
+                                );
+                              }
+                            }}
+                            disabled={updatingItems[item.cart_item_id]}
+                            className={`w-10 h-9 text-slate-600 cursor-pointer border-slate-200 border-l transition flex items-center justify-center hover:bg-slate-50 ${updatingItems[item.cart_item_id] ? "opacity-50 cursor-not-allowed" : ""}`}
+                          >
+                            <FaPlus size={16} />
+                          </button>
+
+                          <span className="font-extrabold w-6 text-lg text-center bg-white text-slate-900">
+                            {item._effectiveQty}
+                          </span>
+
+                          <button
+                            onClick={() => {
+                              if (item.quantity <= 1)
+                                removeFromCart(item.cart_item_id);
+                              else
+                                updateQuantity(
+                                  item.cart_item_id,
+                                  item.quantity - 1,
+                                );
+                            }}
+                            className="w-10 h-9 border-slate-200 border-r cursor-pointer transition flex items-center justify-center hover:bg-slate-50"
+                          >
+                            {item.quantity <= 1 ? (
+                              <BsTrash3 className="text-rose-600" size={16} />
+                            ) : (
+                              <FaMinus className="text-slate-600" size={14} />
+                            )}
+                          </button>
+                        </div>
+
+                        <button
+                          onClick={async () => {
+                            const result = await Swal.fire({
+                              title: t("are_you_sure"),
+                              text: t("remove_confirm_text"),
+                              icon: "warning",
+                              showCancelButton: true,
+                              confirmButtonColor: "#d33",
+                              cancelButtonColor: "#3085d6",
+                              confirmButtonText: t("yes_remove"),
+                              cancelButtonText: t("cancel"),
+                              reverseButtons: true,
+                              customClass: {
+                                popup: "animate__animated animate__fadeInDown",
+                                confirmButton: "font-bold",
+                                cancelButton: "font-bold",
+                              },
+                            });
+
+                            if (result.isConfirmed)
+                              await removeFromCart(item.cart_item_id);
+                          }}
+                          className="cursor-pointer md:relative"
+                          aria-label="remove"
+                        >
+                          <IoIosCloseCircle
+                            className="text-rose-500"
+                            size={40}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="col-span-1">
+          <div className="border border-slate-200 rounded-2xl p-6 mt-4 bg-white shadow-sm">
+            <h4 className="text-md font-extrabold text-pro my-5">
+              {t("cart_summary")}
+            </h4>
+
+            <TotalOrder
+              items_count={cartCount}
+              subtotal={backendSubtotal}
+              total={backendTotal}
+              items={cart}
+              couponDiscount={couponDiscount}
+              couponNewTotal={couponNewTotal}
+            />
+
+            <Button
+              variant="contained"
+              onClick={handleClick}
+              fullWidth
+              sx={{
+                mt: 3,
+                py: 1.5,
+                fontSize: "1.1rem",
+                fontWeight: "bold",
+                backgroundColor: "#14213d",
+                "&:hover": { backgroundColor: "#0f1a31" },
+                borderRadius: "14px",
+                textTransform: "none",
+              }}
+              endIcon={<KeyboardBackspaceIcon className="mx-2" />}
+            >
+              {t("checkout")}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 const StickerForm = forwardRef(function StickerForm(
-	{ cartItemId, productId, productData, cartItem, onOptionsChange, showValidation = false }: StickerFormProps,
-	ref
+  {
+    cartItemId,
+    productId,
+    productData,
+    cartItem,
+    onOptionsChange,
+    showValidation = false,
+  }: StickerFormProps,
+  ref,
 ) {
-	const { updateCartItem, updateQuantity } = useCart();
-
-	const [size, setSize] = useState("اختر");
-	const [color, setColor] = useState("اختر");
-	const [material, setMaterial] = useState("اختر");
-
-	const [optionGroups, setOptionGroups] = useState<Record<string, string>>({});
-	const [printingMethod, setPrintingMethod] = useState("اختر");
-	const [printLocations, setPrintLocations] = useState<string[]>([]);
-
-	const [sizeTierId, setSizeTierId] = useState<number | null>(null);
-	const [sizeTierQty, setSizeTierQty] = useState<number | null>(null);
-	const [sizeTierUnit, setSizeTierUnit] = useState<number | null>(null);
-	const [sizeTierTotal, setSizeTierTotal] = useState<number | null>(null);
-
-	const [apiData, setApiData] = useState<any>(null);
-	const [formLoading, setFormLoading] = useState(true);
-
-	const [saving, setSaving] = useState(false);
-	const [showSaveButton, setShowSaveButton] = useState(false);
-	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-	const [savedSuccessfully, setSavedSuccessfully] = useState(false);
-
-	const [apiError, setApiError] = useState<string | null>(null);
-
-	const [existingDesignUrl, setExistingDesignUrl] = useState<string | null>(null);
-	const [designFile, setDesignFile] = useState<File | null>(null);
-	const [designPreview, setDesignPreview] = useState<string | null>(null);
-
-	const [designDelivery, setDesignDelivery] = useState<"upload" | "email">("upload");
-
-	const cartSelectedOptionsRaw = cartItem?.selected_options;
-	const cartSizeRaw = cartItem?.size;
-	const cartColorRaw = cartItem?.color?.name || cartItem?.color;
-	const cartMaterialRaw = cartItem?.material;
-	const cartMaterialIdRaw = cartItem?.material_id;
-	const cartPrintingRaw = cartItem?.printing_method;
-	const cartPrintLocationsRaw = cartItem?.print_locations;
-	const cartQuantityRaw = cartItem?.quantity;
-	const cartImageDesignRaw = cartItem?.image_design;
-
-	const groupedOptions = useMemo(() => {
-		const list = Array.isArray(apiData?.options) ? apiData.options : [];
-		const out: Record<string, any[]> = {};
-
-		list.forEach((o: any) => {
-			const k = String(o.option_name || "").trim();
-			if (!k) return;
-			out[k] = out[k] || [];
-			out[k].push(o);
-		});
-
-		Object.keys(out).forEach((k) => {
-			const seen = new Set<string>();
-			out[k] = (out[k] || []).filter((row: any) => {
-				const key = `${String(row.option_value).trim()}__${String(row.additional_price ?? 0).trim()}`;
-				if (seen.has(key)) return false;
-				seen.add(key);
-				return true;
-			});
-		});
-
-		return out;
-	}, [apiData]);
-
-	const requiredOptionGroups = useMemo(() => {
-		const required: string[] = [];
-		Object.keys(groupedOptions).forEach((k) => {
-			const items = groupedOptions[k] || [];
-			if (items.some((x: any) => Boolean(x?.is_required))) required.push(k);
-		});
-		return required;
-	}, [groupedOptions]);
-
-	const selectedSizeObj = useMemo(() => {
-		return (apiData?.sizes || []).find((s: any) => String(s?.name).trim() === String(size).trim()) || null;
-	}, [apiData, size]);
-
-	const sizeTiers = useMemo(() => {
-		const tiers = selectedSizeObj?.tiers;
-		return Array.isArray(tiers) ? tiers : [];
-	}, [selectedSizeObj]);
-
-	const needSizeTier = useMemo(() => {
-		return (apiData?.sizes?.length ?? 0) > 0 && size !== "اختر" && sizeTiers.length > 0;
-	}, [apiData, size, sizeTiers]);
-
-	const validateCurrentOptions = useCallback(() => {
-		if (!apiData) return false;
-
-		let isValid = true;
-
-		if (apiData.sizes?.length > 0 && (!size || size === "اختر")) isValid = false;
-		if (apiData.colors?.length > 0 && (!color || color === "اختر")) isValid = false;
-		if (apiData.materials?.length > 0 && (!material || material === "اختر")) isValid = false;
-
-		if (Array.isArray(apiData?.options) && apiData.options.length > 0) {
-			requiredOptionGroups.forEach((g) => {
-				const v = optionGroups?.[g];
-				if (!v || v === "اختر") isValid = false;
-			});
-		}
-
-		if (Array.isArray(apiData?.printing_methods) && apiData.printing_methods.length > 0) {
-			if (!printingMethod || printingMethod === "اختر") isValid = false;
-		}
-
-		if (Array.isArray(apiData?.print_locations) && apiData.print_locations.length > 0) {
-			if (!Array.isArray(printLocations) || printLocations.length === 0) isValid = false;
-		}
-
-		if (needSizeTier && !sizeTierId) isValid = false;
-
-		const designServiceValue = optionGroups?.["خدمة تصميم"];
-		if (designServiceValue && String(designServiceValue).includes("لدى تصميم")) {
-			if (designDelivery === "upload") {
-				if (!existingDesignUrl && !designFile) isValid = false;
-			}
-		}
-
-		return isValid;
-	}, [
-		apiData,
-		size,
-		color,
-		material,
-		optionGroups,
-		requiredOptionGroups,
-		printingMethod,
-		printLocations,
-		needSizeTier,
-		sizeTierId,
-		existingDesignUrl,
-		designFile,
-		designDelivery,
-	]);
-
-	useImperativeHandle(ref, () => ({
-		getOptions: () => ({
-			size,
-			color,
-			material,
-			optionGroups,
-			printing_method: printingMethod,
-			print_locations: printLocations,
-			size_tier_id: sizeTierId,
-			size_tier_qty: sizeTierQty,
-			size_tier_unit: sizeTierUnit,
-			size_tier_total: sizeTierTotal,
-			existing_design_url: existingDesignUrl,
-			has_new_design_file: !!designFile,
-			design_delivery: designDelivery,
-			isValid: validateCurrentOptions(),
-		}),
-		validate: () => validateCurrentOptions(),
-	}));
-
-	useEffect(() => {
-		if (!onOptionsChange) return;
-		if (!cartItemId) return;
-
-		onOptionsChange(cartItemId, {
-			size,
-			color,
-			material,
-			optionGroups,
-			printing_method: printingMethod,
-			print_locations: printLocations,
-			size_tier_id: sizeTierId,
-			size_tier_qty: sizeTierQty,
-			size_tier_unit: sizeTierUnit,
-			size_tier_total: sizeTierTotal,
-			existing_design_url: existingDesignUrl,
-			has_new_design_file: !!designFile,
-			design_delivery: designDelivery,
-			isValid: validateCurrentOptions(),
-		});
-	}, [
-		cartItemId,
-		size,
-		color,
-		material,
-		optionGroups,
-		printingMethod,
-		printLocations,
-		sizeTierId,
-		sizeTierQty,
-		sizeTierUnit,
-		sizeTierTotal,
-		existingDesignUrl,
-		designFile,
-		designDelivery,
-		validateCurrentOptions,
-		onOptionsChange,
-	]);
-
-	useEffect(() => {
-		setApiError(null);
-		setFormLoading(true);
-
-		try {
-			if (!productData) throw new Error("لا توجد بيانات للمنتج");
-			setApiData(productData);
-
-			let out: Record<string, string> = {};
-			if (Array.isArray(productData?.options)) {
-				productData.options.forEach((o: any) => {
-					const k = String(o.option_name || "").trim();
-					if (!k) return;
-					if (!out[k]) out[k] = "اختر";
-				});
-			}
-
-			const selected = safeParseSelectedOptions(cartSelectedOptionsRaw);
-
-			const cartSize = String(cartSizeRaw || "").trim();
-			const cartColor = String(cartColorRaw || "").trim();
-			const cartPrinting = String(cartPrintingRaw || "").trim();
-
-			let cartMaterial = String(cartMaterialRaw?.name || "").trim();
-			if (!cartMaterial) {
-				const mid = n(cartMaterialIdRaw);
-				if (mid > 0 && Array.isArray(productData?.materials)) {
-					const matObj = productData.materials.find((m: any) => n(m?.id) === mid);
-					if (matObj?.name) cartMaterial = String(matObj.name).trim();
-				}
-			}
-
-			const sizeFromSel = String(selected.find((o) => String(o.option_name).trim() === "المقاس")?.option_value || "").trim();
-			const colorFromSel = String(selected.find((o) => String(o.option_name).trim() === "اللون")?.option_value || "").trim();
-			const materialFromSel = String(selected.find((o) => String(o.option_name).trim() === "الخامة")?.option_value || "").trim();
-			const printingFromSel = String(selected.find((o) => String(o.option_name).trim() === "طريقة الطباعة")?.option_value || "").trim();
-
-			setSize(cartSize || sizeFromSel || "اختر");
-			setColor(cartColor || colorFromSel || "اختر");
-			setMaterial(cartMaterial || materialFromSel || "اختر");
-			setPrintingMethod(cartPrinting || printingFromSel || "اختر");
-
-			const tierQtyFromSel = selected.find((o) => String(o.option_name).trim() === "كمية المقاس")?.option_value;
-			const tierTotalFromSel = selected.find((o) => String(o.option_name).trim() === "سعر المقاس الإجمالي")?.option_value;
-
-			const qFromCart = n(cartQuantityRaw);
-			setSizeTierQty(tierQtyFromSel ? n(tierQtyFromSel) : qFromCart > 0 ? qFromCart : null);
-			setSizeTierTotal(tierTotalFromSel ? n(tierTotalFromSel) : null);
-
-			const locIds = safeParseIds(cartPrintLocationsRaw);
-			const locList = Array.isArray(productData?.print_locations) ? productData.print_locations : [];
-			const namesByIds = locIds
-				.map((id) => locList.find((x: any) => n(x?.id) === n(id))?.name)
-				.filter(Boolean)
-				.map((x: any) => String(x).trim());
-
-			setPrintLocations(Array.from(new Set(namesByIds)));
-
-			selected.forEach((opt) => {
-				const name = String(opt.option_name || "").trim();
-				const value = String(opt.option_value || "").trim();
-				if (!name || !value) return;
-				if (Object.prototype.hasOwnProperty.call(out, name)) out[name] = value;
-			});
-
-			const imgDesign = cartImageDesignRaw ? String(cartImageDesignRaw) : null;
-			setExistingDesignUrl(imgDesign || null);
-
-			setDesignDelivery("upload");
-
-			if (imgDesign && Object.prototype.hasOwnProperty.call(out, "خدمة تصميم")) {
-				out["خدمة تصميم"] = "لدى تصميم";
-			}
-
-			setOptionGroups(out);
-
-			setDesignFile(null);
-			if (designPreview) URL.revokeObjectURL(designPreview);
-			setDesignPreview(null);
-
-			setHasUnsavedChanges(false);
-			setShowSaveButton(false);
-			setSavedSuccessfully(false);
-		} catch (err: any) {
-			setApiError(err?.message || "حدث خطأ أثناء تحميل الخيارات");
-			setApiData(null);
-		} finally {
-			setFormLoading(false);
-		}
-	}, [
-		productData,
-		cartItemId,
-		cartSelectedOptionsRaw,
-		cartSizeRaw,
-		cartColorRaw,
-		cartMaterialRaw,
-		cartMaterialIdRaw,
-		cartPrintingRaw,
-		cartPrintLocationsRaw,
-		cartQuantityRaw,
-		cartImageDesignRaw,
-	]);
-
-	useEffect(() => {
-		if (!needSizeTier) {
-			setSizeTierId(null);
-			setSizeTierUnit(null);
-			return;
-		}
-
-		if (sizeTierQty) {
-			const found = sizeTiers.find((t: any) => n(t.quantity) === n(sizeTierQty));
-			if (found) {
-				const backendTotal = n(found.total_price);
-				const computedTotal = n(found.quantity) * n(found.price_per_unit);
-
-				setSizeTierId(n(found.id));
-				setSizeTierUnit(n(found.price_per_unit));
-				setSizeTierTotal(backendTotal > 0 ? backendTotal : computedTotal);
-			} else {
-				setSizeTierId(null);
-			}
-		}
-	}, [needSizeTier, sizeTiers, sizeTierQty]);
-
-	useEffect(() => {
-		return () => {
-			if (designPreview) URL.revokeObjectURL(designPreview);
-		};
-	}, [designPreview]);
-
-	const resetAllOptions = () => {
-		setSize("اختر");
-		setColor("اختر");
-		setMaterial("اختر");
-
-		const resetGroups: Record<string, string> = {};
-		Object.keys(groupedOptions).forEach((g) => (resetGroups[g] = "اختر"));
-		setOptionGroups(resetGroups);
-
-		setPrintingMethod("اختر");
-		setPrintLocations([]);
-
-		setSizeTierId(null);
-		setSizeTierQty(null);
-		setSizeTierUnit(null);
-		setSizeTierTotal(null);
-
-		setExistingDesignUrl(null);
-		setDesignFile(null);
-		if (designPreview) URL.revokeObjectURL(designPreview);
-		setDesignPreview(null);
-		setDesignDelivery("upload");
-
-		setHasUnsavedChanges(true);
-		setShowSaveButton(true);
-		setSavedSuccessfully(false);
-	};
-
-	const markDirty = () => {
-		setShowSaveButton(true);
-		setHasUnsavedChanges(true);
-		setSavedSuccessfully(false);
-	};
-
-	const handleOptionChange = (setter: (v: string) => void, value: string) => {
-		setter(value);
-		markDirty();
-	};
-
-	const handleSizeChange = (value: string) => {
-		handleOptionChange(setSize, value);
-		setSizeTierId(null);
-		setSizeTierQty(null);
-		setSizeTierUnit(null);
-		setSizeTierTotal(null);
-	};
-
-	const handleTierChange = (tierIdStr: string) => {
-		if (!tierIdStr || tierIdStr === "اختر") {
-			setSizeTierId(null);
-			setSizeTierQty(null);
-			setSizeTierUnit(null);
-			setSizeTierTotal(null);
-			return;
-		}
-
-		const tierId = Number(tierIdStr);
-		const tier = sizeTiers.find((t: any) => n(t?.id) === tierId) || null;
-
-		if (!tier) {
-			setSizeTierId(null);
-			setSizeTierQty(null);
-			setSizeTierUnit(null);
-			setSizeTierTotal(null);
-			return;
-		}
-
-		const qty = n(tier.quantity);
-		const unit = n(tier.price_per_unit);
-		const backendTotal = n(tier.total_price);
-		const computedTotal = qty > 0 && unit > 0 ? qty * unit : 0;
-		const finalTotal = backendTotal > 0 ? backendTotal : computedTotal;
-
-		setSizeTierId(n(tier.id));
-		setSizeTierQty(qty > 0 ? qty : null);
-		setSizeTierUnit(unit > 0 ? unit : null);
-		setSizeTierTotal(finalTotal > 0 ? finalTotal : null);
-
-		markDirty();
-	};
-
-	const handleGroupChange = (groupName: string, value: string) => {
-		setOptionGroups((prev) => {
-			const next = { ...prev, [groupName]: value };
-			return next;
-		});
-
-		if (String(groupName).trim() === "خدمة تصميم") {
-			const v = String(value || "");
-			if (!v.includes("لدى تصميم")) {
-				setDesignFile(null);
-				if (designPreview) URL.revokeObjectURL(designPreview);
-				setDesignPreview(null);
-			} else {
-				setDesignDelivery("upload");
-			}
-		}
-
-		markDirty();
-	};
-
-	const handlePrintLocationsChange = (value: string[]) => {
-		setPrintLocations(value);
-		markDirty();
-	};
-
-	const handleDesignFileChange = (file: File | null) => {
-		setDesignFile(file);
-		if (designPreview) URL.revokeObjectURL(designPreview);
-		setDesignPreview(file ? URL.createObjectURL(file) : null);
-		markDirty();
-	};
-
-	const saveAllOptions = async () => {
-		if (!cartItemId || !apiData) return;
-
-		setSaving(true);
-		setSavedSuccessfully(false);
-
-		const sizeObj = apiData?.sizes?.find((s: any) => String(s.name).trim() === String(size).trim());
-		const colorObj = apiData?.colors?.find((c: any) => String(c.name).trim() === String(color).trim());
-		const materialObj = apiData?.materials?.find((m: any) => String(m.name).trim() === String(material).trim());
-		const methodObj = apiData?.printing_methods?.find((p: any) => String(p.name).trim() === String(printingMethod).trim());
-
-		const locList = Array.isArray(apiData?.print_locations) ? apiData.print_locations : [];
-		const selectedLocObjs = (printLocations || [])
-			.map((name) => locList.find((l: any) => String(l.name).trim() === String(name).trim()))
-			.filter(Boolean);
-
-		let print_location_ids: number[] = [];
-		let embroider_location_ids: number[] = [];
-
-		for (const locObj of selectedLocObjs as any[]) {
-			const id = locObj?.id;
-			if (typeof id !== "number") continue;
-			const t = String(locObj?.type || "").toLowerCase();
-			if (t === "embroider" || t === "embroidery") embroider_location_ids.push(id);
-			else print_location_ids.push(id);
-		}
-
-		const selected_options: any[] = [];
-		Object.entries(optionGroups || {}).forEach(([group, value]) => {
-			if (!value || value === "اختر") return;
-
-			const row = (Array.isArray(apiData?.options) ? apiData.options : []).find(
-				(o: any) =>
-					String(o.option_name).trim() === String(group).trim() &&
-					String(o.option_value).trim() === String(value).trim()
-			);
-
-			selected_options.push({
-				option_name: group,
-				option_value: value,
-				additional_price: n(row?.additional_price),
-			});
-		});
-
-		const payload: any = {
-			selected_options,
-			size_id: sizeObj?.id ?? null,
-			color_id: colorObj?.id ?? null,
-			material_id: materialObj?.id ?? null,
-			printing_method_id: methodObj?.id ?? null,
-			print_locations: print_location_ids,
-			embroider_locations: embroider_location_ids,
-			design_delivery: designDelivery,
-		};
-
-		if (needSizeTier && sizeTierQty) {
-			payload.quantity = Number(sizeTierQty);
-		}
-
-		const designServiceValue = optionGroups?.["خدمة تصميم"];
-		const isHasDesign = !!designServiceValue && String(designServiceValue).includes("لدى تصميم");
-		const shouldUploadFile = isHasDesign && designDelivery === "upload" && !!designFile;
-
-		try {
-			let success: any;
-
-			if (shouldUploadFile) {
-				const form = new FormData();
-				Object.entries(payload).forEach(([k, v]) => {
-					if (k === "selected_options") form.append(k, JSON.stringify(v));
-					else if (Array.isArray(v)) form.append(k, JSON.stringify(v));
-					else form.append(k, v === null || typeof v === "undefined" ? "" : String(v));
-				});
-
-				form.append("image_design", designFile as File);
-				success = await updateCartItem(cartItemId, form);
-			} else {
-				success = await updateCartItem(cartItemId, payload);
-			}
-
-			const qty = needSizeTier && sizeTierQty ? Number(sizeTierQty) : null;
-			if (success && qty && typeof updateQuantity === "function") {
-				try {
-					await updateQuantity(cartItemId, qty);
-				} catch { }
-			}
-
-			if (success) {
-				setSavedSuccessfully(true);
-				setHasUnsavedChanges(false);
-				setShowSaveButton(false);
-				setTimeout(() => setSavedSuccessfully(false), 2500);
-			}
-		} finally {
-			setSaving(false);
-		}
-	};
-
-	if (formLoading) return <StickerFormSkeleton />;
-
-	if (apiError || !apiData) {
-		return (
-			<div className="rounded-2xl border border-slate-200 bg-white p-4 text-center">
-				<p className="text-slate-700 font-extrabold">{apiError || "لا توجد بيانات للمنتج"}</p>
-			</div>
-		);
-	}
-
-	const needSize = apiData?.sizes?.length > 0;
-	const needColor = apiData?.colors?.length > 0;
-	const needMaterial = apiData?.materials?.length > 0;
-
-	const designServiceValue = optionGroups?.["خدمة تصميم"];
-
-	return (
-		<motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="pt-4 mt-4">
-			{cartItemId && showSaveButton && (
-				<motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-2xl">
-					<div className="flex items-center justify-between gap-2">
-						<div className="flex items-center gap-2">
-							<Warning className="text-yellow-600 text-sm" />
-							<p className="text-sm text-yellow-800 font-bold">لديك تغييرات غير محفوظة</p>
-						</div>
-						<div className="flex gap-2">
-							<Button
-								variant="outlined"
-								size="small"
-								onClick={resetAllOptions}
-								startIcon={<Refresh />}
-								className="flex items-center gap-2"
-								sx={{ borderRadius: "14px", borderColor: "#e2e8f0", color: "#0f172a", fontWeight: 900 }}
-							>
-								إعادة تعيين
-							</Button>
-
-							<Button
-								variant="contained"
-								size="small"
-								onClick={saveAllOptions}
-								disabled={saving}
-								startIcon={saving ? <CircularProgress size={16} /> : <Save />}
-								className="flex items-center gap-2"
-								sx={{ borderRadius: "14px", backgroundColor: "#f59e0b", fontWeight: 900 }}
-							>
-								{saving ? "جاري الحفظ..." : "حفظ"}
-							</Button>
-						</div>
-					</div>
-				</motion.div>
-			)}
-
-			{cartItemId && savedSuccessfully && (
-				<motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="mb-4">
-					<Alert severity="success" className="rounded-2xl" icon={<CheckCircle />}>
-						تم حفظ التغييرات بنجاح
-					</Alert>
-				</motion.div>
-			)}
-
-			<div className="space-y-4">
-				{needSize && (
-					<Box>
-						<FormControl fullWidth size="small" required error={showValidation && needSize && size === "اختر"}>
-							<InputLabel>المقاس</InputLabel>
-							<Select value={size} onChange={(e) => handleSizeChange(e.target.value as string)} label="المقاس" className="bg-white">
-								<MenuItem value="اختر" disabled>
-									<em className="text-gray-400">اختر</em>
-								</MenuItem>
-								{apiData.sizes.map((s: any) => (
-									<MenuItem key={s.id} value={s.name}>
-										{s.name}
-									</MenuItem>
-								))}
-							</Select>
-							{showValidation && needSize && size === "اختر" && <FormHelperText className="text-red-500 text-xs">يجب اختيار المقاس</FormHelperText>}
-						</FormControl>
-					</Box>
-				)}
-
-				{needSizeTier && (
-					<Box>
-						<FormControl fullWidth size="small" required error={showValidation && !sizeTierId}>
-							<InputLabel>الكمية</InputLabel>
-							<Select value={sizeTierId ? String(sizeTierId) : "اختر"} onChange={(e) => handleTierChange(e.target.value as string)} label="الكمية" className="bg-white">
-								<MenuItem value="اختر" disabled>
-									<em className="text-gray-400">اختر</em>
-								</MenuItem>
-
-								{sizeTiers.map((t: any) => {
-									const qty = n(t.quantity);
-									const unit = n(t.price_per_unit);
-									const backendTotal = n(t.total_price);
-									const computedTotal = qty > 0 && unit > 0 ? qty * unit : 0;
-									const showTotal = backendTotal > 0 ? backendTotal : computedTotal;
-
-									return (
-										<MenuItem key={t.id} value={String(t.id)}>
-											<div className="flex items-center justify-between gap-3 w-full">
-												<span>{qty} قطعة</span>
-												<span className="text-xs font-black text-slate-700">{money(showTotal)} ر.س</span>
-											</div>
-										</MenuItem>
-									);
-								})}
-							</Select>
-
-							{showValidation && !sizeTierId && <FormHelperText className="text-red-500 text-xs">يجب اختيار الكمية</FormHelperText>}
-
-							{!!sizeTierId && <FormHelperText className="text-slate-600 text-xs">سعر الوحدة: {money(n(sizeTierUnit))} — الإجمالي: {money(n(sizeTierTotal))}</FormHelperText>}
-						</FormControl>
-					</Box>
-				)}
-
-				{needColor && (
-					<Box>
-						<FormControl fullWidth size="small" required error={showValidation && needColor && color === "اختر"}>
-							<InputLabel>اللون</InputLabel>
-							<Select value={color} onChange={(e) => handleOptionChange(setColor, e.target.value as string)} label="اللون" className="bg-white">
-								<MenuItem value="اختر" disabled>
-									<em className="text-gray-400">اختر</em>
-								</MenuItem>
-								{apiData.colors.map((c: any) => (
-									<MenuItem key={c.id} value={c.name}>
-										<div className="flex items-center gap-2">
-											{c.hex_code && <div className="w-4 h-4 rounded-full border border-slate-200" style={{ backgroundColor: c.hex_code }} />}
-											<span>{c.name}</span>
-										</div>
-									</MenuItem>
-								))}
-							</Select>
-							{showValidation && needColor && color === "اختر" && <FormHelperText className="text-red-500 text-xs">يجب اختيار اللون</FormHelperText>}
-						</FormControl>
-					</Box>
-				)}
-
-				{needMaterial && (
-					<Box>
-						<FormControl fullWidth size="small" required error={showValidation && needMaterial && material === "اختر"}>
-							<InputLabel>الخامة</InputLabel>
-							<Select value={material} onChange={(e) => handleOptionChange(setMaterial, e.target.value as string)} label="الخامة" className="bg-white">
-								<MenuItem value="اختر" disabled>
-									<em className="text-gray-400">اختر</em>
-								</MenuItem>
-								{apiData.materials.map((m: any) => (
-									<MenuItem key={m.id} value={m.name}>
-										<div className="flex items-center justify-between gap-2 w-full">
-											<span>{m.name}</span>
-											{Number(m.additional_price || 0) > 0 ? (
-												<span className="text-xs font-black text-amber-700">+ {m.additional_price}</span>
-											) : (
-												<span className="text-xs font-black text-slate-500">0</span>
-											)}
-										</div>
-									</MenuItem>
-								))}
-							</Select>
-							{showValidation && needMaterial && material === "اختر" && <FormHelperText className="text-red-500 text-xs">يجب اختيار الخامة</FormHelperText>}
-						</FormControl>
-					</Box>
-				)}
-
-				{Object.keys(groupedOptions).map((groupName) => {
-					const items = groupedOptions[groupName] || [];
-					const required = items.some((x: any) => Boolean(x?.is_required));
-					const currentValue = optionGroups?.[groupName] || "اختر";
-					const fieldError = showValidation && required && currentValue === "اختر";
-
-					return (
-						<Box key={groupName}>
-							<FormControl fullWidth size="small" required={required} error={fieldError}>
-								<InputLabel>{groupName}</InputLabel>
-								<Select value={currentValue} onChange={(e) => handleGroupChange(groupName, e.target.value as string)} label={groupName} className="bg-white">
-									<MenuItem value="اختر" disabled>
-										<em className="text-gray-600">اختر</em>
-									</MenuItem>
-
-									{items.map((o: any) => (
-										<MenuItem key={o.id} value={o.option_value}>
-											<div className="flex items-center justify-between gap-3 w-full">
-												<span>{o.option_value}</span>
-												{Number(o.additional_price || 0) > 0 ? (
-													<span className="text-xs font-black text-amber-700">+ {o.additional_price}</span>
-												) : (
-													<span className="text-xs font-black text-slate-500">0</span>
-												)}
-											</div>
-										</MenuItem>
-									))}
-								</Select>
-
-								{fieldError && <FormHelperText className="text-red-500 text-xs">يجب اختيار {groupName}</FormHelperText>}
-							</FormControl>
-						</Box>
-					);
-				})}
-			</div>
-
-			{apiData?.options_note && (
-				<div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-2xl">
-					<div className="flex items-start gap-2">
-						<Info className="text-blue-500 text-sm mt-0.5" />
-						<p className="text-sm text-blue-700 font-semibold">{apiData.options_note}</p>
-					</div>
-				</div>
-			)}
-		</motion.div>
-	);
+  const { updateCartItem, updateQuantity } = useCart();
+
+  const [size, setSize] = useState("اختر");
+  const [color, setColor] = useState("اختر");
+  const [material, setMaterial] = useState("اختر");
+
+  const [optionGroups, setOptionGroups] = useState<Record<string, string>>({});
+  const [printingMethod, setPrintingMethod] = useState("اختر");
+  const [printLocations, setPrintLocations] = useState<string[]>([]);
+
+  const [sizeTierId, setSizeTierId] = useState<number | null>(null);
+  const [sizeTierQty, setSizeTierQty] = useState<number | null>(null);
+  const [sizeTierUnit, setSizeTierUnit] = useState<number | null>(null);
+  const [sizeTierTotal, setSizeTierTotal] = useState<number | null>(null);
+
+  const [apiData, setApiData] = useState<any>(null);
+  const [formLoading, setFormLoading] = useState(true);
+
+  const [saving, setSaving] = useState(false);
+  const [showSaveButton, setShowSaveButton] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [savedSuccessfully, setSavedSuccessfully] = useState(false);
+
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  const [existingDesignUrl, setExistingDesignUrl] = useState<string | null>(
+    null,
+  );
+  const [designFile, setDesignFile] = useState<File | null>(null);
+  const [designPreview, setDesignPreview] = useState<string | null>(null);
+
+  const [designDelivery, setDesignDelivery] = useState<"upload" | "email">(
+    "upload",
+  );
+
+  const cartSelectedOptionsRaw = cartItem?.selected_options;
+  const cartSizeRaw = cartItem?.size;
+  const cartColorRaw = cartItem?.color?.name || cartItem?.color;
+  const cartMaterialRaw = cartItem?.material;
+  const cartMaterialIdRaw = cartItem?.material_id;
+  const cartPrintingRaw = cartItem?.printing_method;
+  const cartPrintLocationsRaw = cartItem?.print_locations;
+  const cartQuantityRaw = cartItem?.quantity;
+  const cartImageDesignRaw = cartItem?.image_design;
+
+  const groupedOptions = useMemo(() => {
+    const list = Array.isArray(apiData?.options) ? apiData.options : [];
+    const out: Record<string, any[]> = {};
+
+    list.forEach((o: any) => {
+      const k = String(o.option_name || "").trim();
+      if (!k) return;
+      out[k] = out[k] || [];
+      out[k].push(o);
+    });
+
+    Object.keys(out).forEach((k) => {
+      const seen = new Set<string>();
+      out[k] = (out[k] || []).filter((row: any) => {
+        const key = `${String(row.option_value).trim()}__${String(row.additional_price ?? 0).trim()}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    });
+
+    return out;
+  }, [apiData]);
+
+  const requiredOptionGroups = useMemo(() => {
+    const required: string[] = [];
+    Object.keys(groupedOptions).forEach((k) => {
+      const items = groupedOptions[k] || [];
+      if (items.some((x: any) => Boolean(x?.is_required))) required.push(k);
+    });
+    return required;
+  }, [groupedOptions]);
+
+  const selectedSizeObj = useMemo(() => {
+    return (
+      (apiData?.sizes || []).find(
+        (s: any) => String(s?.name).trim() === String(size).trim(),
+      ) || null
+    );
+  }, [apiData, size]);
+
+  const sizeTiers = useMemo(() => {
+    const tiers = selectedSizeObj?.tiers;
+    return Array.isArray(tiers) ? tiers : [];
+  }, [selectedSizeObj]);
+
+  const needSizeTier = useMemo(() => {
+    return (
+      (apiData?.sizes?.length ?? 0) > 0 &&
+      size !== "اختر" &&
+      sizeTiers.length > 0
+    );
+  }, [apiData, size, sizeTiers]);
+
+  const validateCurrentOptions = useCallback(() => {
+    if (!apiData) return false;
+
+    let isValid = true;
+
+    if (apiData.sizes?.length > 0 && (!size || size === "اختر"))
+      isValid = false;
+    if (apiData.colors?.length > 0 && (!color || color === "اختر"))
+      isValid = false;
+    if (apiData.materials?.length > 0 && (!material || material === "اختر"))
+      isValid = false;
+
+    if (Array.isArray(apiData?.options) && apiData.options.length > 0) {
+      requiredOptionGroups.forEach((g) => {
+        const v = optionGroups?.[g];
+        if (!v || v === "اختر") isValid = false;
+      });
+    }
+
+    if (
+      Array.isArray(apiData?.printing_methods) &&
+      apiData.printing_methods.length > 0
+    ) {
+      if (!printingMethod || printingMethod === "اختر") isValid = false;
+    }
+
+    if (
+      Array.isArray(apiData?.print_locations) &&
+      apiData.print_locations.length > 0
+    ) {
+      if (!Array.isArray(printLocations) || printLocations.length === 0)
+        isValid = false;
+    }
+
+    if (needSizeTier && !sizeTierId) isValid = false;
+
+    const designServiceValue = optionGroups?.["خدمة تصميم"];
+    if (
+      designServiceValue &&
+      String(designServiceValue).includes("لدى تصميم")
+    ) {
+      if (designDelivery === "upload") {
+        if (!existingDesignUrl && !designFile) isValid = false;
+      }
+    }
+
+    return isValid;
+  }, [
+    apiData,
+    size,
+    color,
+    material,
+    optionGroups,
+    requiredOptionGroups,
+    printingMethod,
+    printLocations,
+    needSizeTier,
+    sizeTierId,
+    existingDesignUrl,
+    designFile,
+    designDelivery,
+  ]);
+
+  useImperativeHandle(ref, () => ({
+    getOptions: () => ({
+      size,
+      color,
+      material,
+      optionGroups,
+      printing_method: printingMethod,
+      print_locations: printLocations,
+      size_tier_id: sizeTierId,
+      size_tier_qty: sizeTierQty,
+      size_tier_unit: sizeTierUnit,
+      size_tier_total: sizeTierTotal,
+      existing_design_url: existingDesignUrl,
+      has_new_design_file: !!designFile,
+      design_delivery: designDelivery,
+      isValid: validateCurrentOptions(),
+    }),
+    validate: () => validateCurrentOptions(),
+  }));
+
+  useEffect(() => {
+    if (!onOptionsChange) return;
+    if (!cartItemId) return;
+
+    onOptionsChange(cartItemId, {
+      size,
+      color,
+      material,
+      optionGroups,
+      printing_method: printingMethod,
+      print_locations: printLocations,
+      size_tier_id: sizeTierId,
+      size_tier_qty: sizeTierQty,
+      size_tier_unit: sizeTierUnit,
+      size_tier_total: sizeTierTotal,
+      existing_design_url: existingDesignUrl,
+      has_new_design_file: !!designFile,
+      design_delivery: designDelivery,
+      isValid: validateCurrentOptions(),
+    });
+  }, [
+    cartItemId,
+    size,
+    color,
+    material,
+    optionGroups,
+    printingMethod,
+    printLocations,
+    sizeTierId,
+    sizeTierQty,
+    sizeTierUnit,
+    sizeTierTotal,
+    existingDesignUrl,
+    designFile,
+    designDelivery,
+    validateCurrentOptions,
+    onOptionsChange,
+  ]);
+
+  useEffect(() => {
+    setApiError(null);
+    setFormLoading(true);
+
+    try {
+      if (!productData) throw new Error("لا توجد بيانات للمنتج");
+      setApiData(productData);
+
+      let out: Record<string, string> = {};
+      if (Array.isArray(productData?.options)) {
+        productData.options.forEach((o: any) => {
+          const k = String(o.option_name || "").trim();
+          if (!k) return;
+          if (!out[k]) out[k] = "اختر";
+        });
+      }
+
+      const selected = safeParseSelectedOptions(cartSelectedOptionsRaw);
+
+      const cartSize = String(cartSizeRaw || "").trim();
+      const cartColor = String(cartColorRaw || "").trim();
+      const cartPrinting = String(cartPrintingRaw || "").trim();
+
+      let cartMaterial = String(cartMaterialRaw?.name || "").trim();
+      if (!cartMaterial) {
+        const mid = n(cartMaterialIdRaw);
+        if (mid > 0 && Array.isArray(productData?.materials)) {
+          const matObj = productData.materials.find(
+            (m: any) => n(m?.id) === mid,
+          );
+          if (matObj?.name) cartMaterial = String(matObj.name).trim();
+        }
+      }
+
+      const sizeFromSel = String(
+        selected.find((o) => String(o.option_name).trim() === "المقاس")
+          ?.option_value || "",
+      ).trim();
+      const colorFromSel = String(
+        selected.find((o) => String(o.option_name).trim() === "اللون")
+          ?.option_value || "",
+      ).trim();
+      const materialFromSel = String(
+        selected.find((o) => String(o.option_name).trim() === "الخامة")
+          ?.option_value || "",
+      ).trim();
+      const printingFromSel = String(
+        selected.find((o) => String(o.option_name).trim() === "طريقة الطباعة")
+          ?.option_value || "",
+      ).trim();
+
+      setSize(cartSize || sizeFromSel || "اختر");
+      setColor(cartColor || colorFromSel || "اختر");
+      setMaterial(cartMaterial || materialFromSel || "اختر");
+      setPrintingMethod(cartPrinting || printingFromSel || "اختر");
+
+      const tierQtyFromSel = selected.find(
+        (o) => String(o.option_name).trim() === "كمية المقاس",
+      )?.option_value;
+      const tierTotalFromSel = selected.find(
+        (o) => String(o.option_name).trim() === "سعر المقاس الإجمالي",
+      )?.option_value;
+
+      const qFromCart = n(cartQuantityRaw);
+      setSizeTierQty(
+        tierQtyFromSel ? n(tierQtyFromSel) : qFromCart > 0 ? qFromCart : null,
+      );
+      setSizeTierTotal(tierTotalFromSel ? n(tierTotalFromSel) : null);
+
+      const locIds = safeParseIds(cartPrintLocationsRaw);
+      const locList = Array.isArray(productData?.print_locations)
+        ? productData.print_locations
+        : [];
+      const namesByIds = locIds
+        .map((id) => locList.find((x: any) => n(x?.id) === n(id))?.name)
+        .filter(Boolean)
+        .map((x: any) => String(x).trim());
+
+      setPrintLocations(Array.from(new Set(namesByIds)));
+
+      selected.forEach((opt) => {
+        const name = String(opt.option_name || "").trim();
+        const value = String(opt.option_value || "").trim();
+        if (!name || !value) return;
+        if (Object.prototype.hasOwnProperty.call(out, name)) out[name] = value;
+      });
+
+      const imgDesign = cartImageDesignRaw ? String(cartImageDesignRaw) : null;
+      setExistingDesignUrl(imgDesign || null);
+
+      setDesignDelivery("upload");
+
+      if (
+        imgDesign &&
+        Object.prototype.hasOwnProperty.call(out, "خدمة تصميم")
+      ) {
+        out["خدمة تصميم"] = "لدى تصميم";
+      }
+
+      setOptionGroups(out);
+
+      setDesignFile(null);
+      if (designPreview) URL.revokeObjectURL(designPreview);
+      setDesignPreview(null);
+
+      setHasUnsavedChanges(false);
+      setShowSaveButton(false);
+      setSavedSuccessfully(false);
+    } catch (err: any) {
+      setApiError(err?.message || "حدث خطأ أثناء تحميل الخيارات");
+      setApiData(null);
+    } finally {
+      setFormLoading(false);
+    }
+  }, [
+    productData,
+    cartItemId,
+    cartSelectedOptionsRaw,
+    cartSizeRaw,
+    cartColorRaw,
+    cartMaterialRaw,
+    cartMaterialIdRaw,
+    cartPrintingRaw,
+    cartPrintLocationsRaw,
+    cartQuantityRaw,
+    cartImageDesignRaw,
+  ]);
+
+  useEffect(() => {
+    if (!needSizeTier) {
+      setSizeTierId(null);
+      setSizeTierUnit(null);
+      return;
+    }
+
+    if (sizeTierQty) {
+      const found = sizeTiers.find(
+        (t: any) => n(t.quantity) === n(sizeTierQty),
+      );
+      if (found) {
+        const backendTotal = n(found.total_price);
+        const computedTotal = n(found.quantity) * n(found.price_per_unit);
+
+        setSizeTierId(n(found.id));
+        setSizeTierUnit(n(found.price_per_unit));
+        setSizeTierTotal(backendTotal > 0 ? backendTotal : computedTotal);
+      } else {
+        setSizeTierId(null);
+      }
+    }
+  }, [needSizeTier, sizeTiers, sizeTierQty]);
+
+  useEffect(() => {
+    return () => {
+      if (designPreview) URL.revokeObjectURL(designPreview);
+    };
+  }, [designPreview]);
+
+  const resetAllOptions = () => {
+    setSize("اختر");
+    setColor("اختر");
+    setMaterial("اختر");
+
+    const resetGroups: Record<string, string> = {};
+    Object.keys(groupedOptions).forEach((g) => (resetGroups[g] = "اختر"));
+    setOptionGroups(resetGroups);
+
+    setPrintingMethod("اختر");
+    setPrintLocations([]);
+
+    setSizeTierId(null);
+    setSizeTierQty(null);
+    setSizeTierUnit(null);
+    setSizeTierTotal(null);
+
+    setExistingDesignUrl(null);
+    setDesignFile(null);
+    if (designPreview) URL.revokeObjectURL(designPreview);
+    setDesignPreview(null);
+    setDesignDelivery("upload");
+
+    setHasUnsavedChanges(true);
+    setShowSaveButton(true);
+    setSavedSuccessfully(false);
+  };
+
+  const markDirty = () => {
+    setShowSaveButton(true);
+    setHasUnsavedChanges(true);
+    setSavedSuccessfully(false);
+  };
+
+  const handleOptionChange = (setter: (v: string) => void, value: string) => {
+    setter(value);
+    markDirty();
+  };
+
+  const handleSizeChange = (value: string) => {
+    handleOptionChange(setSize, value);
+    setSizeTierId(null);
+    setSizeTierQty(null);
+    setSizeTierUnit(null);
+    setSizeTierTotal(null);
+  };
+
+  const handleTierChange = (tierIdStr: string) => {
+    if (!tierIdStr || tierIdStr === "اختر") {
+      setSizeTierId(null);
+      setSizeTierQty(null);
+      setSizeTierUnit(null);
+      setSizeTierTotal(null);
+      return;
+    }
+
+    const tierId = Number(tierIdStr);
+    const tier = sizeTiers.find((t: any) => n(t?.id) === tierId) || null;
+
+    if (!tier) {
+      setSizeTierId(null);
+      setSizeTierQty(null);
+      setSizeTierUnit(null);
+      setSizeTierTotal(null);
+      return;
+    }
+
+    const qty = n(tier.quantity);
+    const unit = n(tier.price_per_unit);
+    const backendTotal = n(tier.total_price);
+    const computedTotal = qty > 0 && unit > 0 ? qty * unit : 0;
+    const finalTotal = backendTotal > 0 ? backendTotal : computedTotal;
+
+    setSizeTierId(n(tier.id));
+    setSizeTierQty(qty > 0 ? qty : null);
+    setSizeTierUnit(unit > 0 ? unit : null);
+    setSizeTierTotal(finalTotal > 0 ? finalTotal : null);
+
+    markDirty();
+  };
+
+  const handleGroupChange = (groupName: string, value: string) => {
+    setOptionGroups((prev) => {
+      const next = { ...prev, [groupName]: value };
+      return next;
+    });
+
+    if (String(groupName).trim() === "خدمة تصميم") {
+      const v = String(value || "");
+      if (!v.includes("لدى تصميم")) {
+        setDesignFile(null);
+        if (designPreview) URL.revokeObjectURL(designPreview);
+        setDesignPreview(null);
+      } else {
+        setDesignDelivery("upload");
+      }
+    }
+
+    markDirty();
+  };
+
+  const handlePrintLocationsChange = (value: string[]) => {
+    setPrintLocations(value);
+    markDirty();
+  };
+
+  const handleDesignFileChange = (file: File | null) => {
+    setDesignFile(file);
+    if (designPreview) URL.revokeObjectURL(designPreview);
+    setDesignPreview(file ? URL.createObjectURL(file) : null);
+    markDirty();
+  };
+
+  const saveAllOptions = async () => {
+    if (!cartItemId || !apiData) return;
+
+    setSaving(true);
+    setSavedSuccessfully(false);
+
+    const sizeObj = apiData?.sizes?.find(
+      (s: any) => String(s.name).trim() === String(size).trim(),
+    );
+    const colorObj = apiData?.colors?.find(
+      (c: any) => String(c.name).trim() === String(color).trim(),
+    );
+    const materialObj = apiData?.materials?.find(
+      (m: any) => String(m.name).trim() === String(material).trim(),
+    );
+    const methodObj = apiData?.printing_methods?.find(
+      (p: any) => String(p.name).trim() === String(printingMethod).trim(),
+    );
+
+    const locList = Array.isArray(apiData?.print_locations)
+      ? apiData.print_locations
+      : [];
+    const selectedLocObjs = (printLocations || [])
+      .map((name) =>
+        locList.find((l: any) => String(l.name).trim() === String(name).trim()),
+      )
+      .filter(Boolean);
+
+    let print_location_ids: number[] = [];
+    let embroider_location_ids: number[] = [];
+
+    for (const locObj of selectedLocObjs as any[]) {
+      const id = locObj?.id;
+      if (typeof id !== "number") continue;
+      const t = String(locObj?.type || "").toLowerCase();
+      if (t === "embroider" || t === "embroidery")
+        embroider_location_ids.push(id);
+      else print_location_ids.push(id);
+    }
+
+    const selected_options: any[] = [];
+    Object.entries(optionGroups || {}).forEach(([group, value]) => {
+      if (!value || value === "اختر") return;
+
+      const row = (Array.isArray(apiData?.options) ? apiData.options : []).find(
+        (o: any) =>
+          String(o.option_name).trim() === String(group).trim() &&
+          String(o.option_value).trim() === String(value).trim(),
+      );
+
+      selected_options.push({
+        option_name: group,
+        option_value: value,
+        additional_price: n(row?.additional_price),
+      });
+    });
+
+    const payload: any = {
+      selected_options,
+      size_id: sizeObj?.id ?? null,
+      color_id: colorObj?.id ?? null,
+      material_id: materialObj?.id ?? null,
+      printing_method_id: methodObj?.id ?? null,
+      print_locations: print_location_ids,
+      embroider_locations: embroider_location_ids,
+      design_delivery: designDelivery,
+    };
+
+    if (needSizeTier && sizeTierQty) {
+      payload.quantity = Number(sizeTierQty);
+    }
+
+    const designServiceValue = optionGroups?.["خدمة تصميم"];
+    const isHasDesign =
+      !!designServiceValue && String(designServiceValue).includes("لدى تصميم");
+    const shouldUploadFile =
+      isHasDesign && designDelivery === "upload" && !!designFile;
+
+    try {
+      let success: any;
+
+      if (shouldUploadFile) {
+        const form = new FormData();
+        Object.entries(payload).forEach(([k, v]) => {
+          if (k === "selected_options") form.append(k, JSON.stringify(v));
+          else if (Array.isArray(v)) form.append(k, JSON.stringify(v));
+          else
+            form.append(
+              k,
+              v === null || typeof v === "undefined" ? "" : String(v),
+            );
+        });
+
+        form.append("image_design", designFile as File);
+        success = await updateCartItem(cartItemId, form);
+      } else {
+        success = await updateCartItem(cartItemId, payload);
+      }
+
+      const qty = needSizeTier && sizeTierQty ? Number(sizeTierQty) : null;
+      if (success && qty && typeof updateQuantity === "function") {
+        try {
+          await updateQuantity(cartItemId, qty);
+        } catch {}
+      }
+
+      if (success) {
+        setSavedSuccessfully(true);
+        setHasUnsavedChanges(false);
+        setShowSaveButton(false);
+        setTimeout(() => setSavedSuccessfully(false), 2500);
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (formLoading) return <StickerFormSkeleton />;
+
+  if (apiError || !apiData) {
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center">
+        <p className="text-slate-700 font-extrabold">
+          {apiError || "لا توجد بيانات للمنتج"}
+        </p>
+      </div>
+    );
+  }
+
+  const needSize = apiData?.sizes?.length > 0;
+  const needColor = apiData?.colors?.length > 0;
+  const needMaterial = apiData?.materials?.length > 0;
+
+  const designServiceValue = optionGroups?.["خدمة تصميم"];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+      className="pt-4 mt-4"
+    >
+      {cartItemId && showSaveButton && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-2xl"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Warning className="text-yellow-600 text-sm" />
+              <p className="text-sm text-yellow-800 font-bold">
+                لديك تغييرات غير محفوظة
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={resetAllOptions}
+                startIcon={<Refresh />}
+                className="flex items-center gap-2"
+                sx={{
+                  borderRadius: "14px",
+                  borderColor: "#e2e8f0",
+                  color: "#0f172a",
+                  fontWeight: 900,
+                }}
+              >
+                إعادة تعيين
+              </Button>
+
+              <Button
+                variant="contained"
+                size="small"
+                onClick={saveAllOptions}
+                disabled={saving}
+                startIcon={saving ? <CircularProgress size={16} /> : <Save />}
+                className="flex items-center gap-2"
+                sx={{
+                  borderRadius: "14px",
+                  backgroundColor: "#f59e0b",
+                  fontWeight: 900,
+                }}
+              >
+                {saving ? "جاري الحفظ..." : "حفظ"}
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {cartItemId && savedSuccessfully && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mb-4"
+        >
+          <Alert
+            severity="success"
+            className="rounded-2xl"
+            icon={<CheckCircle />}
+          >
+            تم حفظ التغييرات بنجاح
+          </Alert>
+        </motion.div>
+      )}
+
+      <div className="space-y-4">
+        {needSize && (
+          <Box>
+            <FormControl
+              fullWidth
+              size="small"
+              required
+              error={showValidation && needSize && size === "اختر"}
+            >
+              <InputLabel>المقاس</InputLabel>
+              <Select
+                value={size}
+                onChange={(e) => handleSizeChange(e.target.value as string)}
+                label="المقاس"
+                className="bg-white"
+              >
+                <MenuItem value="اختر" disabled>
+                  <em className="text-gray-400">اختر</em>
+                </MenuItem>
+                {apiData.sizes.map((s: any) => (
+                  <MenuItem key={s.id} value={s.name}>
+                    {s.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              {showValidation && needSize && size === "اختر" && (
+                <FormHelperText className="text-red-500 text-xs">
+                  يجب اختيار المقاس
+                </FormHelperText>
+              )}
+            </FormControl>
+          </Box>
+        )}
+
+        {needSizeTier && (
+          <Box>
+            <FormControl
+              fullWidth
+              size="small"
+              required
+              error={showValidation && !sizeTierId}
+            >
+              <InputLabel>الكمية</InputLabel>
+              <Select
+                value={sizeTierId ? String(sizeTierId) : "اختر"}
+                onChange={(e) => handleTierChange(e.target.value as string)}
+                label="الكمية"
+                className="bg-white"
+              >
+                <MenuItem value="اختر" disabled>
+                  <em className="text-gray-400">اختر</em>
+                </MenuItem>
+
+                {sizeTiers.map((t: any) => {
+                  const qty = n(t.quantity);
+                  const unit = n(t.price_per_unit);
+                  const backendTotal = n(t.total_price);
+                  const computedTotal = qty > 0 && unit > 0 ? qty * unit : 0;
+                  const showTotal =
+                    backendTotal > 0 ? backendTotal : computedTotal;
+
+                  return (
+                    <MenuItem key={t.id} value={String(t.id)}>
+                      <div className="flex items-center justify-between gap-3 w-full">
+                        <span>{qty} قطعة</span>
+                        <span className="text-xs font-black text-slate-700">
+                          {money(showTotal)} ر.س
+                        </span>
+                      </div>
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+
+              {showValidation && !sizeTierId && (
+                <FormHelperText className="text-red-500 text-xs">
+                  يجب اختيار الكمية
+                </FormHelperText>
+              )}
+
+              {!!sizeTierId && (
+                <FormHelperText className="text-slate-600 text-xs">
+                  سعر الوحدة: {money(n(sizeTierUnit))} — الإجمالي:{" "}
+                  {money(n(sizeTierTotal))}
+                </FormHelperText>
+              )}
+            </FormControl>
+          </Box>
+        )}
+
+        {needColor && (
+          <Box>
+            <FormControl
+              fullWidth
+              size="small"
+              required
+              error={showValidation && needColor && color === "اختر"}
+            >
+              <InputLabel>اللون</InputLabel>
+              <Select
+                value={color}
+                onChange={(e) =>
+                  handleOptionChange(setColor, e.target.value as string)
+                }
+                label="اللون"
+                className="bg-white"
+              >
+                <MenuItem value="اختر" disabled>
+                  <em className="text-gray-400">اختر</em>
+                </MenuItem>
+                {apiData.colors.map((c: any) => (
+                  <MenuItem key={c.id} value={c.name}>
+                    <div className="flex items-center gap-2">
+                      {c.hex_code && (
+                        <div
+                          className="w-4 h-4 rounded-full border border-slate-200"
+                          style={{ backgroundColor: c.hex_code }}
+                        />
+                      )}
+                      <span>{c.name}</span>
+                    </div>
+                  </MenuItem>
+                ))}
+              </Select>
+              {showValidation && needColor && color === "اختر" && (
+                <FormHelperText className="text-red-500 text-xs">
+                  يجب اختيار اللون
+                </FormHelperText>
+              )}
+            </FormControl>
+          </Box>
+        )}
+
+        {needMaterial && (
+          <Box>
+            <FormControl
+              fullWidth
+              size="small"
+              required
+              error={showValidation && needMaterial && material === "اختر"}
+            >
+              <InputLabel>الخامة</InputLabel>
+              <Select
+                value={material}
+                onChange={(e) =>
+                  handleOptionChange(setMaterial, e.target.value as string)
+                }
+                label="الخامة"
+                className="bg-white"
+              >
+                <MenuItem value="اختر" disabled>
+                  <em className="text-gray-400">اختر</em>
+                </MenuItem>
+                {apiData.materials.map((m: any) => (
+                  <MenuItem key={m.id} value={m.name}>
+                    <div className="flex items-center justify-between gap-2 w-full">
+                      <span>{m.name}</span>
+                      {Number(m.additional_price || 0) > 0 ? (
+                        <span className="text-xs font-black text-amber-700">
+                          + {m.additional_price}
+                        </span>
+                      ) : (
+                        <span className="text-xs font-black text-slate-500">
+                          0
+                        </span>
+                      )}
+                    </div>
+                  </MenuItem>
+                ))}
+              </Select>
+              {showValidation && needMaterial && material === "اختر" && (
+                <FormHelperText className="text-red-500 text-xs">
+                  يجب اختيار الخامة
+                </FormHelperText>
+              )}
+            </FormControl>
+          </Box>
+        )}
+
+        {Object.keys(groupedOptions).map((groupName) => {
+          const items = groupedOptions[groupName] || [];
+          const required = items.some((x: any) => Boolean(x?.is_required));
+          const currentValue = optionGroups?.[groupName] || "اختر";
+          const fieldError =
+            showValidation && required && currentValue === "اختر";
+
+          return (
+            <Box key={groupName}>
+              <FormControl
+                fullWidth
+                size="small"
+                required={required}
+                error={fieldError}
+              >
+                <InputLabel>{groupName}</InputLabel>
+                <Select
+                  value={currentValue}
+                  onChange={(e) =>
+                    handleGroupChange(groupName, e.target.value as string)
+                  }
+                  label={groupName}
+                  className="bg-white"
+                >
+                  <MenuItem value="اختر" disabled>
+                    <em className="text-gray-600">اختر</em>
+                  </MenuItem>
+
+                  {items.map((o: any) => (
+                    <MenuItem key={o.id} value={o.option_value}>
+                      <div className="flex items-center justify-between gap-3 w-full">
+                        <span>{o.option_value}</span>
+                        {Number(o.additional_price || 0) > 0 ? (
+                          <span className="text-xs font-black text-amber-700">
+                            + {o.additional_price}
+                          </span>
+                        ) : (
+                          <span className="text-xs font-black text-slate-500">
+                            0
+                          </span>
+                        )}
+                      </div>
+                    </MenuItem>
+                  ))}
+                </Select>
+
+                {fieldError && (
+                  <FormHelperText className="text-red-500 text-xs">
+                    يجب اختيار {groupName}
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Box>
+          );
+        })}
+      </div>
+
+      {apiData?.options_note && (
+        <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-2xl">
+          <div className="flex items-start gap-2">
+            <Info className="text-blue-500 text-sm mt-0.5" />
+            <p className="text-sm text-blue-700 font-semibold">
+              {apiData.options_note}
+            </p>
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
 });
 
 function TotalOrder({
-	items_count,
-	subtotal,
-	total,
-	items,
-	couponDiscount = 0,
-	couponNewTotal = null,
+  items_count,
+  subtotal,
+  total,
+  items,
+  couponDiscount = 0,
+  couponNewTotal = null,
 }: {
-	items_count: number;
-	subtotal: number;
-	total: number;
-	items: any[];
-	couponDiscount?: number;
-	couponNewTotal?: number | null;
+  items_count: number;
+  subtotal: number;
+  total: number;
+  items: any[];
+  couponDiscount?: number;
+  couponNewTotal?: number | null;
 }) {
-	const { t } = useLanguage();
-	const shippingFree = true;
-	const shippingFee = shippingFree ? 0 : 48;
+  const { t } = useLanguage();
+  const shippingFree = true;
+  const shippingFee = shippingFree ? 0 : 48;
 
-	const totalAfterCoupon =
-		couponNewTotal !== null && couponNewTotal !== undefined
-			? Math.max(0, n(couponNewTotal))
-			: Math.max(0, n(total) - n(couponDiscount));
+  const totalAfterCoupon =
+    couponNewTotal !== null && couponNewTotal !== undefined
+      ? Math.max(0, n(couponNewTotal))
+      : Math.max(0, n(total) - n(couponDiscount));
 
-	const totalWithShipping = totalAfterCoupon + shippingFee;
-	
-	const totalVAT = items.reduce((sum: number, item: any) => {
-		return sum + n(item.product?.tax_amount || 0) * n(item.quantity);
-	}, 0);
-	
-	const grandTotal = totalWithShipping + totalVAT;
+  const totalWithShipping = totalAfterCoupon + shippingFee;
 
-	const formattedSubtotal = n(subtotal).toLocaleString("en-US", { 
-		minimumFractionDigits: 2, 
-		maximumFractionDigits: 2 
-	});
-	
-	const formattedVAT = n(totalVAT).toLocaleString("en-US", { 
-		minimumFractionDigits: 2, 
-		maximumFractionDigits: 2 
-	});
-	
-	const formattedTotalBeforeVAT = n(totalWithShipping).toLocaleString("en-US", { 
-		minimumFractionDigits: 2, 
-		maximumFractionDigits: 2 
-	});
-	
-	const formattedGrandTotal = n(grandTotal).toLocaleString("en-US", { 
-		minimumFractionDigits: 2, 
-		maximumFractionDigits: 2 
-	});
-	
-	const formattedCoupon = n(couponDiscount).toLocaleString("en-US", { 
-		minimumFractionDigits: 2, 
-		maximumFractionDigits: 2 
-	});
+  const totalVAT = items.reduce((sum: number, item: any) => {
+    return sum + n(item.product?.tax_amount || 0) * n(item.quantity);
+  }, 0);
 
-	return (
-		<div className="my-1 gap-2 flex flex-col">
-			<div className="flex text-sm items-center justify-between text-black">
-				<p className="font-semibold">
-					{t('summary_total')
-						.replace('{count}', String(items?.length))
-						.replace('{items}', t('items'))}
-				</p>
-				{/* يمكنك إضافة subtotal هنا إذا أردت */}
-			</div>
+  const grandTotal = totalWithShipping + totalVAT;
 
-			{(n(couponDiscount) > 0 || (couponNewTotal !== null && couponNewTotal !== undefined)) && (
-				<div className="flex items-center justify-between text-sm">
-					<p className="text-emerald-800 font-semibold">{t('coupon_discount')}</p>
-					<p className="font-extrabold text-emerald-700">
-						- {formattedCoupon}
-						<span className="text-sm ms-1">{t('currency')}</span>
-					</p>
-				</div>
-			)}
+  const formattedSubtotal = n(subtotal).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
-			<div className="flex items-center justify-between text-sm pt-2 border-t border-slate-200">
-				<p className="font-semibold">{t('total_before_vat')}</p>
-				<p className="font-semibold">
-					{formattedTotalBeforeVAT}
-					<span className="text-sm ms-1">{t('currency')}</span>
-				</p>
-			</div>
+  const formattedVAT = n(totalVAT).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
-			<div className="flex items-center justify-between text-sm">
-				<p>{t('vat')}</p>
-				<p className="font-semibold">
-					+ {formattedVAT}
-					<span className="text-sm ms-1">{t('currency')}</span>
-				</p>
-			</div>
+  const formattedTotalBeforeVAT = n(totalWithShipping).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
-			<div className="flex items-center justify-between pb-3 pt-2 border-t border-slate-200">
-				<div className="flex gap-1 items-center">
-					<p className="text-nowrap text-md text-pro font-semibold">
-						{t('grand_total')}
-					</p>
-				</div>
-				<p className="text-[15px] text-pro font-bold">
-					{formattedGrandTotal}
-					<span> {t('currency')}</span>
-				</p>
-			</div>
-		</div>
-	);
+  const formattedGrandTotal = n(grandTotal).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  const formattedCoupon = n(couponDiscount).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  return (
+    <div className="my-1 gap-2 flex flex-col">
+      <div className="flex text-sm items-center justify-between text-black">
+        <p className="font-semibold">
+          {t("summary_total")
+            .replace("{count}", String(items?.length))
+            .replace("{items}", t("items"))}
+        </p>
+        {/* يمكنك إضافة subtotal هنا إذا أردت */}
+      </div>
+
+      {(n(couponDiscount) > 0 ||
+        (couponNewTotal !== null && couponNewTotal !== undefined)) && (
+        <div className="flex items-center justify-between text-sm">
+          <p className="text-emerald-800 font-semibold">
+            {t("coupon_discount")}
+          </p>
+          <p className="font-extrabold text-emerald-700">
+            - {formattedCoupon}
+            <span className="text-sm ms-1">{t("currency")}</span>
+          </p>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between text-sm pt-2 border-t border-slate-200">
+        <p className="font-semibold">{t("total_before_vat")}</p>
+        <p className="font-semibold">
+          {formattedTotalBeforeVAT}
+          <span className="text-sm ms-1">{t("currency")}</span>
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between text-sm">
+        <p>{t("vat")}</p>
+        <p className="font-semibold">
+          + {formattedVAT}
+          <span className="text-sm ms-1">{t("currency")}</span>
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between pb-3 pt-2 border-t border-slate-200">
+        <div className="flex gap-1 items-center">
+          <p className="text-nowrap text-md text-pro font-semibold">
+            {t("grand_total")}
+          </p>
+        </div>
+        <p className="text-[15px] text-pro font-bold">
+          {formattedGrandTotal}
+          <span> {t("currency")}</span>
+        </p>
+      </div>
+    </div>
+  );
 }

@@ -323,8 +323,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 	const updateQuantity = async (cartItemId: number, quantity: number) => {
 		if (!token || quantity < 1) return;
 
-		if (quantity > 10) {
-			toast.error(t("max_quantity_reached", { qty: 10 }), { duration: 4000 });
+		if (quantity > 40) {
+			toast.error(t("max_quantity_reached", { qty: 40 }), { duration: 4000 });
 			return;
 		}
 
