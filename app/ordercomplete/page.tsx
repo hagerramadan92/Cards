@@ -5,10 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
+import * as XLSX from 'xlsx';
 
 import { TbCopy } from "react-icons/tb";
 import { MdKeyboardArrowLeft } from "react-icons/md";
 import { FiCheckCircle } from "react-icons/fi";
+import { FiDownload } from "react-icons/fi";
 
 import OrderProgress from "@/components/OrderProgress";
 import { useCart } from "@/src/context/CartContext";
@@ -218,7 +220,7 @@ export default function OrderCompletePage() {
 	const { t, language } = useLanguage();
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const orderId = searchParams.get("orderId"); // ✅ from url
+	const orderId = searchParams.get("orderId");
 
 	const steps = [t('order_status_pending'), t('order_status_processing'), t('order_status_completed')];
 	const statusSteps: Record<string, number> = {
@@ -232,25 +234,22 @@ export default function OrderCompletePage() {
 	const [currentStep, setCurrentStep] = useState(0);
 	const [order, setOrder] = useState<AnyObj | null>(null);
 	const [loading, setLoading] = useState(true);
+	const [exporting, setExporting] = useState(false);
 
-	// ✅ summary from sessionStorage
 	const [checkoutSummary, setCheckoutSummary] = useState<CheckoutSummaryV1 | null>(null);
 
 	const { clearCart } = useCart();
 
-	// ✅ clear cart once
 	useEffect(() => {
 		clearCart().catch(() => {});
 	}, [clearCart]);
 
-	// ✅ read summary from sessionStorage (fallback localStorage)
 	useEffect(() => {
 		const s = readSessionJSON<CheckoutSummaryV1>("checkout_summary_v1");
 		const l = readLocalJSON<CheckoutSummaryV1>("checkout_summary_v1");
 		setCheckoutSummary(s || l || null);
 	}, []);
 
-	// ✅ fetch from /order/{orderId}
 	useEffect(() => {
 		const fetchOrder = async () => {
 			if (!orderId) {
@@ -290,7 +289,6 @@ export default function OrderCompletePage() {
 		fetchOrder();
 	}, [orderId, language]);
 
-	// ✅ compute totals from items.products + options (kept for items line prices display)
 	const computed = useMemo(() => {
 		const items = Array.isArray(order?.items) ? order!.items : [];
 
@@ -339,11 +337,78 @@ export default function OrderCompletePage() {
 		}
 	};
 
+	const exportSerialsToExcel = () => {
+		if (!order || !order.items || order.items.length === 0) return;
+		
+		setExporting(true);
+		
+		try {
+			const serialsData = [];
+			
+			serialsData.push({
+				'اسم المنتج': 'اسم المنتج',
+				'الرقم التسلسلي': 'الرقم التسلسلي',
+				'كود السيريال': 'كود السيريال',
+				'قسيمة الشراء': 'قسيمة الشراء',
+			});
+
+			order.items.forEach((item: AnyObj) => {
+				const productName = item.product_name || item.product?.name || t('product_singular');
+				const serials = Array.isArray(item.serials) ? item.serials : [];
+				
+				if (serials.length > 0) {
+					serials.forEach((serial: any) => {
+						serialsData.push({
+							'اسم المنتج': productName,
+							'الرقم التسلسلي': serial.serial_number || '—',
+							'كود السيريال': serial.serial_code || '—',
+							'قسيمة الشراء': serial.voucher_code || '—',
+						});
+					});
+				} else {
+					serialsData.push({
+						'اسم المنتج': productName,
+						'الرقم التسلسلي': '—',
+						'كود السيريال': '—',
+						'قسيمة الشراء': '—',
+					});
+				}
+			});
+
+			const wb = XLSX.utils.book_new();
+			const ws = XLSX.utils.json_to_sheet(serialsData, { skipHeader: false });
+			
+			const colWidths = [
+				{ wch: 30 },
+				{ wch: 40 },
+				{ wch: 40 },
+				{ wch: 40 },
+			];
+			ws['!cols'] = colWidths;
+
+			XLSX.utils.book_append_sheet(wb, ws, `الرموز التسلسلية`);
+			XLSX.writeFile(wb, `serials_${order.order_number}_${new Date().toISOString().split('T')[0]}.xlsx`);
+			
+			Swal.fire({
+				icon: "success",
+				title: t('export_success') || "تم التصدير بنجاح",
+				text: t('export_to_excel') || "تم تصدير الرموز التسلسلية بنجاح",
+				timer: 2000,
+				showConfirmButton: false,
+			});
+			
+		} catch (error) {
+			console.error('Error exporting to Excel:', error);
+			Swal.fire(t('error'), t('export_error') || 'حدث خطأ أثناء تصدير البيانات', "error");
+		} finally {
+			setExporting(false);
+		}
+	};
+
 	const isCancelled = order?.status === "cancelled";
 
 	return (
 		<div className="container py-6" dir="rtl">
-			{/* ✅ top row includes orderId */}
 			<div className="flex items-center justify-between gap-2 text-sm mb-4">
 				<div className="flex items-center gap-2">
 					<button
@@ -358,15 +423,33 @@ export default function OrderCompletePage() {
 					<span className="text-slate-600 font-semibold">{t('checkout')}</span>
 				</div>
 
-				{orderId && (
-					<span className="text-xs font-extrabold rounded-full px-3 py-1 border border-slate-200 bg-slate-50 text-slate-700">
-						Order ID: {orderId}
-					</span>
-				)}
+				<div className="flex items-center gap-2">
+					{order && order.items && order.items.length > 0 && (
+						<button
+							onClick={exportSerialsToExcel}
+							disabled={exporting}
+							className={`flex items-center gap-2 px-3 py-1 rounded-full border transition-all duration-200 text-xs font-extrabold ${
+								exporting
+									? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+									: 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300'
+							}`}
+						>
+							<FiDownload className={`w-3 h-3 ${exporting ? 'animate-bounce' : ''}`} />
+							<span>
+								{exporting ? (t('exporting') || 'جاري التصدير...') : (t('export_to_excel') || 'تصدير إلى Excel')}
+							</span>
+						</button>
+					)}
+
+					{orderId && (
+						<span className="text-xs font-extrabold rounded-full px-3 py-1 border border-slate-200 bg-slate-50 text-slate-700">
+							Order ID: {orderId}
+						</span>
+					)}
+				</div>
 			</div>
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-				{/* LEFT */}
 				<div className="col-span-1 lg:col-span-2 space-y-4">
 					{loading ? (
 						<>
@@ -397,7 +480,6 @@ export default function OrderCompletePage() {
 						</div>
 					) : (
 						<>
-							{/* Header */}
 							<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-2 md:p-6">
 								<div className="flex items-start justify-between gap-4 flex-wrap">
 									<div className="flex items-center gap-3">
@@ -451,7 +533,6 @@ export default function OrderCompletePage() {
 									</div>
 								</div>
 
-								{/* Progress */}
 								<div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-2 md:p-5">
 									{isCancelled ? (
 										<p className="text-rose-700 font-extrabold">{t('order_status_rejected')}</p>
@@ -461,7 +542,6 @@ export default function OrderCompletePage() {
 								</div>
 							</div>
 
-							{/* Payment */}
 							<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6">
 								<h5 className="font-extrabold md:text-xl text-md text-slate-900 mb-3">{t('payment_method')}</h5>
 								<div className="flex items-center justify-between gap-3">
@@ -482,7 +562,6 @@ export default function OrderCompletePage() {
 								</div>
 							</div>
 
-							{/* Support */}
 							<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6">
 								<div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
 									<div className="text-slate-700 font-semibold">
@@ -508,11 +587,25 @@ export default function OrderCompletePage() {
 					)}
 				</div>
 
-				{/* RIGHT */}
 				<div className="col-span-1 space-y-4 lg:sticky lg:top-[140px] h-fit">
-					{/* Items */}
 					<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6">
-						<h2 className="font-extrabold md:text-xl text-md text-slate-900 mb-4">{t('order_details')}</h2>
+						<div className="flex items-center justify-between mb-4">
+							<h2 className="font-extrabold md:text-xl text-md text-slate-900">
+								{t('order_details')}
+							</h2>
+							
+							{order && order.items && order.items.length > 0 && (
+								<button
+									onClick={exportSerialsToExcel}
+									disabled={exporting}
+									className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors"
+									title={t('export_to_excel') || "تصدير إلى Excel"}
+								>
+									<FiDownload size={14} />
+									<span className="hidden sm:inline">{t('export_to_excel') || "تصدير إلى Excel"}</span>
+								</button>
+							)}
+						</div>
 
 						{loading ? (
 							<div className="space-y-3">
@@ -560,7 +653,6 @@ export default function OrderCompletePage() {
 														</div>
 													)}
 
-													{/* عرض الأرقام التسلسلية */}
 													{serials.length > 0 && (
 														<div className="mt-4 border-t border-slate-200 pt-3">
 															<p className="font-bold text-sm text-slate-900 mb-2">
@@ -571,7 +663,6 @@ export default function OrderCompletePage() {
 																	<div key={serial.id || serialIdx} 
 																		className="bg-white rounded-xl border border-slate-200 p-3 text-xs">
 																		
-																		{/* الرقم التسلسلي */}
 																		{serial.serial_number && (
 																			<div className="flex justify-between items-center mb-1 pb-1 border-b border-slate-100">
 																				<span className="text-slate-600">{t('serial_number')}:</span>
@@ -590,7 +681,6 @@ export default function OrderCompletePage() {
 																			</div>
 																		)}
 																		
-																		{/* رمز السريال */}
 																		{serial.serial_code && (
 																			<div className="flex justify-between items-center mb-1 pb-1 border-b border-slate-100">
 																				<span className="text-slate-600">{t('serial_code')}:</span>
@@ -609,9 +699,8 @@ export default function OrderCompletePage() {
 																			</div>
 																		)}
 																		
-																		{/* كود القسيمة */}
 																		{serial.voucher_code && (
-																			<div className="flex justify-between items-center mb-1 pb-1 border-b border-slate-100">
+																			<div className="flex justify-between items-center">
 																				<span className="text-slate-600">{t('voucher_code')}:</span>
 																				<div className="flex items-center gap-1">
 																					<span className="font-mono font-bold text-emerald-600 dir-ltr text-left">
@@ -627,20 +716,6 @@ export default function OrderCompletePage() {
 																				</div>
 																			</div>
 																		)}
-																		
-																		{/* تاريخ الصلاحية */}
-																		{/* {serial.valid_to && (
-																			<div className="flex justify-between items-center">
-																				<span className="text-slate-600">{t('voucher_code')}:</span>
-																				<span className="text-slate-700">
-																					{new Date(serial.valid_to).toLocaleDateString('ar-EG', {
-																						year: 'numeric',
-																						month: 'long',
-																						day: 'numeric'
-																					})}
-																				</span>
-																			</div>
-																		)} */}
 																	</div>
 																))}
 															</div>
@@ -661,7 +736,6 @@ export default function OrderCompletePage() {
 						)}
 					</div>
 
-					{/* ✅ Summary FROM sessionStorage (checkout_summary_v1) */}
 					<div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6">
 						<h2 className="font-extrabold md:text-xl text-md text-slate-900 mb-4">{t('order_summary')}</h2>
 

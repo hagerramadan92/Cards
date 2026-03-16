@@ -476,7 +476,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
     
     if (showToast) {
-      toast.success(data.message || t('login_success') || "تم تسجيل الدخول بنجاح");
+      toast.success(data.message || t('login_success') );
     }
   };
 

@@ -947,9 +947,17 @@ export const translations = {
     "serial_code": "الكود",
     "voucher_code": "قسيمة الشراء",
     order_placed: "تم تقديم الطلب",
+    export_to_excel: "تنزيل ك إكسل",
+    exporting: "جاري التصدير...",
+    export_success: "تم تصدير الطلبات بنجاح",
+    export_error: "حدث خطأ أثناء تصدير الطلبات",
 
   },
   en: {
+    export_success: "Orders exported successfully",
+    export_error: "An error occurred while exporting orders",
+    export_to_excel: "Export to Excel",
+    exporting: "Exporting...",
     order_placed: "Order Placed",
      "order_pending": "Pending",
     "order_processing": "Processing",

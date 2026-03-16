@@ -5,10 +5,12 @@ import { useLanguage } from "@/src/context/LanguageContext";
 import Image from "next/image";
 import Loading from "@/app/loading";
 import OrderProgress from "./OrderProgress";
-
+import * as XLSX from 'xlsx';
+import Swal from "sweetalert2";
 import { GoChecklist } from "react-icons/go";
 import { IoWalletOutline } from "react-icons/io5";
 import { SlLocationPin } from "react-icons/sl";
+import { FiDownload } from "react-icons/fi";
 
 import { FiAlertTriangle } from "react-icons/fi";
 import { CheckCircle2, Clock3, Truck, Ban, User2, Mail } from "lucide-react";
@@ -259,6 +261,7 @@ export default function OrderDetailsPage({ orderId }: Props) {
   const [loading, setLoading] = useState(true);
   const { t, language } = useLanguage();
   const [apiToken, setApiToken] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const [currentStep, setCurrentStep] = useState(0);
 
@@ -330,7 +333,7 @@ export default function OrderDetailsPage({ orderId }: Props) {
     const ui = getStatusUi(order?.status || "");
     return {
       ...ui,
-      label: t(ui.labelKey as any) // Use type assertion if needed
+      label: t(ui.labelKey as any)
     };
   }, [order?.status, t]);
 
@@ -338,7 +341,7 @@ export default function OrderDetailsPage({ orderId }: Props) {
     const ui = getPaymentUi(order?.status_payment || "");
     return {
       ...ui,
-      label: t(ui.labelKey as any) // Use type assertion if needed
+      label: t(ui.labelKey as any)
     };
   }, [order?.status_payment, t]);
 
@@ -389,6 +392,111 @@ export default function OrderDetailsPage({ orderId }: Props) {
     }
   };
 
+  // دالة تصدير المنتجات والسيريالات فقط إلى Excel
+  const exportToExcel = () => {
+    if (!order || !order.items || order.items.length === 0) return;
+    
+    setExporting(true);
+    
+    try {
+      // تجهيز بيانات المنتجات والسيريالات فقط
+      const productsData = [];
+      
+      // إضافة رؤوس الأعمدة (بالعربية)
+      productsData.push({
+        'اسم المنتج': 'اسم المنتج',
+        'الكمية': 'الكمية',
+        'السعر': 'السعر',
+        'الإجمالي': 'الإجمالي',
+        'الرقم التسلسلي': 'الرقم التسلسلي',
+        'الكود': 'الكود',
+        'قسيمة الشراء': 'قسيمة الشراء',
+      });
+
+      // إضافة بيانات كل منتج وسيريالاته
+      order.items.forEach((item) => {
+        const subtotal = calcItemSubtotal(item.price, item.quantity);
+        const subtotalFormatted = subtotal !== null ? subtotal.toFixed(2) : '—';
+        
+        if (item.serials && item.serials.length > 0) {
+          // إذا كان للمنتج سيريالات، نعرض كل سيريال في سطر منفصل
+          item.serials.forEach((serial, idx) => {
+            if (idx === 0) {
+              // أول سيريال نعرض معه معلومات المنتج
+              productsData.push({
+                'اسم المنتج': item.product_name,
+                'الكمية': item.quantity,
+                'السعر': item.price,
+                'الإجمالي': subtotalFormatted,
+                'الرقم التسلسلي': serial.serial_number,
+                'الكود': serial.serial_code || '',
+                'قسيمة الشراء': serial.voucher_code || '',
+              });
+            } else {
+              // باقي السيريالات نعرضها بدون تكرار معلومات المنتج
+              productsData.push({
+                'اسم المنتج': '',
+                'الكمية': '',
+                'السعر': '',
+                'الإجمالي': '',
+                'الرقم التسلسلي': serial.serial_number,
+                'الكود': serial.serial_code || '',
+                'قسيمة الشراء': serial.voucher_code || '',
+              });
+            }
+          });
+        } else {
+          // إذا لم يكن للمنتج سيريالات، نعرض سطر واحد فقط
+          productsData.push({
+            'اسم المنتج': item.product_name,
+            'الكمية': item.quantity,
+            'السعر': item.price,
+            'الإجمالي': subtotalFormatted,
+            'الرقم التسلسلي': '—',
+            'الكود': '—',
+            'قسيمة الشراء': '—',
+          });
+        }
+      });
+
+      // إنشاء ورقة العمل
+      const wb = XLSX.utils.book_new();
+      
+      // تحويل البيانات إلى صيغة ورقة عمل (نتخطى الصف الأول لأنه رؤوس الأعمدة)
+      const ws = XLSX.utils.json_to_sheet(productsData, { skipHeader: false });
+      
+      // ضبط عرض الأعمدة
+      const colWidths = [
+        { wch: 30 }, // اسم المنتج
+        { wch: 10 }, // الكمية
+        { wch: 15 }, // السعر
+        { wch: 15 }, // الإجمالي
+        { wch: 40 }, // الرقم التسلسلي
+        { wch: 40 }, // الكود
+        { wch: 40 }, // قسيمة الشراء
+      ];
+      ws['!cols'] = colWidths;
+
+      // إضافة الورقة إلى المصنف
+      XLSX.utils.book_append_sheet(wb, ws, `منتجات الطلب ${order.order_number}`);
+      
+      // تصدير الملف
+      XLSX.writeFile(wb, `products_${order.order_number}_${new Date().toISOString().split('T')[0]}.xlsx`);
+        Swal.fire({
+              icon: "success",
+              title: t('export_success') || "تم التصدير بنجاح",
+              text: t('export_to_excel') || "تم تصدير الرموز التسلسلية بنجاح",
+              timer: 2000,
+              showConfirmButton: false,
+            });
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      alert(t('export_error') || 'حدث خطأ أثناء تصدير البيانات');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (loading) return <OrderDetailsSkeleton />;
 
   if (!order) {
@@ -413,7 +521,7 @@ export default function OrderDetailsPage({ orderId }: Props) {
 
   return (
     <div className="mb-16 w-full space-y-6" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-      {/* Header Card */}
+      {/* Header Card with Export Button */}
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex items-start justify-between mb-6">
           <div>
@@ -424,6 +532,8 @@ export default function OrderDetailsPage({ orderId }: Props) {
               {formatDate(order.created_at)}
             </p>
           </div>
+          
+       
         </div>
 
         {/* Order Info Grid */}
@@ -481,9 +591,27 @@ export default function OrderDetailsPage({ orderId }: Props) {
       </div>
 
       {/* Items Card */}
+        
       {order.items && order.items.length > 0 && (
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h4 className="text-lg font-semibold text-slate-900 mb-4">{t("order_items")}</h4>
+          <div className="flex items-center justify-between mb-4">
+               <h4 className="text-lg font-semibold text-slate-900 mb-4">{t("order_items")}</h4>
+           {/* زر التصدير إلى Excel - للمنتجات والسيريالات فقط */}
+          <button
+            onClick={exportToExcel}
+            disabled={exporting || !order.items || order.items.length === 0}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all duration-200 ${
+              exporting || !order.items || order.items.length === 0
+                ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300'
+            }`}
+          >
+            <FiDownload className={`w-4 h-4 ${exporting ? 'animate-bounce' : ''}`} />
+            <span className="text-sm font-semibold">
+              {exporting ? t("exporting") : t("export_to_excel")}
+            </span>
+          </button>
+          </div>
           <div className="space-y-3">
             {order.items.map((item, index) => {
               const subtotal = calcItemSubtotal(item.price, item.quantity);
