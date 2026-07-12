@@ -194,14 +194,14 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-pro text-white">
-      <div className="container max-md:!px-6 px-5">
+    <footer className="mt-14 border-t bg-transparent" style={{ borderColor: "var(--border)", color: "var(--text-primary)" }}>
+      <div className="app-container max-md:!px-4 px-5">
         {/* top */}
         <div className="py-8 sm:py-10 lg:py-12">
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-10">
+          <div className="surface-card grid grid-cols-2 gap-4 p-6 sm:gap-6 lg:grid-cols-4 lg:gap-10 lg:p-8">
             {/* Categories - First Section */}
             <div className="col-span-2 lg:col-span-1 order-1 lg:order-1">
-              <h4 className="text-base sm:text-lg font-extrabold tracking-wide">{t('categories')}</h4>
+              <h4 className="text-base sm:text-lg font-extrabold tracking-wide" style={{ color: "var(--text-primary)" }}>{t('categories')}</h4>
               {/* Small screen: inline-block, Large screen: two columns */}
               <div className="mt-4">  
                 {categories.length > 0 ? (
@@ -212,7 +212,7 @@ export default function Footer() {
                         <Link
                           key={category.id}
                           href={`/category/${category.id}`}
-                          className="inline-block text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline mr-4 mb-3"
+                          className="inline-block text-sm sm:text-base text-slate-400 hover:text-orange-400 transition underline-offset-4 hover:underline mr-4 mb-3"
                         >
                           {category.name}
                         </Link>
@@ -225,7 +225,7 @@ export default function Footer() {
                           <Link
                             key={category.id}
                             href={`/category/${category.id}`}
-                            className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
+                            className="text-sm sm:text-base text-slate-400 hover:text-orange-400 transition underline-offset-4 hover:underline"
                           >
                             {category.name}
                           </Link>
@@ -236,7 +236,7 @@ export default function Footer() {
                           <Link
                             key={category.id}
                             href={`/category/${category.id}`}
-                            className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
+                            className="text-sm sm:text-base text-slate-400 hover:text-orange-400 transition underline-offset-4 hover:underline"
                           >
                             {category.name}
                           </Link>
@@ -245,20 +245,20 @@ export default function Footer() {
                     </div>
                   </>
                 ) : (
-                  <span className="text-white/70 text-sm">{t('no_categories')}</span>
+                  <span className="text-slate-400 text-sm">{t('no_categories')}</span>
                 )}
               </div>
             </div>
 
             {/* Important Links */}
             <div className="order-2 lg:order-2">
-              <h4 className="text-base sm:text-lg font-extrabold tracking-wide">{t('important_links')}</h4>
+              <h4 className="text-base sm:text-lg font-extrabold tracking-wide" style={{ color: "var(--text-primary)" }}>{t('important_links')}</h4>
               <div className="mt-4 flex flex-col gap-3">
                 {importantLinks.slice(0, 5).map((link, index) => (
                   <Link
                     key={index}
                     href={link.href}
-                    className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
+                    className="text-sm sm:text-base text-slate-400 hover:text-orange-400 transition underline-offset-4 hover:underline"
                   >
                     {link.title}
                   </Link>
@@ -268,7 +268,7 @@ export default function Footer() {
 
             {/* Contact Info & Help Links */}
             <div className="space-y-4 order-3 lg:order-3">
-              <h4 className="text-base sm:text-lg font-extrabold tracking-wide">{t('need_help')}</h4>
+              <h4 className="text-base sm:text-lg font-extrabold tracking-wide" style={{ color: "var(--text-primary)" }}>{t('need_help')}</h4>
               
               {/* Contact Info */}
               <div className="flex flex-col gap-2">
@@ -276,9 +276,9 @@ export default function Footer() {
                   <p
                   
                     className="flex items-center gap-2 text-sm sm:text-base
-                     text-white/50 hover:text-white transition underline-offset-4 hover:underline"
+                     text-slate-400 hover:text-orange-400 transition underline-offset-4 hover:underline"
                   >
-                    <FaPhone className="text-white/70" size={14} />
+                    <FaPhone className="text-orange-400" size={14} />
                     <span dir="ltr">{staticContactInfo.phone}</span>
                   </p>
                 )}
@@ -286,9 +286,9 @@ export default function Footer() {
                   <p
                   
                     className="flex items-center gap-2 text-sm sm:text-base
-                     text-white/50 hover:text-white transition underline-offset-4 hover:underline"
+                     text-slate-400 hover:text-orange-400 transition underline-offset-4 hover:underline"
                   >
-                    <FaMapMarkerAlt className="text-white/70" size={14} />
+                    <FaMapMarkerAlt className="text-orange-400" size={14} />
                     <span dir="ltr">{staticContactInfo.address}</span>
                   </p>
                 )}
@@ -301,7 +301,7 @@ export default function Footer() {
                   <Link
                     key={index}
                     href={link.href}
-                    className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
+                    className="text-sm sm:text-base text-slate-400 hover:text-orange-400 transition underline-offset-4 hover:underline"
                   >
                     {link.title}
                   </Link>
@@ -312,7 +312,7 @@ export default function Footer() {
               <div className="flex flex-col gap-2">
                 <Link
                   href="/FAQ"
-                  className="text-sm sm:text-base text-white/50 hover:text-white transition underline-offset-4 hover:underline"
+                  className="text-sm sm:text-base text-slate-400 hover:text-orange-400 transition underline-offset-4 hover:underline"
                 >
                   {t('faq')}
                 </Link>
@@ -331,7 +331,7 @@ export default function Footer() {
             <p className="text-base sm:text-lg font-extrabold">{t('we_accept')}</p>
 
             {activePayments.length === 0 ? (
-              <span className="text-white/70 text-xs sm:text-sm">{t('no_payment_methods')}</span>
+              <span className="text-slate-400 text-xs sm:text-sm">{t('no_payment_methods')}</span>
             ) : (
               <div className="flex flex-wrap gap-2 sm:gap-3 mt-2">
                 <Image
@@ -358,7 +358,7 @@ export default function Footer() {
 
             <div className="flex items-center gap-2 sm:gap-3 flex-wrap mt-2">
               {socialButtons.length === 0 ? (
-                <span className="text-white/70 text-xs">{t('no_social_links')}</span>
+                <span className="text-slate-400 text-xs">{t('no_social_links')}</span>
               ) : (
                 socialButtons.map((social, idx) => {
                   const Icon = socialIcons[social.key];
@@ -376,7 +376,7 @@ export default function Footer() {
                       href={href || "#"}
                       target={target}
                       rel={isExternal ? "noreferrer" : undefined}
-                      className="group relative inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white hover:bg-white/90 transition-all duration-200 hover:scale-110 active:scale-95 shadow-md hover:shadow-lg"
+                      className="group relative inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-white/10 bg-white/6 hover:bg-white/10 transition-all duration-200 hover:scale-110 active:scale-95 shadow-md hover:shadow-lg"
                       aria-label={social.key}
                       title={social.key}
                     >
@@ -390,7 +390,7 @@ export default function Footer() {
         </div>
 
         {/* copyright */}
-        <p className="text-center text-white/70 text-xs sm:text-sm pb-6 sm:pb-8 lg:pb-10">Ⓒ {t('all_rights_reserved')} {year}</p>
+        <p className="text-center text-slate-400 text-xs sm:text-sm pb-6 sm:pb-8 lg:pb-10">Ⓒ {t('all_rights_reserved')} {year}</p>
       </div>
     </footer>
   );

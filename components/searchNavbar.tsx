@@ -19,6 +19,7 @@ import { FaBarsStaggered } from "react-icons/fa6";
 import CurrencySelector from "./Currency/CurrencySelector";
 import { useLanguage } from "@/src/context/LanguageContext";
 import CurrencyDisplay from "./Currency/CurrencySelector";
+import ThemeToggle from "./ThemeToggle";
 
 function cn(...c: (string | false | null | undefined)[]) {
 	return c.filter(Boolean).join(" ");
@@ -40,9 +41,9 @@ export default function SearchNavbar() {
 
 
 	return (
-		<div className="bg-white/80  " >
+		<div className="bg-transparent">
 			{/* Navbar */}
-			<div className="w-full container relative z-30 border-b border-gray-200">
+			<div className="w-full app-container relative z-30 border-b" style={{ borderColor: "var(--nav-border)" }}>
 				<div className="flex flex-1 min-w-0 items-center justify-between gap-3 py-3 md:py-4">
 					
 					{/* Left Section: Menu, Logo, Search */}
@@ -54,12 +55,12 @@ export default function SearchNavbar() {
 							className={cn(
 								"md:hidden shrink-0 relative",
 								"rounded-xl ",
-								"bg-white/90 backdrop-blur ",
-								"text-slate-800 ",
-								"hover:shadow-md hover:bg-white",
+								"backdrop-blur ",
+								"hover:shadow-md",
 								"active:scale-95 transition-all duration-200",
 								"focus:outline-none focus-visible:ring-4 focus-visible:ring-slate-200"
 							)}
+							style={{ background: "var(--surface-subtle)", color: "var(--text-primary)" }}
 						>
 							{/* soft glow */}
 							<span className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-slate-100 to-white opacity-0 hover:opacity-100 transition" />
@@ -70,7 +71,7 @@ export default function SearchNavbar() {
 								className="relative z-10 flex items-center justify-center"
 							>
 								{/* <FaBars size={18} /> */}
-								<FaBarsStaggered size={22} className="text-pro" />
+								<FaBarsStaggered size={22} className="text-orange-400" />
 							</motion.span>
 						</button>
 
@@ -91,6 +92,8 @@ export default function SearchNavbar() {
 
 					{/* Right Section: Actions */}
 					<div className="flex items-center gap-2 md:gap-3 shrink-0">
+						<ThemeToggle />
+
 						{/* Language Selector - Hide on mobile (in drawer) */}
 						<div className="sm:block hidden">
 							<LanguageSelector />
@@ -98,13 +101,13 @@ export default function SearchNavbar() {
 						{/* Auth */}
 					{isLoading ? (
 						// عرض مؤشر تحميل أثناء الانتظار
-						<div className="inline-flex items-center justify-center rounded-lg bg-gray-100 px-3 py-2 md:px-4 md:py-2.5">
-							<div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-pro"></div>
+						<div className="inline-flex items-center justify-center rounded-full border px-3 py-2 md:px-4 md:py-2.5" style={{ background: "var(--surface-subtle)", borderColor: "var(--border)" }}>
+							<div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-orange-400"></div>
 						</div>
 					) : !isAuthenticated ? (
 						<Link
 							href="/login"
-							className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg bg-gray-100 text-pro px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-extrabold shadow-sm hover:opacity-95 active:scale-[0.99] transition"
+							className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-orange-500/30 bg-orange-500/10 text-orange-300 px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-extrabold shadow-sm hover:bg-orange-500/16 active:scale-[0.99] transition"
 						>
 							<FaRegUser className="" size={15} />
 							<span className="max-md:hidden">{t('login')}</span>
@@ -156,32 +159,35 @@ export default function SearchNavbar() {
 							exit={{ y: "100%", x: "0%" }}
 							transition={{ type: "spring", stiffness: 320, damping: 34 }}
 							className={cn(
-								"fixed z-50 bg-white shadow-2xl overflow-hidden",
+								"fixed z-50 shadow-2xl overflow-hidden",
 								"w-screen md:w-[420px]",
 								"  top-0  right-0",
 								" h-full",
 								"md:rounded-t-3xl md:rounded-none"
 							)}
+							style={{ background: "var(--surface)", color: "var(--text-primary)" }}
 						>
 
 							{/* Drawer header */}
-							<div className="   flex items-center justify-between px-4 md:px-5 py-4 border-b border-slate-200 bg-gradient-to-b from-gray-50 to-white">
+							<div className="flex items-center justify-between px-4 md:px-5 py-4 border-b" style={{ background: "linear-gradient(180deg, var(--surface-secondary), var(--surface))", borderColor: "var(--border)" }}>
 								<div className="flex items-center gap-3">
-									<div className="relative w-10 h-10 rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 overflow-hidden">
+									<div className="relative w-10 h-10 rounded-2xl bg-white/6 shadow-sm ring-1 ring-white/10 overflow-hidden">
 										<Image src="/images/logo11.png" alt="logo" fill className="object-contain p-1.5" />
 									</div>
 									<div>
-										<h2 className="text-lg md:text-xl font-extrabold text-gray-900">{t('menu')}</h2>
-										<p className="text-xs text-gray-500">{t('footer_text')}</p>
+										<h2 className="text-lg md:text-xl font-extrabold" style={{ color: "var(--text-primary)" }}>{t('menu')}</h2>
+										<p className="text-xs" style={{ color: "var(--text-muted)" }}>{t('footer_text')}</p>
 									</div>
 								</div>
 
 								<div className="flex items-center gap-2">
 									
+									<ThemeToggle className="!min-h-10 !px-3" />
 									<button
 										aria-label="Close menu"
 										onClick={() => setMenuOpen(false)}
-										className="rounded-xl p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition focus:outline-none focus:ring-4 focus:ring-gray-200"
+										className="rounded-xl p-2 transition focus:outline-none focus:ring-4 focus:ring-white/10"
+										style={{ color: "var(--text-muted)" }}
 									>
 										<AiOutlineClose size={22} />
 									</button>
@@ -203,7 +209,7 @@ export default function SearchNavbar() {
 							<div className="  p-2 space-y-5 !pl-4 ">
 								{/* Search inside drawer for mobile */}
 								<div className="md:hidden">
-									<p className="text-sm font-extrabold text-gray-800 mb-2">{t('search')}</p>
+									<p className="text-sm font-extrabold mb-2" style={{ color: "var(--text-primary)" }}>{t('search')}</p>
 									<div className="flex items-center gap-2 " > 
 										<SearchGrowWrap inDrawer>
 											<SearchComponent setMenuOpen={setMenuOpen} />
@@ -218,13 +224,14 @@ export default function SearchNavbar() {
 										Array.from({ length: 6 }).map((_, i) => (
 											<div
 												key={i}
-												className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+											className="rounded-2xl border p-4 shadow-sm"
+											style={{ background: "var(--surface-subtle)", borderColor: "var(--border)" }}
 											>
 												<div className="flex items-center gap-3">
-													<div className="h-12 w-12 rounded-2xl bg-slate-100 animate-pulse" />
+													<div className="h-12 w-12 rounded-2xl bg-white/10 animate-pulse" />
 													<div className="flex-1">
-														<div className="h-4 w-24 rounded bg-slate-100 animate-pulse" />
-														<div className="mt-2 h-3 w-16 rounded bg-slate-100 animate-pulse" />
+														<div className="h-4 w-24 rounded animate-pulse" style={{ background: "var(--surface-subtle-hover)" }} />
+														<div className="mt-2 h-3 w-16 rounded animate-pulse" style={{ background: "var(--surface-subtle-hover)" }} />
 													</div>
 												</div>
 											</div>
@@ -235,7 +242,7 @@ export default function SearchNavbar() {
 
 								{/* Empty state */}
 								{!loadingCategories && (!parentCategories || parentCategories.length === 0) && (
-									<div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-gray-500">
+									<div className="mt-4 rounded-2xl border p-4 text-sm" style={{ background: "var(--surface-subtle)", borderColor: "var(--border)", color: "var(--text-muted)" }}>
 										{t('no_categories')}
 									</div>
 								)}
@@ -243,12 +250,12 @@ export default function SearchNavbar() {
 							</div>
 
 							{/* Drawer footer */}
-							<div className="mt-auto border-slate-200 border-t p-5 bg-white">
+							<div className="mt-auto border-t p-5" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
 								{!isAuthenticated ? (
 									<Link
 										href="/login"
 										onClick={() => setMenuOpen(false)}
-										className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-pro text-white py-3 text-sm font-extrabold shadow-sm hover:opacity-95 transition"
+										className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-400 text-white py-3 text-sm font-extrabold shadow-sm hover:opacity-95 transition"
 									>
 										<FaRegUser size={15} />
 										تسجيل دخول
@@ -256,7 +263,8 @@ export default function SearchNavbar() {
 								) : (
 									<button
 										onClick={() => setMenuOpen(false)}
-										className="w-full rounded-2xl bg-gray-100 text-gray-900 py-3 text-sm font-extrabold hover:bg-gray-200 transition"
+										className="w-full rounded-2xl py-3 text-sm font-extrabold transition"
+										style={{ background: "var(--surface-subtle)", color: "var(--text-primary)" }}
 									>
 										إغلاق
 									</button>

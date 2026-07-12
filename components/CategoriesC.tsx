@@ -4,11 +4,12 @@ import { useMemo, useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { CategoryI } from "@/Types/CategoriesI";
+import { SubCategoriesI } from "@/Types/SubCategoriesI";
 import { Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/src/context/LanguageContext";
 
 interface CategoriesSliderProps {
-	categories: CategoryI[];
+	categories: Array<CategoryI | SubCategoriesI>;
 	title?: string;
 	subtitle?: string;
 	inSlide?: any;

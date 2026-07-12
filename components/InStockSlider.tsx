@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
+import type { Swiper as SwiperType } from "swiper";
 import "swiper/css";
 import "swiper/css/navigation";
 import { ProductI } from "@/Types/ProductsI";
@@ -11,10 +12,9 @@ import Spinner from "./Spinner/spinner";
 
 interface InStockSliderProps {
 	inStock: ProductI[];
-	CardComponent: any
+	CardComponent: (product: ProductI) => React.ReactNode;
 	title?: string;
 	hiddenArrow?: boolean;
-	// ✅ new
 	isLoading?: boolean;
 	skeletonCount?: number;
 }
@@ -29,7 +29,24 @@ export default function InStockSlider({
 }: InStockSliderProps) {
 	const prevRef = useRef<HTMLButtonElement>(null);
 	const nextRef = useRef<HTMLButtonElement>(null);
+	const swiperRef = useRef<SwiperType | null>(null);
+	const [swiperReady, setSwiperReady] = useState(0);
 	const { t } = useLanguage();
+
+	useEffect(() => {
+		const swiper = swiperRef.current;
+		if (!swiper || !prevRef.current || !nextRef.current) return;
+
+		const navigationParams = swiper.params.navigation;
+		if (!navigationParams || navigationParams === true) return;
+
+		navigationParams.prevEl = prevRef.current;
+		navigationParams.nextEl = nextRef.current;
+
+		swiper.navigation.destroy();
+		swiper.navigation.init();
+		swiper.navigation.update();
+	}, [inStock.length, swiperReady]);
 
 	return (
 		<div className="relative w-full ">
@@ -43,7 +60,8 @@ export default function InStockSlider({
 					{hiddenArrow && <div className="flex items-center gap-2">
 						<button
 							ref={nextRef}
-							className="w-9 h-9 rounded-full border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center transition"
+							className="w-9 h-9 rounded-full border flex items-center justify-center transition"
+							style={{ background: "var(--surface-subtle)", borderColor: "var(--border)", color: "var(--text-primary)" }}
 							aria-label={t('next')}
 						>
 							<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -52,7 +70,8 @@ export default function InStockSlider({
 						</button>
 						<button
 							ref={prevRef}
-							className="w-9 h-9 rounded-full border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center transition"
+							className="w-9 h-9 rounded-full border flex items-center justify-center transition"
+							style={{ background: "var(--surface-subtle)", borderColor: "var(--border)", color: "var(--text-primary)" }}
 							aria-label={t('previous')}
 						>
 							<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -67,7 +86,8 @@ export default function InStockSlider({
 				hiddenArrow &&  <div className="flex justify-end gap-2 mb-3">
 					<button
 						ref={prevRef}
-						className="w-9 h-9 rounded-full border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center transition"
+						className="w-9 h-9 rounded-full border flex items-center justify-center transition"
+						style={{ background: "var(--surface-subtle)", borderColor: "var(--border)", color: "var(--text-primary)" }}
 						aria-label={t('previous')}
 					>
 						<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -76,7 +96,8 @@ export default function InStockSlider({
 					</button>
 					<button
 						ref={nextRef}
-						className="w-9 h-9 rounded-full border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center transition"
+						className="w-9 h-9 rounded-full border flex items-center justify-center transition"
+						style={{ background: "var(--surface-subtle)", borderColor: "var(--border)", color: "var(--text-primary)" }}
 						aria-label={t('next')}
 					>
 						<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -87,18 +108,13 @@ export default function InStockSlider({
 			)}
 
 			<Swiper
-			className={`${hiddenArrow == false && "mt-3"}`}
+				className={hiddenArrow === false ? "mt-3" : ""}
 				modules={[Navigation]}
-				navigation={{
-					prevEl: prevRef.current,
-					nextEl: nextRef.current,
+				onSwiper={(swiperInstance) => {
+					swiperRef.current = swiperInstance;
+					setSwiperReady((value) => value + 1);
 				}}
-				onBeforeInit={(swiper) => {
-					// @ts-ignore
-					swiper.params.navigation.prevEl = prevRef.current;
-					// @ts-ignore
-					swiper.params.navigation.nextEl = nextRef.current;
-				}}
+				navigation={false}
 				spaceBetween={10}
 				slidesPerView={2}
 				slidesPerGroup={2}
@@ -111,16 +127,16 @@ export default function InStockSlider({
 				}}
 			>
 				{isLoading
-					? <div className="flex items-center justify-center h-40 w-full"><Spinner size="lg" /></div>
+					? Array.from({ length: skeletonCount }).map((_, index) => (
+						<SwiperSlide key={`skeleton-${index}`}>
+							<div className="flex h-40 w-full items-center justify-center rounded-2xl border border-white/8 bg-white/4">
+								<Spinner size="lg" />
+							</div>
+						</SwiperSlide>
+					))
 					: inStock.map((product) => (
 						<SwiperSlide key={product.id} id="swiper-width" >
-							{typeof CardComponent === "function" ? (
-								// if passed as render function
-								// @ts-ignore
-								<CardComponent {...product }  product={product} />
-							) : (
-								<CardComponent {...product}  product={product}/>
-							)}
+							{CardComponent(product)}
 						</SwiperSlide>
 					))}
 			</Swiper>

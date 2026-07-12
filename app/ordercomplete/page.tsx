@@ -13,7 +13,6 @@ import { FiCheckCircle } from "react-icons/fi";
 import { FiDownload } from "react-icons/fi";
 
 import OrderProgress from "@/components/OrderProgress";
-import { useCart } from "@/src/context/CartContext";
 import { useLanguage } from "@/src/context/LanguageContext";
 
 type AnyObj = Record<string, any>;
@@ -237,12 +236,6 @@ export default function OrderCompletePage() {
 	const [exporting, setExporting] = useState(false);
 
 	const [checkoutSummary, setCheckoutSummary] = useState<CheckoutSummaryV1 | null>(null);
-
-	const { clearCart } = useCart();
-
-	useEffect(() => {
-		clearCart().catch(() => {});
-	}, [clearCart]);
 
 	useEffect(() => {
 		const s = readSessionJSON<CheckoutSummaryV1>("checkout_summary_v1");

@@ -6,6 +6,7 @@ import { User, onAuthStateChanged, signOut as firebaseSignOut } from "firebase/a
 import { useAuth } from "./AuthContext";
 import { useLanguage } from "./LanguageContext";
 import { clearFirebaseSession, resetFirebase } from "@/lib/firebase";
+import { postSocialLogin, SocialLoginError } from "@/utils/socialLogin";
 
 interface AuthContextType {
   user: User | null;
@@ -71,10 +72,12 @@ export function FirebaseAuthProvider({ children }: { children: React.ReactNode }
       
       // ✅ تحقق إضافي: إذا كان هناك مستخدم في Firebase ولكن لا يوجد token في localStorage
       const localToken = localStorage.getItem("auth_token");
+      const googleLoginInProgress = sessionStorage.getItem("google_login_in_progress") === "true";
       
       if (firebaseUser && 
           !isAuthenticated && 
           !localToken && 
+          !googleLoginInProgress &&
           !autoLoginBlocked.current && 
           !isLoggingOut.current &&
           !logoutInProgress.current) {
@@ -87,23 +90,12 @@ export function FirebaseAuthProvider({ children }: { children: React.ReactNode }
             provider_id: firebaseUser.uid,
             email: firebaseUser.email || "",
             name: firebaseUser.displayName || "User",
+            image: firebaseUser.photoURL || "",
           };
 
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+          const data = await postSocialLogin(payload, language || "ar");
           
-          const response = await fetch(`${apiUrl}/auth/social-login`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              "Accept-Language": language || "ar",
-            },
-            body: JSON.stringify(payload),
-          });
-
-          const data = await response.json();
-          
-          if (response.ok && data.status && data.data?.token) {
+          if (data.data?.token) {
             setAuthFromApi({
               token: data.data.token,
               name: data.data.user?.name || firebaseUser.displayName || "مستخدم",
@@ -113,6 +105,17 @@ export function FirebaseAuthProvider({ children }: { children: React.ReactNode }
             }, false);
           }
         } catch (error) {
+          if (error instanceof SocialLoginError) {
+            console.error("❌ Auto login failed:", {
+              message: error.message,
+              status: error.status,
+              statusText: error.statusText,
+              data: error.data,
+              rawBody: error.rawBody,
+            });
+            return;
+          }
+
           console.error("❌ Auto login error:", error);
         }
       }

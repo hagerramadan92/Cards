@@ -7,6 +7,14 @@ import toast from "react-hot-toast";
 import Image from "next/image";
 import { useAuth } from "@/src/context/AuthContext";
 import { useLanguage } from "@/src/context/LanguageContext";
+import { postSocialLogin, SocialLoginError } from "@/utils/socialLogin";
+
+function getFirebaseErrorCode(error: unknown): string | undefined {
+  if (!error || typeof error !== "object") return undefined;
+
+  const code = (error as { code?: unknown }).code;
+  return typeof code === "string" ? code : undefined;
+}
 
 export default function LoginWithGoogleFirebase() {
   const [loading, setLoading] = useState(false);
@@ -21,6 +29,8 @@ export default function LoginWithGoogleFirebase() {
 
     setLoading(true);
     try {
+      sessionStorage.setItem("google_login_in_progress", "true");
+
       const provider = new GoogleAuthProvider();
       provider.addScope("email");
       provider.addScope("profile");
@@ -38,30 +48,9 @@ export default function LoginWithGoogleFirebase() {
         image: user.photoURL || "", // إضافة الصورة
       };
 
-  
+      const data = await postSocialLogin(payload, language || "ar");
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      
-      if (!apiUrl) {
-        console.error("❌ NEXT_PUBLIC_API_URL is not defined!");
-        toast.error("خطأ في إعدادات الخادم");
-        return;
-      }
-      
-      const response = await fetch(`${apiUrl}/auth/social-login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          "Accept-Language": language || "ar",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
-      
-
-      if (response.ok && data.status && data.data?.token) {
+      if (data.data?.token) {
         // استخدم البيانات من الباك اند
         setAuthFromApi({
           token: data.data.token,
@@ -77,15 +66,25 @@ export default function LoginWithGoogleFirebase() {
         await fetchUserProfile();
         
         window.location.href = "/";
-      } else {
-        console.error("Social login failed:", data);
-        toast.error(data?.message || "فشل تسجيل الدخول");
       }
       
-    } catch (error: any) {
+    } catch (error: unknown) {
+      if (error instanceof SocialLoginError) {
+        console.error("Social login failed:", {
+          message: error.message,
+          status: error.status,
+          statusText: error.statusText,
+          data: error.data,
+          rawBody: error.rawBody,
+        });
+        toast.error(error.message);
+        return;
+      }
+
       console.error("Google sign-in error:", error);
+      const errorCode = getFirebaseErrorCode(error);
       
-      switch (error.code) {
+      switch (errorCode) {
         case "auth/popup-closed-by-user":
           toast.error("تم إغلاق نافذة التسجيل");
           break;
@@ -99,6 +98,7 @@ export default function LoginWithGoogleFirebase() {
           toast.error("فشل تسجيل الدخول بجوجل");
       }
     } finally {
+      sessionStorage.removeItem("google_login_in_progress");
       setLoading(false);
     }
   };

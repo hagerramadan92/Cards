@@ -444,19 +444,19 @@ export default function TicketDetails() {
 										>
 											<div className='flex items-center justify-between mb-2'>
 												<div className='flex items-center gap-2'>
-													<span className='font-semibold text-sm text-slate-900'>{reply.user}</span>
+													<span className={`font-semibold text-sm ${reply.isSupport ? 'text-slate-900' : 'text-[#0b1630]'}`}>{reply.user}</span>
 													{reply.isSupport && (
 														<span className='text-xs bg-green-200 text-green-700 px-2 py-0.5 rounded-full'>
 															الدعم
 														</span>
 													)}
 												</div>
-												<span className='text-xs text-slate-500 flex items-center gap-1'>
+												<span className={`text-xs flex items-center gap-1 ${reply.isSupport ? 'text-slate-500' : 'text-[#0b1630]'}`}>
 													<FaClock size={10} />
 													{reply.date}
 												</span>
 											</div>
-											<p className='text-sm text-slate-700'>{reply.message}</p>
+											<p className={`text-sm ${reply.isSupport ? 'text-slate-700' : 'text-[#0b1630]'}`}>{reply.message}</p>
 										</div>
 									))}
 								</div>

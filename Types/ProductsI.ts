@@ -75,6 +75,7 @@ export interface ProductI {
   quantity?:number;
   description?: string;
   price: string;
+  price_text?: string;
   final_price?: number;
   has_discount?: boolean;
   includes_tax?: boolean;

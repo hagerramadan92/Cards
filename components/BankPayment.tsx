@@ -96,8 +96,8 @@ export default function BankPayment({
                     key={m.id}
                     className={`flex items-center gap-3 p-4 rounded-3xl border cursor-pointer transition ${
                       active
-                        ? "border-pro-max bg-blue-50"
-                        : "border-slate-200 hover:bg-slate-50"
+                        ? "border-[#0b1630] bg-[#eef2ff] shadow-sm"
+                        : "border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-white"
                     }`}
                   >
                     <input
@@ -105,17 +105,35 @@ export default function BankPayment({
                       name="payment"
                       checked={active}
                       onChange={() => setSelectedId(m.id)}
-                      className="w-5 h-5 accent-[#14213d] cursor-pointer"
+                      className="w-5 h-5 accent-[#0b1630] cursor-pointer"
                     />
 
                     {/* icon box */}
-                    <div className="w-12 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center">
-                      <IconComponent className="text-xl text-slate-800" />
+                    <div
+                      className={`w-12 h-10 rounded-xl bg-white border flex items-center justify-center ${
+                        active ? "border-[#0b1630]" : "border-slate-300"
+                      }`}
+                    >
+                      <IconComponent
+                        className={`text-xl ${
+                          active ? "text-[#0b1630]" : "text-slate-700"
+                        }`}
+                      />
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <p className="font-extrabold text-slate-900">{m.name}</p>
-                      <p className="text-sm text-slate-600 font-semibold">
+                      <p
+                        className={`font-extrabold ${
+                          active ? "text-[#0b1630]" : "text-slate-800"
+                        }`}
+                      >
+                        {m.name}
+                      </p>
+                      <p
+                        className={`text-sm font-semibold ${
+                          active ? "text-[#0b1630]" : "text-slate-600"
+                        }`}
+                      >
                         اختر طريقة الدفع المناسبة
                       </p>
                     </div>

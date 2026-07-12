@@ -298,13 +298,18 @@ export default function ProductCard({
         whileHover={{ y: -3 }}
         transition={{ type: 'spring', stiffness: 260, damping: 18 }}
         className={`relative flex flex-col rounded-lg md:rounded-xl border
-                 border-slate-200 bg-white overflow-hidden
-                    shadow-sm hover:border-gray-200 transition
+                    overflow-hidden hover:border-orange-500/30 transition
                     ${widthClass} sm:w-[200px] md:w-[218px]`}
+        style={{
+          background: "var(--surface)",
+          borderColor: "var(--border)",
+          boxShadow: "var(--shadow-card)",
+        }}
       >
         {/* Image */}
         <div className={`relative ${widthClass} 
-                h-[105px] md:h-[105px] bg-gray-50 sm:w-[200px] md:w-[218px]`}>
+                h-[105px] md:h-[105px] sm:w-[200px] md:w-[218px]`}
+          style={{ background: "var(--image-shell)" }}>
           {/* Flag - Top Left */}
           <div className="absolute start-2 top-2 z-30">
             {inStock && (
@@ -320,7 +325,7 @@ export default function ProductCard({
                 whileTap={!isAdding ? { scale: 0.92 } : undefined}
                 className="z-20"
               >
-                <div className="w-8 h-8 rounded-full flex items-center justify-center shadow-lg ring-1 ring-black/5 bg-white text-pro">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center shadow-lg ring-1 text-orange-400" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
                   {isAdding ? (
                     <div className="w-5 h-5 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
                   ) : (
@@ -358,7 +363,7 @@ export default function ProductCard({
           {/* ✅ Discount Chip - Bottom Right */}
           {showDiscountChip && (
             <div className="absolute bottom-2 md:bottom-3 end-2 md:end-3 z-20">
-              <span className="px-3 py-1 text-[11px] font-extrabold rounded-lg md:rounded-full bg-red-50 text-red-600 ring-1 ring-red-100">
+              <span className="px-3 py-1 text-[11px] font-extrabold rounded-lg md:rounded-full bg-red-500/12 text-red-300 ring-1 ring-red-500/20">
                 {getDiscountText}
               </span>
             </div>
@@ -380,7 +385,7 @@ export default function ProductCard({
         {/* Content */}
         <div className="p-2 space-y-3 mt-4">
           <Link href={`/product/${id}`}>
-            <h3 className="text-sm md:text-[16px] font-extrabold text-gray-900 line-clamp-1 hover:text-pro transition">
+            <h3 className="text-sm md:text-[16px] font-extrabold line-clamp-1 hover:text-orange-300 transition" style={{ color: "var(--text-primary)" }}>
               {name}
             </h3>
           </Link>
@@ -392,7 +397,7 @@ export default function ProductCard({
                 <PriceComponent start price_text={product?.final_price} />
        
                 {product.has_discount && (
-                  <span className="text-sm text-gray-400 line-through">
+                  <span className="text-sm text-slate-500 line-through">
                     {product.price} 
                   </span>
                 )}
@@ -401,20 +406,20 @@ export default function ProductCard({
           </div>
 
           {/* Divider */}
-          <div className="h-px bg-gray-200/70" />
+          <div className="h-px" style={{ background: "var(--border)" }} />
 
           {/* Buy Now Button or Out of Stock */}
           {inStock ? (
             <button
               onClick={handleBuyNow}
               aria-label={t('buy_now')}
-              className={`flex items-center justify-center w-full cursor-pointer whitespace-nowrap gap-2 px-4 py-2 rounded-lg bg-pro text-white hover:bg-pro/90 transition-colors duration-200 font-semibold text-sm`}
+              className={`flex items-center justify-center w-full cursor-pointer whitespace-nowrap gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-orange-400 text-white hover:opacity-95 transition-colors duration-200 font-semibold text-sm`}
             >
               <span>{t('buy_now')}</span>
               <ShoppingCart className="w-4 h-4" />
             </button>
           ) : (
-            <div className="w-full bg-gray-200 text-gray-600 px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg sm:rounded-xl font-bold flex items-center justify-center gap-2 text-xs sm:text-sm cursor-not-allowed">
+            <div className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg sm:rounded-xl font-bold flex items-center justify-center gap-2 text-xs sm:text-sm cursor-not-allowed" style={{ background: "var(--surface-subtle)", color: "var(--text-muted)" }}>
               <span>{t('out_of_stock')}</span>
             </div>
           )}

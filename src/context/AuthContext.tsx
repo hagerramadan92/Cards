@@ -13,6 +13,7 @@ import { useSession } from "next-auth/react";
 import { ProductI } from "../../Types/ProductsI";
 import { useLanguage } from "./LanguageContext";
 import toast from "react-hot-toast";
+import { postSocialLogin, SocialLoginError } from "@/utils/socialLogin";
 
 const AuthContext = createContext<any | undefined>(undefined);
 
@@ -135,25 +136,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
        
 
         try {
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-         
-
-          const res = await fetch(`${apiUrl}/auth/social-login`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              "Accept-Language": language || "ar",
-            },
-            body: JSON.stringify(payload),
-          });
-
+          const data = await postSocialLogin(payload, language || "ar");
           
 
-          const data = await res.json();
-          
-
-          if (res.ok && data.status && data.data?.token) {
+          if (data.data?.token) {
             const token = data.data.token;
             
             localStorage.setItem("auth_token", token);
@@ -161,21 +147,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             login(
               token,
-              data.data.user.name,
-              data.data.user.email,
-              data.data.user.image, // الصورة من الباك اند
-              data.data.user.name,
+              data.data.user?.name || payload.name,
+              data.data.user?.email || payload.email,
+              data.data.user?.image || payload.image, // الصورة من الباك اند
+              data.data.user?.name || payload.name,
               true // showToast
             );
             
             sessionStorage.removeItem("google_login_in_progress");
             socialLoginAttempted.current = true;
-          } else {
-            console.error("Social login failed:", data);
-            socialLoginAttempted.current = true;
-            toast.error(data?.message || t('login_error') || "حدث خطأ أثناء تسجيل الدخول");
           }
         } catch (err) {
+          if (err instanceof SocialLoginError) {
+            console.error("Social login failed:", {
+              message: err.message,
+              status: err.status,
+              statusText: err.statusText,
+              data: err.data,
+              rawBody: err.rawBody,
+            });
+            socialLoginAttempted.current = true;
+            toast.error(err.message || t('login_error') || "حدث خطأ أثناء تسجيل الدخول");
+            return;
+          }
+
           console.error("Social login error:", err);
           socialLoginAttempted.current = true;
           toast.error(t('server_error') || "فشل الاتصال بالخادم");

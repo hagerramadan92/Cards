@@ -1,23 +1,58 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
+import { useCart } from "@/src/context/CartContext";
 
 type PaymentStatus = "success" | "fail" | "pending" | "processing";
 
-function normalizeStatus(raw: string | null): PaymentStatus {
+function normalizeStatus(raw: string | null, successValue: string | null): PaymentStatus {
+	const success = (successValue ?? "").toLowerCase().trim();
+	if (success === "true" || success === "1") return "success";
+	if (success === "false" || success === "0") return "fail";
+
 	const s = (raw ?? "").toLowerCase().trim();
-	if (s === "success" || s === "fail" || s === "pending" || s === "processing") return s;
+	if (s === "success" || s === "succeeded" || s === "paid" || s === "completed") return "success";
+	if (s === "fail" || s === "failed" || s === "declined" || s === "error") return "fail";
+	if (s === "pending" || s === "processing") return s;
 	return "processing";
 }
 
 export default function PaymentPage() {
 	const params = useSearchParams();
+	const { clearCart } = useCart();
 
-	const status = useMemo(() => normalizeStatus(params.get("status")), [params]);
-	const orderId = params.get("orderId") ?? params.get("order_id") ?? "";
+	const status = useMemo(
+		() => normalizeStatus(params.get("status"), params.get("success")),
+		[params]
+	);
+	const orderId =
+		params.get("orderId") ??
+		params.get("order_id") ??
+		params.get("merchant_order_id") ??
+		(typeof window !== "undefined" ? sessionStorage.getItem("pending_order_id") : "") ??
+		"";
 	const message = params.get("message") ?? "";
+
+	useEffect(() => {
+		if (status !== "success") return;
+
+		const transactionId =
+			params.get("id") ||
+			params.get("transaction_id") ||
+			params.get("intention_id") ||
+			orderId ||
+			"latest";
+		const clearKey = `paid_cart_cleared_${transactionId}`;
+
+		if (sessionStorage.getItem(clearKey) === "true") return;
+		sessionStorage.setItem(clearKey, "true");
+
+		clearCart().catch(() => {
+			sessionStorage.removeItem(clearKey);
+		});
+	}, [status, params, orderId, clearCart]);
 
 	const ui = useMemo(() => {
 		switch (status) {

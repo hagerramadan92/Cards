@@ -145,7 +145,7 @@ export default function coupons() {
 											className={`
 												px-2 py-0.5 rounded text-xs font-semibold
 												${isActive
-													? "bg-emerald-500 text-white"
+													? "bg-emerald-500 text-[#0b1630]"
 													: isUsed
 													? "bg-slate-400 text-white"
 													: "bg-rose-500 text-white"
@@ -158,21 +158,21 @@ export default function coupons() {
 
 									{/* Coupon Code */}
 									<div className="mb-2">
-										<p className="text-lg font-bold text-slate-900 font-mono">
+										<p className={`text-lg font-bold font-mono ${isActive ? "text-[#0b1630]" : "text-slate-900"}`}>
 											{coupon.code}
 										</p>
 									</div>
 
 									{/* Discount Value */}
 									<div className="mb-2">
-										<p className={`text-xl font-bold ${isActive ? "text-pro-max" : "text-slate-600"}`}>
+										<p className={`text-xl font-bold ${isActive ? "text-[#0b1630]" : "text-slate-600"}`}>
 											{coupon.discount}
 										</p>
 									</div>
 
 									{/* Role/Type */}
 									{coupon.role && (
-										<p className="text-xs text-slate-600 mb-2">{coupon.role}</p>
+										<p className={`text-xs mb-2 ${isActive ? "text-[#0b1630]" : "text-slate-600"}`}>{coupon.role}</p>
 									)}
 								</div>
 							</div>
@@ -183,4 +183,3 @@ export default function coupons() {
 		</div>
 	);
 }
-

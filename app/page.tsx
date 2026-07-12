@@ -12,6 +12,9 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLanguage } from "@/src/context/LanguageContext";
+import { CreditCard, Gamepad2, Headset, ShieldCheck, Zap } from "lucide-react";
+import { ProductI } from "@/Types/ProductsI";
+import { SubCategoriesI } from "@/Types/SubCategoriesI";
 
 // ✅ Spinner component
 import Spinner from "@/components/Spinner/spinner";
@@ -34,14 +37,14 @@ const FastBuy = dynamic(
   { ssr: false }
 );
 
+type HomeCategorySection = SubCategoriesI;
+
 export default function Home() {
   const { 
     homeData, 
     loadingCategories, 
     parentCategories, 
     loadingHome, 
-    appear_in_home_categories,
-    
   } = useAppContext();
   
   const { t, language } = useLanguage();
@@ -50,10 +53,10 @@ export default function Home() {
   
   const [isFastBuyReady, setIsFastBuyReady] = useState(false);
   
-  const [categories2, setCategories2] = useState<any[]>([]);
-  const [paginationState, setPaginationState] = useState<any>(null);
+  const [categories2, setCategories2] = useState<HomeCategorySection[]>([]);
+  const [paginationState, setPaginationState] = useState<{ next_page?: string | null } | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [appear_in_home_categories2, setAppear_in_home_categories2] = useState<any[]>([]);
+  const [appear_in_home_categories2, setAppear_in_home_categories2] = useState<HomeCategorySection[]>([]);
   
   const [mainSlider, setMainSlider] = useState<BannerI[]>([]);
   const [isMainSliderLoading, setIsMainSliderLoading] = useState(false); // false لأن السلايدر ليس ضرورياً للصفحة الرئيسية
@@ -92,7 +95,7 @@ export default function Home() {
       const nextUrl = String(paginationState.next_page);
       const res = await fetchApi2(nextUrl);
 
-      const newCats = res?.data?.sub_categories ?? res?.sub_categories ?? [];
+      const newCats = (res?.data?.sub_categories ?? res?.sub_categories ?? []) as HomeCategorySection[];
       const newPagination =
         res?.data?.sub_categories_pagination ??
         res?.sub_categories_pagination ??
@@ -101,7 +104,7 @@ export default function Home() {
 
       setCategories2(prev => {
         const merged = [...prev, ...(Array.isArray(newCats) ? newCats : [])];
-        const map = new Map(merged.map((c: any) => [c.id, c]));
+        const map = new Map(merged.map((c) => [c.id, c]));
         return Array.from(map.values());
       });
 
@@ -124,7 +127,7 @@ export default function Home() {
         const data = await fetchApi("banners?type=main_slider",);
         if (!mounted) return;
         setMainSlider(Array.isArray(data) ? data : []);
-      } catch (e) {
+      } catch {
         if (!mounted) return;
         setMainSlider([]);
       } finally {
@@ -143,9 +146,25 @@ export default function Home() {
   }, [language]);
 
   const sliderSrc = useMemo(
-    () => (mainSlider?.[0]?.items || []).map((i) => i.image),
+    () => (
+      mainSlider
+        .find((banner) => Array.isArray(banner.items) && banner.items.length > 0)
+        ?.items || []
+    ).map((i) => i.image),
     [mainSlider]
   );
+
+  const activeHeroSlider = useMemo(
+    () => mainSlider.find((banner) => Array.isArray(banner.items) && banner.items.length > 0) ?? null,
+    [mainSlider]
+  );
+
+  const heroFeatures = [
+    { icon: Zap, title: "تسليم فوري" },
+    { icon: ShieldCheck, title: "دفع آمن" },
+    { icon: CreditCard, title: "أسعار تنافسية" },
+    { icon: Headset, title: "دعم 24/7" },
+  ];
 
   if (loadingHome && !homeData) {
     return (
@@ -156,27 +175,82 @@ export default function Home() {
   }
 
   return (
-    <div className="!mt-8 !mb-8">
-      <div className="flex flex-col gap-8">
-        <div className="relative rounded-3xl overflow-hidden border border-gray-100 bg-white shadow-sm">
+    <div className="app-container !mt-6 !mb-10">
+      <div className="flex flex-col gap-5 md:gap-7">
+        <div className="relative overflow-hidden rounded-3xl border" style={{ background: "var(--surface)", borderColor: "var(--border)", boxShadow: "var(--shadow-card)" }}>
           {isMainSliderLoading ? (
             <div className="h-[200px] md:h-[420px] flex items-center justify-center">
               <Spinner size="lg" />
             </div>
-          ) : sliderSrc.length > 0 ? (
-            <SliderComponent src={mainSlider?.[0]} />
+          ) : activeHeroSlider && sliderSrc.length > 0 ? (
+            <SliderComponent src={activeHeroSlider} />
           ) : (
-            <div className="h-[200px] md:h-[420px] flex items-center justify-center text-gray-400">
+            <div className="h-[200px] md:h-[420px] flex items-center justify-center text-slate-400">
               {t('no_categories')}
             </div>
           )}
         </div>
 
+        <section className="section-shell">
+          <div className="section-header mb-4">
+            <div>
+              <h2 className="text-xl font-extrabold md:text-2xl" style={{ color: "var(--text-primary)" }}>شحن الألعاب</h2>
+              <p className="mt-1 text-sm text-slate-400">أقسام مختارة للوصول السريع مثل التصميم المرجعي.</p>
+            </div>
+            <Link href="/category" className="secondary-button text-sm">
+              عرض الكل
+            </Link>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-4 xl:grid-cols-8">
+            {parentCategories.slice(0, 8).map((category: { id: number; name: string; image?: string }) => (
+              <Link
+                key={category.id}
+                href={`/category/${category.id}`}
+                className="group rounded-[20px] border p-3 hover:border-orange-500/30"
+                style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+              >
+                <div className="relative mb-4 aspect-[1.08] overflow-hidden rounded-2xl" style={{ background: "var(--image-shell)" }}>
+                  <Image
+                    src={category.image || "/images/c1.png"}
+                    alt={category.name}
+                    fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1280px) 25vw, 12.5vw"
+                    className="object-cover transition duration-300 group-hover:scale-105"
+                  />
+                </div>
+                <div className="text-center text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>
+                  {category.name}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="grid gap-4 md:grid-cols-4">
+          {heroFeatures.map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <div key={feature.title} className="surface-card flex items-center gap-4 px-5 py-4">
+                <div className="icon-button text-orange-300">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{feature.title}</p>
+                  <p className="text-xs text-slate-400">خدمة موثوقة لعملائك داخل المتجر.</p>
+                </div>
+              </div>
+            );
+          })}
+        </section>
+
         <div className="md:flex hidden">
           {isFastBuyReady ? (
-            <FastBuy categories={parentCategories} />
+            <div className="section-shell w-full">
+              <FastBuy categories={parentCategories} />
+            </div>
           ) : (
-            <div className="w-full h-24 bg-gray-100 animate-pulse rounded-xl"></div>
+            <div className="surface-card h-24 w-full animate-pulse rounded-xl bg-white/5"></div>
           )}
         </div>
 
@@ -196,30 +270,32 @@ export default function Home() {
 
         {/* Appear in Home Categories */}
         {isInitialDataReady && appear_in_home_categories2.map((categoriess, index) => (
-          <div className="container max-md:overflow-hidden w-full" key={index}>
+          <div className="w-full" key={index}>
             {loadingCategories || !categoriess?.children?.length ? (
               <div className="flex items-center justify-center h-40">
                 <Spinner size="lg" />
               </div>
             ) : (
-              <CategoriesSlider 
-                categories={categoriess.children} 
-                title={categoriess.name}
-                 parentCategoryId={categoriess.id} // تمرير ID القسم الرئيسي
-        parentCategorySlug={categoriess.slug} // تمرير Slug القسم الرئيسي (اختياري)
-              />
+              <div className="section-shell">
+                <CategoriesSlider 
+                  categories={categoriess.children} 
+                  title={categoriess.name}
+                  parentCategoryId={categoriess.id}
+                  parentCategorySlug={categoriess.slug}
+                />
+              </div>
             )}
           </div>
         ))}
 
         {/* Products Sections */}
-        <div className="container flex flex-col gap-10 mt-20">
+        <div className="flex flex-col gap-6 mt-2">
           {!isInitialDataReady ? (
             <div className="flex items-center justify-center h-60">
               <Spinner size="lg" />
             </div>
           ) : categories2.length === 0 ? (
-            <div className="text-center py-10 text-gray-500">
+            <div className="text-center py-10 text-slate-400">
               {t('no_categories')}
             </div>
           ) : (
@@ -234,27 +310,35 @@ export default function Home() {
               return (
                 <section
                   key={category.id}
-                  className="rounded-[10px_10px_0_0] md:rounded-3xl md:border md:border-gray-100 !bg-gray-50/50 overflow-hidden"
+                  className="section-shell rounded-3xl overflow-hidden"
                 >
-                  <div className="flex items-end justify-between mb-2">
-                    <h2 className="text-md md:text-2xl ms-1 md:ms-2 drop-shadow whitespace-nowrap">
-                      {category.name}
-                    </h2>
+                  <div className="flex items-center justify-between mb-4 gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="icon-button border-orange-500/20 bg-orange-500/10 text-orange-300">
+                        <Gamepad2 className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h2 className="text-lg md:text-2xl font-extrabold whitespace-nowrap" style={{ color: "var(--text-primary)" }}>
+                          {category.name}
+                        </h2>
+                        <p className="text-xs md:text-sm text-slate-400">منتجات ديناميكية محدثة من الـ API.</p>
+                      </div>
+                    </div>
                     <Link
                       href={`/category/${category.id}`}
-                      className="text-pro-max z-7 text-sm md:text-base font-semibold whitespace-nowrap rounded-full bg-white/15 hover:bg-white/25 transition"
+                      className="secondary-button z-7 text-sm md:text-base whitespace-nowrap"
                     >
                       {t('view_all')}
                     </Link>
                   </div>
 
-                  <div className="relative w-full p-3 px-0">
+                  <div className="relative w-full p-0">
                     {hasBanners ? (
-                      <div dir="rtl" className={`grid gap-3 ${banners.length === 1 ? 'grid-cols-1' : 'grid-cols-1'} sm:grid-cols-1 md:grid-cols-${Math.min(banners.length, 4)}`}>
+                      <div dir="rtl" className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
                         {banners.map((banner: CategoryBannerI, index: number) => (
                           <div
                             key={banner.id}
-                            className={`relative h-15 md:h-29 overflow-hidden ${
+                            className={`relative h-28 md:h-36 overflow-hidden rounded-2xl border border-white/8 ${
                               index === 0 ? "rounded-tr-2xl rounded-tl-2xl md:rounded-tl-none" :
                               index === banners.length - 1 ? "rounded-tl-2xl rounded-tr-2xl md:rounded-tr-none" : ""
                             }`}
@@ -272,7 +356,7 @@ export default function Home() {
                         ))}
                       </div>
                     ) : (
-                      <div className="relative h-29 rounded-[10px_10px_0_0] md:rounded-t-3xl overflow-hidden">
+                      <div className="relative h-28 md:h-36 rounded-2xl overflow-hidden border border-white/8">
                         <Image
                           src="/images/cover2.png"
                           alt={category.name}
@@ -286,13 +370,13 @@ export default function Home() {
                     )}
                   </div>
 
-                  <div className="md:px-6 md:pb-5">
+                  <div className="md:pb-2 mt-4">
                     <InStockSlider
                       inStock={category.products}
                       isLoading={false}
                       title=""
                       hiddenArrow={false}
-                      CardComponent={(product: any) => (
+                      CardComponent={(product: ProductI) => (
                         <ProductCard
                           widthClass="
                             w-[120px]
@@ -333,12 +417,12 @@ export default function Home() {
 
         {/* Load More Button */}
         {hasNext && isInitialDataReady && (
-          <div className="mt-2 flex items-center container justify-center">
+          <div className="mt-2 flex items-center justify-center">
             <button
               type="button"
               onClick={loadMore}
               disabled={loadingMore}
-              className="rounded-2xl px-6 py-3 font-extrabold shadow-sm border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="primary-button disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {loadingMore ? <Spinner size="sm" /> : t('refresh')}
             </button>

@@ -394,7 +394,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 	};
 
 	const clearCart = async () => {
-		if (!token || cart.length === 0) return;
+		if (!token) return;
 
 		setCart([]);
 

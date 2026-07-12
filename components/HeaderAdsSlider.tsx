@@ -39,11 +39,11 @@ function faToEmoji(icon: string) {
 /* ---------------- Skeleton ---------------- */
 function HeaderAdsSkeleton() {
 	return (
-		<div className="w-full border-b bg-gray-100 ">
-			<div className="mx-auto flex h-10 max-w-7xl items-center justify-center px-4">
+		<div className="w-full border-b" style={{ background: "var(--nav-top-background)", borderColor: "var(--nav-border)" }}>
+			<div className="app-container flex h-10 items-center justify-center px-4">
 				<div className="flex w-full max-w-md items-center gap-2">
-					<div className="h-4 w-4 animate-pulse rounded bg-gray-300  " />
-					<div className="h-4 w-full animate-pulse rounded bg-gray-300  " />
+					<div className="h-4 w-4 animate-pulse rounded" style={{ background: "var(--surface-subtle)" }} />
+					<div className="h-4 w-full animate-pulse rounded" style={{ background: "var(--surface-subtle)" }} />
 				</div>
 			</div>
 		</div>
@@ -85,31 +85,12 @@ export default function HeaderAdsSlider() {
 		return () => {
 			cancelled = true;
 		};
-	}, [apiBase]);
+		}, [apiBase, language]);
 
 	const slides = useMemo(() => {
 		if (ads.length <= 1) return ads;
 		return [...ads, ...ads];
 	}, [ads]);
-	const slide = [
-		{
-			id: 1,
-			description: "PlayMore...Payless",
-			icon: "fa-bolt",
-		},
-		{
-			id: 2,
-			description: "فلاش سيل",
-			icon: "fa-rocket",
-		},
-		{
-			id: 3,
-			description: "بلايستشن ",
-			icon: "fa-fire",
-		},
-	];
-
-
 	/* ---------- Skeleton ---------- */
 	if (loading) {
 		return <HeaderAdsSkeleton />;
@@ -119,9 +100,10 @@ export default function HeaderAdsSlider() {
 
 	return (
 		<div
-			className="w-full border-b border-gray-200 bg-gray-100 text-gray-900 "
+			className="w-full border-b"
+			style={{ background: "var(--nav-top-background)", borderColor: "var(--nav-border)", color: "var(--text-secondary)" }}
 		>
-			<div className="mx-auto max-w-7xl px-2 sm:px-4">
+			<div className="app-container px-2 sm:px-4">
 				<Swiper
 					modules={[Autoplay]}
 					loop
@@ -140,7 +122,7 @@ export default function HeaderAdsSlider() {
 							className="!flex items-center"
 						>
 							<div className="mx-auto flex w-full items-center justify-center gap-2 px-2 text-center text-sm sm:text-[15px]">
-								<span className="text-base">
+								<span className="text-base text-orange-400">
 									{faToEmoji(ad.icon)}
 								</span>
 								<span className="truncate">{ad.description}</span>

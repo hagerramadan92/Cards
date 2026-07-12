@@ -11,7 +11,7 @@ import LoginWithGoogle from "@/components/loginWithGoogle";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
-import { FiMail, FiLock } from "react-icons/fi";
+import { FiHome, FiMail, FiLock } from "react-icons/fi";
 import Logo from "../../components/Logo";
 import LoginWithEmail from "@/components/LoginEmail/LoginWithEmail";
 import LoginWithFaceBook from "@/components/login-facebook/LoginWithFaceBook";
@@ -143,9 +143,15 @@ export default function Page() {
 	const fieldBad = "border-rose-300 focus:border-rose-500 focus:ring-rose-100";
 
 	return (
-		<div className="min-h-screen bg-gradient-to-b from-slate-50 to-white px-4 py-10 flex items-center justify-center" dir="rtl">
-			<div className='absolute  inset-0 opacity-15' style={{ backgroundImage: 'linear-gradient(rgba(79,70,229,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(79,70,229,0.12) 1px, transparent 1px)', backgroundSize: '12px 12px', backgroundPosition: '-1px -1px' }} />
+		<div className="auth-page px-4 py-10 flex items-center justify-center" dir="rtl">
 			<Logo className=" absolute top-2 right-[30px] " />
+			<Link
+				href="/"
+				className="absolute left-4 top-4 z-[20] inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-md hover:bg-white/15"
+			>
+				<FiHome size={17} />
+				<span>الرئيسية</span>
+			</Link>
 			<motion.div
 				initial={{ opacity: 0, y: 16, scale: 0.98 }}
 				animate={{ opacity: 1, y: 0, scale: 1 }}

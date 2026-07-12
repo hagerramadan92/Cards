@@ -30,7 +30,7 @@ export default function LayoutShell({
 		<>
  			{!hideLayout && <Navbar />}
 
-			<div className={`${!hideLayout ? "pt-[110px] lg:pt-[190px]" : ""}   min-h-[80vh]`}>
+			<div className={`${!hideLayout ? "pt-[126px] lg:pt-[186px]" : ""} min-h-[80vh] app-page`}>
 				{children}
 			</div>
 

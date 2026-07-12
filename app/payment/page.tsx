@@ -40,6 +40,22 @@ type CheckoutSummaryV1 = {
   coupon_value?: number;
 };
 
+type OrderPaymentResponse = {
+  status?: boolean;
+  message?: string;
+  data?: {
+    id?: number | string;
+    order_number?: string;
+    payment_url?: string | null;
+    shorten_url?: string | null;
+    payment?: {
+      payment_url?: string | null;
+      shorten_url?: string | null;
+    };
+    message?: string;
+  };
+};
+
 function readSessionJSON<T>(key: string): T | null {
   if (typeof window === "undefined") return null;
   try {
@@ -332,7 +348,7 @@ export default function PaymentPage() {
         body: formData,
       });
 
-      const result = await response.json();
+      const result = (await response.json()) as OrderPaymentResponse;
 
       if (!response.ok || !result?.status) {
         throw new Error(result?.message || t('payment.error.order_creation'));
@@ -340,8 +356,30 @@ export default function PaymentPage() {
 
       setRedirectMessage(result?.data?.message || t('payment.redirecting'));
       setRedirecting(true);
+
+      const paymentUrl =
+        result.data?.payment_url ||
+        result.data?.shorten_url ||
+        result.data?.payment?.payment_url ||
+        result.data?.payment?.shorten_url ||
+        "";
+
+      if (typeof window !== "undefined") {
+        if (result.data?.order_number) {
+          sessionStorage.setItem("pending_order_number", String(result.data.order_number));
+        }
+        if (result.data?.id) {
+          sessionStorage.setItem("pending_order_id", String(result.data.id));
+        }
+      }
+
       setTimeout(() => {
-        router.push(`/ordercomplete?orderId=${result.data.id}`);
+        if (paymentUrl) {
+          window.location.href = paymentUrl;
+          return;
+        }
+
+        router.push(`/ordercomplete?orderId=${result.data?.id || result.data?.order_number || ""}`);
       }, 500);
     } catch (error: any) {
       console.error(error);

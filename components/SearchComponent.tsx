@@ -183,22 +183,22 @@ export default function SearchComponent({ className = "", setMenuOpen }: Props) 
           onKeyDown={handleKeyDown}
           className={[
             "w-full",
-            "rounded-xl",
-            "border border-slate-200",
-            "bg-white/90 backdrop-blur",
-            "px-4 py-2",
+            "input-dark",
+            "rounded-full",
+            "border",
+            "px-4 py-3",
             "pe-4",
-            "text-[0.98rem] text-gray-900",
+            "text-[0.98rem]",
             "outline-none",
             "transition-all duration-200",
-            "focus:border-blue-200 focus:ring-4 focus:ring-blue-100",
+            "focus:border-orange-500/30 focus:ring-4 focus:ring-orange-500/10",
           ].join(" ")}
         />
 
         {/* Search icon */}
         <CgSearch
           size={20}
-          className="absolute end-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+          className="absolute end-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
         />
 
         {/* Clear button */}
@@ -207,30 +207,31 @@ export default function SearchComponent({ className = "", setMenuOpen }: Props) 
             type="button"
             onClick={clear}
             aria-label="Clear search"
-            className="absolute end-11 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition grid place-items-center"
+            className="absolute end-11 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full transition grid place-items-center"
+            style={{ background: "var(--surface-subtle)" }}
           >
-            <AiOutlineClose className="text-gray-600" />
+            <AiOutlineClose style={{ color: "var(--text-secondary)" }} />
           </button>
         )}
       </div>
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute top-full left-0 right-0 z-50 mt-2 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl animate-[fadeInUp_.18s_ease-out]">
+        <div className="absolute top-full left-0 right-0 z-50 mt-2 overflow-hidden rounded-[22px] border shadow-xl animate-[fadeInUp_.18s_ease-out]" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
           
           {/* 🟢 SEARCH HISTORY SECTION - باستخدام FiClock */}
           {showHistory && history.length > 0 && !trimmed && (
-            <div className="border-b border-gray-100">
-              <div className="flex items-center justify-between px-4 py-2 bg-gray-50">
+            <div className="border-b" style={{ borderColor: "var(--border)" }}>
+              <div className="flex items-center justify-between px-4 py-2" style={{ background: "var(--surface-subtle)" }}>
                 <div className="flex items-center gap-2">
-                  <FiClock className="text-gray-500" /> {/* ✅ هنا التعديل */}
-                  <span className="text-xs font-bold text-gray-700">
+                  <FiClock className="text-slate-400" />
+                  <span className="text-xs font-bold" style={{ color: "var(--text-secondary)" }}>
                     {t('recent_searches') || 'عمليات البحث الأخيرة'}
                   </span>
                 </div>
                 <button
                   onClick={clearHistory}
-                  className="text-xs text-red-500 hover:text-red-700 transition"
+                  className="text-xs text-red-400 hover:text-red-300 transition"
                 >
                   {t('clear_all') || 'مسح الكل'}
                 </button>
@@ -239,23 +240,23 @@ export default function SearchComponent({ className = "", setMenuOpen }: Props) 
                 {recentSearches.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between px-4 py-2 hover:bg-gray-50 group"
+                    className="flex items-center justify-between px-4 py-2 group"
                   >
                     <button
                       onClick={() => handleSearchClick(item.query)}
                       className="flex-1 text-right"
                     >
                       <div className="flex items-center gap-3">
-                        <FiClock className="text-gray-400 text-sm" /> {/* ✅ هنا التعديل */}
-                        <span className="text-sm text-gray-700">{item.query}</span>
+                        <FiClock className="text-slate-500 text-sm" />
+                        <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{item.query}</span>
                       </div>
                     </button>
                     <button
                       onClick={() => removeFromHistory(item.id)}
-                      className="opacity-0 group-hover:opacity-100 transition p-1 hover:bg-gray-200 rounded-full"
+                      className="opacity-0 group-hover:opacity-100 transition p-1 hover:bg-white/10 rounded-full"
                       aria-label="Remove from history"
                     >
-                      <AiOutlineClose size={14} className="text-gray-500" />
+                      <AiOutlineClose size={14} className="text-slate-400" />
                     </button>
                   </div>
                 ))}
@@ -301,7 +302,7 @@ export default function SearchComponent({ className = "", setMenuOpen }: Props) 
                   onClick={() => goToSearchPage()}
                   className="mt-3 inline-flex items-center justify-center rounded-xl bg-pro text-white px-4 py-2 text-sm font-extrabold hover:opacity-95 transition"
                 >
-                  {t('search')} "{trimmed}"
+                  {t('search')} &quot;{trimmed}&quot;
                 </button>
               )}
             </div>
@@ -326,25 +327,25 @@ export default function SearchComponent({ className = "", setMenuOpen }: Props) 
                       className={[
                         "block",
                         "px-4 py-3",
-                        "border-b border-slate-200 last:border-b-0",
+                        "border-b border-white/8 last:border-b-0",
                         "transition",
-                        isActive ? "bg-blue-50" : "hover:bg-gray-50",
+                        isActive ? "bg-white/8" : "hover:bg-white/4",
                       ].join(" ")}
                       onMouseEnter={() => setActiveIndex(idx)}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="font-extrabold text-gray-900 truncate">
+                          <p className="font-extrabold truncate" style={{ color: "var(--text-primary)" }}>
                             {item.name}
                           </p>
                           {(item.price || item.final_price) && (
-                            <p className="text-sm text-gray-500 mt-0.5">
+                            <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
                               {item.final_price || item.price} {t('currency') || 'جنية'}
                             </p>
                           )}
                         </div>
 
-                        <span className="text-xs font-bold text-gray-500 shrink-0">
+                        <span className="text-xs font-bold shrink-0" style={{ color: "var(--text-muted)" }}>
                           {t('show')}
                         </span>
                       </div>
@@ -354,14 +355,15 @@ export default function SearchComponent({ className = "", setMenuOpen }: Props) 
               </div>
 
               {/* Footer */}
-              <div className="p-3 bg-gray-50 border-t border-slate-200 flex items-center justify-between gap-2">
-                <p className="text-xs text-gray-500">
+              <div className="p-3 border-t flex items-center justify-between gap-2" style={{ background: "var(--surface-subtle)", borderColor: "var(--border)" }}>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
                   ⚡ {results.length} {t('results')} • Enter لفتح • Esc للإغلاق
                 </p>
                 <button
                   type="button"
                   onClick={() => goToSearchPage()}
-                  className="rounded-xl bg-white px-3 py-2 text-xs font-extrabold text-gray-900 border hover:bg-gray-100 transition"
+                  className="rounded-xl px-3 py-2 text-xs font-extrabold border transition"
+                  style={{ background: "var(--surface-glass)", borderColor: "var(--border)", color: "var(--text-primary)" }}
                 >
                   {t('all_results')} ({results.length})
                 </button>

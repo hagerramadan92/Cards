@@ -13,6 +13,7 @@ import '@/lib/fontawesome'
 import { AuthProvider } from "@/components/LoginEmail/AuthProvider";
 import { LanguageProvider } from "@/src/context/LanguageContext";
 import { DataProvider } from "@/src/context/DataContext";
+import { ThemeProvider } from "@/src/context/ThemeContext";
 
 const cairo = Cairo({
 	subsets: ["arabic"],
@@ -189,27 +190,46 @@ export default function RootLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
 	return (
-		<html lang="ar" dir="rtl" className={cairo.className}>
-			<body className="bg-white">
-				<LanguageProvider>
-					<AuthProvider>
-						<DataProvider>
-							<AppProvider>
-								<ToastProvider>
-									<Providers>
-										<LayoutShell>{children}</LayoutShell>
-										<Toaster
-											position="top-center"
-											containerStyle={{
-												zIndex: 99999999,
-											}}
-										/>
-									</Providers>
-								</ToastProvider>
-							</AppProvider>
-						</DataProvider>
-					</AuthProvider>
-				</LanguageProvider>
+		<html lang="ar" dir="rtl" className={cairo.className} suppressHydrationWarning>
+			<head>
+				<script
+					dangerouslySetInnerHTML={{
+						__html: `
+							(function () {
+								try {
+									var theme = localStorage.getItem("theme");
+									if (theme !== "dark" && theme !== "light") theme = "light";
+									document.documentElement.dataset.theme = theme;
+								} catch (e) {
+									document.documentElement.dataset.theme = "light";
+								}
+							})();
+						`,
+					}}
+				/>
+			</head>
+			<body>
+				<ThemeProvider>
+					<LanguageProvider>
+						<AuthProvider>
+							<DataProvider>
+								<AppProvider>
+									<ToastProvider>
+										<Providers>
+											<LayoutShell>{children}</LayoutShell>
+											<Toaster
+												position="top-center"
+												containerStyle={{
+													zIndex: 99999999,
+												}}
+											/>
+										</Providers>
+									</ToastProvider>
+								</AppProvider>
+							</DataProvider>
+						</AuthProvider>
+					</LanguageProvider>
+				</ThemeProvider>
 			</body>
 		</html>
 	);
