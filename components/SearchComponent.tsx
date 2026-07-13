@@ -3,13 +3,13 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { CgSearch } from "react-icons/cg";
-import { AiOutlineClose, AiOutlineDelete } from "react-icons/ai";
+import { AiOutlineClose } from "react-icons/ai";
 import { FiClock } from "react-icons/fi"; // ✅ استخدام FiClock بدل CgHistory
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { useSearchHistory } from "@/src/context/SearchHistoryContext";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 interface Props {
   className?: string;
@@ -47,7 +47,6 @@ const fetchSearchResults = async (query: string, language: string): Promise<Sear
 export default function SearchComponent({ className = "", setMenuOpen }: Props) {
   const { t, language } = useLanguage();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { history, addToHistory, removeFromHistory, clearHistory, recentSearches } = useSearchHistory();
 
   const [query, setQuery] = useState("");
@@ -76,15 +75,8 @@ export default function SearchComponent({ className = "", setMenuOpen }: Props) 
     refetchOnMount: false,
   });
 
-  // ✅ Update active index
-  useEffect(() => {
-    if (results.length > 0) {
-      setActiveIndex(0);
-      setShowHistory(false);
-    } else {
-      setActiveIndex(-1);
-    }
-  }, [results]);
+  const selectedIndex =
+    results.length > 0 ? Math.min(Math.max(activeIndex, 0), results.length - 1) : -1;
 
   // ✅ Close on outside click
   useEffect(() => {
@@ -135,9 +127,9 @@ export default function SearchComponent({ className = "", setMenuOpen }: Props) 
     }
 
     if (e.key === "Enter") {
-      if (open && activeIndex >= 0 && results[activeIndex]) {
+      if (open && selectedIndex >= 0 && results[selectedIndex]) {
         addToHistory(trimmed);
-        router.push(`/product/${results[activeIndex].id}`);
+        router.push(`/product/${results[selectedIndex].id}`);
         clear();
         setMenuOpen?.(false);
         return;
@@ -217,7 +209,7 @@ export default function SearchComponent({ className = "", setMenuOpen }: Props) 
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute top-full left-0 right-0 z-50 mt-2 overflow-hidden rounded-[22px] border shadow-xl animate-[fadeInUp_.18s_ease-out]" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+        <div className="absolute top-full left-0 right-0 z-50 mt-2 max-h-[min(26rem,calc(100dvh-11rem))] overflow-hidden rounded-[22px] border shadow-xl animate-[fadeInUp_.18s_ease-out]" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
           
           {/* 🟢 SEARCH HISTORY SECTION - باستخدام FiClock */}
           {showHistory && history.length > 0 && !trimmed && (
@@ -311,9 +303,9 @@ export default function SearchComponent({ className = "", setMenuOpen }: Props) 
           {/* Search Results */}
           {!loading && !error && trimmed && results.length > 0 && (
             <>
-              <div className="max-h-96 overflow-y-auto">
+              <div className="max-h-[min(20rem,calc(100dvh-17rem))] overflow-y-auto">
                 {results.map((item: SearchResult, idx: number) => {
-                  const isActive = idx === activeIndex;
+                  const isActive = idx === selectedIndex;
 
                   return (
                     <Link
@@ -334,8 +326,8 @@ export default function SearchComponent({ className = "", setMenuOpen }: Props) 
                       onMouseEnter={() => setActiveIndex(idx)}
                     >
                       <div className="flex items-center justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="font-extrabold truncate" style={{ color: "var(--text-primary)" }}>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs sm:text-sm font-extrabold leading-snug whitespace-normal break-words line-clamp-2" style={{ color: "var(--text-primary)" }}>
                             {item.name}
                           </p>
                           {(item.price || item.final_price) && (

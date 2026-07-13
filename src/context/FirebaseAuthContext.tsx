@@ -106,7 +106,14 @@ export function FirebaseAuthProvider({ children }: { children: React.ReactNode }
           }
         } catch (error) {
           if (error instanceof SocialLoginError) {
-            console.error("❌ Auto login failed:", {
+            autoLoginBlocked.current = true;
+            setUser(null);
+
+            if (auth) {
+              firebaseSignOut(auth).catch(() => undefined);
+            }
+
+            console.warn("Auto login skipped:", {
               message: error.message,
               status: error.status,
               statusText: error.statusText,
@@ -116,7 +123,7 @@ export function FirebaseAuthProvider({ children }: { children: React.ReactNode }
             return;
           }
 
-          console.error("❌ Auto login error:", error);
+          console.warn("Auto login skipped:", error);
         }
       }
     });
@@ -160,7 +167,7 @@ const firebaseLogout = async () => {
         await firebaseSignOut(auth);
        
       }
-    } catch (signOutError) {
+    } catch {
       
     }
     
@@ -168,10 +175,10 @@ const firebaseLogout = async () => {
     try {
       // لا ننتظر اكتمال مسح IndexedDB بالكامل
       clearFirebaseSession().catch(e => 
-        console.log("⚠️ Background Firebase session clear warning:", e)
+        console.warn("Background Firebase session clear warning:", e)
       );
      
-    } catch (clearError) {
+    } catch {
      
     }
     
@@ -179,7 +186,7 @@ const firebaseLogout = async () => {
     try {
       resetFirebase();
     
-    } catch (resetError) {
+    } catch {
       
     }
     

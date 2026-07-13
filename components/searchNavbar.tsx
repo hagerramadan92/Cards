@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaBars, FaRegUser } from "react-icons/fa";
+import { FaRegUser } from "react-icons/fa";
 import { LuPhone } from "react-icons/lu";
 import { AiOutlineClose } from "react-icons/ai";
 import SearchComponent from "./SearchComponent";
@@ -28,15 +28,9 @@ function cn(...c: (string | false | null | undefined)[]) {
 export default function SearchNavbar() {
 	const [menuOpen, setMenuOpen] = useState(false);
 
-	const { authToken, fullName, isLoading, isAuthenticated } = useAuth();
-	const { socialMedia, parentCategories, loadingCategories } = useAppContext();
+	const { fullName, isLoading, isAuthenticated } = useAuth();
+	const { parentCategories, loadingCategories } = useAppContext();
 	const { t } = useLanguage();
-
-	// ✅ guard against undefined / wrong type
-	const socials = useMemo(
-		() => (Array.isArray(socialMedia) ? socialMedia : []),
-		[socialMedia]
-	);
 
 
 
@@ -159,28 +153,28 @@ export default function SearchNavbar() {
 							exit={{ y: "100%", x: "0%" }}
 							transition={{ type: "spring", stiffness: 320, damping: 34 }}
 							className={cn(
-								"fixed z-50 shadow-2xl overflow-hidden",
+								"fixed z-50 shadow-2xl overflow-hidden flex flex-col",
 								"w-screen md:w-[420px]",
 								"  top-0  right-0",
-								" h-full",
+								" h-dvh max-h-dvh",
 								"md:rounded-t-3xl md:rounded-none"
 							)}
 							style={{ background: "var(--surface)", color: "var(--text-primary)" }}
 						>
 
 							{/* Drawer header */}
-							<div className="flex items-center justify-between px-4 md:px-5 py-4 border-b" style={{ background: "linear-gradient(180deg, var(--surface-secondary), var(--surface))", borderColor: "var(--border)" }}>
-								<div className="flex items-center gap-3">
-									<div className="relative w-10 h-10 rounded-2xl bg-white/6 shadow-sm ring-1 ring-white/10 overflow-hidden">
+							<div className="shrink-0 flex items-center justify-between gap-3 px-4 md:px-5 py-4 border-b" style={{ background: "linear-gradient(180deg, var(--surface-secondary), var(--surface))", borderColor: "var(--border)" }}>
+								<div className="flex min-w-0 items-center gap-3">
+									<div className="relative w-10 h-10 shrink-0 rounded-2xl bg-white/6 shadow-sm ring-1 ring-white/10 overflow-hidden">
 										<Image src="/images/logo11.png" alt="logo" fill className="object-contain p-1.5" />
 									</div>
-									<div>
+									<div className="min-w-0">
 										<h2 className="text-lg md:text-xl font-extrabold" style={{ color: "var(--text-primary)" }}>{t('menu')}</h2>
-										<p className="text-xs" style={{ color: "var(--text-muted)" }}>{t('footer_text')}</p>
+										<p className="text-xs line-clamp-2" style={{ color: "var(--text-muted)" }}>{t('footer_text')}</p>
 									</div>
 								</div>
 
-								<div className="flex items-center gap-2">
+								<div className="flex shrink-0 items-center gap-2">
 									
 									<ThemeToggle className="!min-h-10 !px-3" />
 									<button
@@ -193,7 +187,8 @@ export default function SearchNavbar() {
 									</button>
 								</div>
 							</div>
-							 <div className="flex flex-col px-2">
+							<div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+							 <div className="flex flex-col gap-2 px-4 py-3 border-b" style={{ borderColor: "var(--border)" }}>
 								{/* Language Selector for Mobile */}
 							<div className="md:hidden flex items-center justify-between">
 								<p>{t('language')}</p>
@@ -206,7 +201,7 @@ export default function SearchNavbar() {
 							 </div>
 
 							{/* Drawer content */}
-							<div className="  p-2 space-y-5 !pl-4 ">
+							<div className="p-4 space-y-5">
 								{/* Search inside drawer for mobile */}
 								<div className="md:hidden">
 									<p className="text-sm font-extrabold mb-2" style={{ color: "var(--text-primary)" }}>{t('search')}</p>
@@ -216,6 +211,16 @@ export default function SearchNavbar() {
 										</SearchGrowWrap>
 									</div>
 								</div>
+
+								<Link
+									href="/contactUs"
+									onClick={() => setMenuOpen(false)}
+									className="md:hidden flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-extrabold transition hover:shadow-sm"
+									style={{ background: "var(--surface-subtle)", borderColor: "var(--border)", color: "var(--text-primary)" }}
+								>
+									<span>{t('contact_us')}</span>
+									<LuPhone size={18} className="text-orange-400" />
+								</Link>
 
 
 								{/* Categories */}
@@ -248,9 +253,10 @@ export default function SearchNavbar() {
 								)}
 
 							</div>
+							</div>
 
 							{/* Drawer footer */}
-							<div className="mt-auto border-t p-5" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+							<div className="shrink-0 border-t p-4" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
 								{!isAuthenticated ? (
 									<Link
 										href="/login"

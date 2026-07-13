@@ -44,6 +44,7 @@ export class SocialLoginError extends Error {
   ) {
     super(message);
     this.name = "SocialLoginError";
+    Object.setPrototypeOf(this, SocialLoginError.prototype);
     this.status = details.status || 0;
     this.statusText = details.statusText || "";
     this.data = details.data || null;
