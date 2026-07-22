@@ -135,10 +135,10 @@ export default function Home() {
   );
 
   const heroFeatures = [
-    { icon: Zap, title: "تسليم فوري" },
-    { icon: ShieldCheck, title: "دفع آمن" },
-    { icon: CreditCard, title: "أسعار تنافسية" },
-    { icon: Headset, title: "دعم 24/7" },
+    { icon: Zap, title: "تسليم فوري", description: "طلبك في لحظات" },
+    { icon: ShieldCheck, title: "دفع آمن", description: "حماية في كل عملية" },
+    { icon: CreditCard, title: "أسعار تنافسية", description: "قيمة أفضل دائمًا" },
+    { icon: Headset, title: "دعم 24/7", description: "معك في أي وقت" },
   ];
 
   if (loadingHome && !homeData) {
@@ -183,9 +183,9 @@ export default function Home() {
                 {" "}
                 الاقسام الرئيسية{" "}
               </h2>
-              <p className="mt-1 text-sm text-slate-400">
+              {/* <p className="mt-1 text-sm text-slate-400">
                 أقسام مختارة للوصول السريع مثل التصميم المرجعي.
-              </p>
+              </p> */}
             </div>
             <Link href="/category" className="secondary-button text-sm">
               عرض الكل
@@ -228,26 +228,26 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-4">
+        <section className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
           {heroFeatures.map((feature) => {
             const Icon = feature.icon;
             return (
               <div
                 key={feature.title}
-                className="surface-card flex items-center gap-4 px-5 py-4"
+                className="surface-card flex min-w-0 flex-col items-center gap-2 px-3 py-4 text-center md:flex-row md:gap-4 md:px-5 md:text-start"
               >
-                <div className="icon-button text-orange-300">
+                <div className="icon-button shrink-0 text-orange-300">
                   <Icon className="h-5 w-5" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p
                     className="text-sm font-bold"
                     style={{ color: "var(--text-primary)" }}
                   >
                     {feature.title}
                   </p>
-                  <p className="text-xs text-slate-400">
-                    خدمة موثوقة لعملائك داخل المتجر.
+                  <p className="mt-1 text-[11px] leading-4 text-slate-400 md:text-xs">
+                    {feature.description}
                   </p>
                 </div>
               </div>
