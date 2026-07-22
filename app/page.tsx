@@ -194,7 +194,7 @@ export default function Home() {
 
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
             {parentCategories
-              .slice(0, 8)
+              .slice(0, 6)
               .map((category: { id: number; name: string; image?: string }) => (
                 <Link
                   key={category.id}
@@ -435,7 +435,6 @@ export default function Home() {
             })
           )}
         </div>
-
       </div>
     </div>
   );
