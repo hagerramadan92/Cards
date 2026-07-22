@@ -46,7 +46,7 @@ export async function fetchApi(
 export async function fetchHomeData(language?: string) {
   try {
     // تمرير اللغة إلى fetchApi مع حد عدد التصنيفات
-    const data = await fetchApi("home?categories_limit=7", {}, language);
+    const data = await fetchApi("home?categories_limit=2", {}, language);
     return data;
   } catch (err) {
     console.error("Error fetching home data:", err);
