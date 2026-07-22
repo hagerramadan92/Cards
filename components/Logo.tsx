@@ -52,7 +52,7 @@ export default function Logo({ href = "/", size = 44, className = "" }: Props) {
           </div>
         </motion.div>
 
-        <div className="flex flex-col leading-tight">
+        <div className="hidden flex-col leading-tight md:flex">
           <motion.div
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -102,7 +102,7 @@ export default function Logo({ href = "/", size = 44, className = "" }: Props) {
       </motion.div>
 
       {/* Names */}
-      <div className="flex flex-col leading-tight ">
+      <div className="hidden flex-col leading-tight md:flex">
         <motion.div
           initial={{ opacity: 0, x: 10 }}
           animate={{ opacity: 1, x: 0 }}

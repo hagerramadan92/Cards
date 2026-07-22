@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useContext, useMemo, useSyncExternalStore } from "react";
 
 type Theme = "light" | "dark";
 
@@ -12,25 +12,60 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-	const [theme, setThemeState] = useState<Theme>(() => {
-		if (typeof window === "undefined") return "light";
-		const currentTheme = document.documentElement.dataset.theme;
-		if (currentTheme === "dark" || currentTheme === "light") return currentTheme;
+const themeListeners = new Set<() => void>();
+
+function getServerThemeSnapshot(): Theme {
+	return "light";
+}
+
+function getThemeSnapshot(): Theme {
+	if (typeof document === "undefined") return getServerThemeSnapshot();
+
+	const currentTheme = document.documentElement.dataset.theme;
+	if (currentTheme === "dark" || currentTheme === "light") return currentTheme;
+
+	try {
 		const savedTheme = window.localStorage.getItem("theme");
 		return savedTheme === "dark" || savedTheme === "light" ? savedTheme : "light";
-	});
+	} catch {
+		return "light";
+	}
+}
 
-	useEffect(() => {
-		document.documentElement.dataset.theme = theme;
+function subscribeToTheme(listener: () => void) {
+	themeListeners.add(listener);
+	window.addEventListener("storage", listener);
+
+	return () => {
+		themeListeners.delete(listener);
+		window.removeEventListener("storage", listener);
+	};
+}
+
+function applyTheme(theme: Theme) {
+	document.documentElement.dataset.theme = theme;
+
+	try {
 		window.localStorage.setItem("theme", theme);
-	}, [theme]);
+	} catch {
+		// The visual theme still works when storage is unavailable.
+	}
+
+	themeListeners.forEach((listener) => listener());
+}
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+	const theme = useSyncExternalStore(
+		subscribeToTheme,
+		getThemeSnapshot,
+		getServerThemeSnapshot,
+	);
 
 	const value = useMemo<ThemeContextValue>(
 		() => ({
 			theme,
-			setTheme: setThemeState,
-			toggleTheme: () => setThemeState((current) => (current === "dark" ? "light" : "dark")),
+			setTheme: applyTheme,
+			toggleTheme: () => applyTheme(theme === "dark" ? "light" : "dark"),
 		}),
 		[theme]
 	);
