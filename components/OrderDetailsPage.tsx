@@ -623,7 +623,7 @@ export default function OrderDetailsPage({ orderId }: Props) {
                   {/* Main item info */}
                   <div className="flex gap-4">
                     <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
-                      <Image src={img} alt={item.product_name} fill className="object-cover" />
+                      <Image src={img} alt={item.product_name} fill sizes="80px" className="object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-slate-900 mb-1 line-clamp-2">{item.product_name}</p>

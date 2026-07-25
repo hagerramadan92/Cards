@@ -13,7 +13,11 @@ import {
 	Box, FormControl, InputLabel, Select, MenuItem, FormHelperText,
 	CircularProgress, Alert, Button, Checkbox, ListItemText, Divider,
 } from "@mui/material";
-import { Save, CheckCircle, Warning, Info, Refresh } from "@mui/icons-material";
+import Save from "@mui/icons-material/Save";
+import CheckCircle from "@mui/icons-material/CheckCircle";
+import Warning from "@mui/icons-material/Warning";
+import Info from "@mui/icons-material/Info";
+import Refresh from "@mui/icons-material/Refresh";
 import { StickerFormSkeleton } from "@/components/skeletons/HomeSkeletons";
 
 

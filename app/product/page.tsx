@@ -102,7 +102,7 @@ const getProductImage = (product: any) => {
   }
   
   // إذا لم توجد أي صورة صالحة، أرجع الصورة المحلية
-  return "/images/not.jpg";
+  return "/images/not.webp";
 };
 
 	const [meta, setMeta] = useState<Meta>({
@@ -358,11 +358,11 @@ const getProductImage = (product: any) => {
 											key={product.id}
 											id={product.id}
 											name={product.name}
-											image={product.image || "/images/not.jpg"}
+											image={product.image || "/images/not.webp"}
 											images={
 												product.images?.length
 													? product.images
-													: [{ url: "/images/not.jpg", alt: "default image" }]
+													: [{ url: "/images/not.webp", alt: "default image" }]
 											}
 											price={(product.price ?? 1).toString()}
 											final_price={product.final_price}
@@ -450,7 +450,6 @@ const getProductImage = (product: any) => {
 		</section>
 	);
 }
-
 
 
 

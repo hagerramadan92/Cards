@@ -14,7 +14,7 @@ import type { ImagesI } from "@/Types/ProductsI";
 // دالة مساعدة للتحقق من صحة الصورة
 const getValidImageUrl = (imagePath: string | null | undefined, fallback: string = "/images/placeholder.svg"): string => {
   if (!imagePath) return fallback;
-  if (imagePath === "/images/not.jpg") return fallback;
+  if (imagePath === "/images/not.webp") return fallback;
   if (imagePath.includes("default.png")) return fallback;
   return imagePath;
 };
@@ -67,6 +67,7 @@ export default function ProductGallery({ mainImage, images }: any) {
                       src={imageUrl}
                       alt={img.alt || `Product ${i + 1}`}
                       fill
+                      sizes="(max-width: 1024px) 100vw, 50vw"
                       className="object-cover"
                       priority={i === 0}
                       onError={(e) => handleImageError(imageUrl, e)}
@@ -76,8 +77,11 @@ export default function ProductGallery({ mainImage, images }: any) {
                       {/* <span className="text-6xl text-slate-400 mb-2">🖼️</span> */}
                       <span className="text-sm text-slate-500 font-medium"></span>
                       <Image
-                        src="/images/not.jpg"
-                        alt="Placeholder" fill />
+                        src="/images/not.webp"
+                        alt="Placeholder"
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 50vw"
+                      />
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent" />
@@ -114,6 +118,7 @@ export default function ProductGallery({ mainImage, images }: any) {
                         src={imageUrl}
                         alt={img.alt || `Thumb ${i + 1}`}
                         fill
+                        sizes="80px"
                         className="object-cover hover:scale-[1.03] transition duration-300"
                         onError={(e) => handleImageError(imageUrl, e)}
                       />

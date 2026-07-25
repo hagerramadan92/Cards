@@ -56,9 +56,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // دالة لتسجيل Firebase logout
-  const registerFirebaseLogout = (logoutFn: () => Promise<void>) => {
+  const registerFirebaseLogout = useCallback((logoutFn: () => Promise<void>) => {
     firebaseLogoutRef.current = logoutFn;
-  };
+  }, []);
 
   // التحقق من حالة logout عند تحميل الصفحة
   useEffect(() => {

@@ -9,17 +9,17 @@ export const link = [
 ];
 
 export const categories = [
-  { title: "الأثاث", src: "/images/cat1.png" , slug: "furniture"},
-  { title: "وحدات تخزين", src: "/images/cat1.png" , slug: "storage" },
-  { title: "ديكورات منزلية", src: "/images/cat2.png", slug: "decor" },
-  { title: "أثاث مكتبي", src: "/images/cat1.png" , slug: "office-furniture"},
-  { title: "الاضاءة", src: "/images/cat1.png", slug: "lighting" },
-  { title: "أقمشة و مفروشات", src: "/images/cat2.png", slug: "fabrics-bedding"  },
-  { title: "المطبخ والحمام", src: "/images/cat1.png" , slug: "kitchen-bath"},
-  { title: "الأجهزة المنزلية", src: "/images/cat1.png" , slug: "home-appliances" },
-  { title: "أدوات منزلية", src: "/images/cat2.png", slug: "home-tools"  },
-  { title: "الكترونيات", src: "/images/cat1.png", slug: "electronics" },
-  { title: "أثاث خارجي", src: "/images/cat2.png" , slug: "outdoor-furniture"},
+  { title: "الأثاث", src: "/images/cat1.webp" , slug: "furniture"},
+  { title: "وحدات تخزين", src: "/images/cat1.webp" , slug: "storage" },
+  { title: "ديكورات منزلية", src: "/images/cat2.webp", slug: "decor" },
+  { title: "أثاث مكتبي", src: "/images/cat1.webp" , slug: "office-furniture"},
+  { title: "الاضاءة", src: "/images/cat1.webp", slug: "lighting" },
+  { title: "أقمشة و مفروشات", src: "/images/cat2.webp", slug: "fabrics-bedding"  },
+  { title: "المطبخ والحمام", src: "/images/cat1.webp" , slug: "kitchen-bath"},
+  { title: "الأجهزة المنزلية", src: "/images/cat1.webp" , slug: "home-appliances" },
+  { title: "أدوات منزلية", src: "/images/cat2.webp", slug: "home-tools"  },
+  { title: "الكترونيات", src: "/images/cat1.webp", slug: "electronics" },
+  { title: "أثاث خارجي", src: "/images/cat2.webp" , slug: "outdoor-furniture"},
 ];
 
 

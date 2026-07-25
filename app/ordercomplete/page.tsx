@@ -609,7 +609,7 @@ export default function OrderCompletePage() {
 							<div className="space-y-3">
 								{computed.items.map((it: AnyObj, idx: number) => {
 									const p = it.product || {};
-									const img = p.image || "/images/not.jpg";
+									const img = p.image || "/images/not.webp";
 									const name = it.product_name || p.name || t('product_singular');
 									const qty = it._qty || 1;
 									const opts = Array.isArray(it._opts) ? it._opts : [];

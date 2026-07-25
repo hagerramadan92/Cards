@@ -7,6 +7,7 @@ import React, {
   useState,
   ReactNode,
   useCallback,
+  useMemo,
   useRef,
 } from "react";
 import { usePathname } from "next/navigation";
@@ -45,6 +46,14 @@ interface AppContextType {
   currentLanguage: string;
 }
 
+export interface AppInitialData {
+  homeData?: HomeData | null;
+  parentCategories?: CategoryI[];
+  childCategories?: CategoryI[];
+  socialMedia?: SocialMediaI[];
+  paymentMethods?: unknown[];
+}
+
 const AppContext = createContext<AppContextType>({
   homeData: null,
   parentCategories: [],
@@ -61,116 +70,180 @@ const AppContext = createContext<AppContextType>({
   currentLanguage: 'ar',
 });
 
-export const AppProvider = ({ children }: { children: ReactNode }) => {
+export const AppProvider = ({
+  children,
+  initialData,
+}: {
+  children: ReactNode;
+  initialData?: AppInitialData;
+}) => {
   const { language: currentLanguage } = useLanguage();
   const pathname = usePathname();
-  const [homeData, setHomeData] = useState<HomeData | null>(null);
-  const [loadingHome, setLoadingHome] = useState<boolean>(true);
-  const [parentCategories, setParentCategories] = useState<CategoryI[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState<boolean>(true);
-  const [childCategories, setChildCategories] = useState<CategoryI[]>([]);
-  const [socialMedia, setSocialMedia] = useState<SocialMediaI[]>([]);
-  const [appear_in_home_categories, setAppearInHomeCategories] = useState<
-    SubCategoriesI[]
-  >([]);
-  const [paymentMethods, setPaymentMethods] = useState<unknown[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [homeData, setHomeData] = useState<HomeData | null>(
+    initialData?.homeData ?? null,
+  );
+  const [loadingHome, setLoadingHome] = useState<boolean>(
+    initialData?.homeData === undefined,
+  );
+  const [parentCategories, setParentCategories] = useState<CategoryI[]>(
+    initialData?.parentCategories ?? [],
+  );
+  const [loadingCategories, setLoadingCategories] = useState<boolean>(
+    initialData?.parentCategories === undefined,
+  );
+  const [childCategories, setChildCategories] = useState<CategoryI[]>(
+    initialData?.childCategories ?? [],
+  );
+  const [socialMedia, setSocialMedia] = useState<SocialMediaI[]>(
+    initialData?.socialMedia ?? [],
+  );
+  const [paymentMethods, setPaymentMethods] = useState<unknown[]>(
+    initialData?.paymentMethods ?? [],
+  );
+  const [loading, setLoading] = useState<boolean>(
+    !initialData?.homeData && !initialData?.parentCategories?.length,
+  );
   const [error, setError] = useState<string | null>(null);
-  const hasCriticalDataRef = useRef(false);
+  const hasCriticalDataRef = useRef(
+    Boolean(initialData?.homeData || initialData?.parentCategories?.length),
+  );
   const lastLanguageEventRef = useRef<string | null>(null);
+  const criticalRequestIdRef = useRef(0);
+  const criticalRequestLanguageRef = useRef<string | null>(null);
+  const supplementaryRequestIdRef = useRef(0);
+  const supplementaryIdleIdRef = useRef<number | null>(null);
+  const supplementaryTimerIdRef = useRef<number | null>(null);
 
   const refreshSupplementaryData = useCallback(async (language: string) => {
+    const requestId = ++supplementaryRequestIdRef.current;
+
     try {
-      await Promise.allSettled([
-        fetchApi("categories?type=child", {}, language).then(res => {
-          setChildCategories(Array.isArray(res) ? res : []);
-          return res;
-        }),
-
-        fetchApi("social-media", {}, language).then(res => {
-          setSocialMedia(Array.isArray(res) ? res : []);
-          return res;
-        }),
-
-        fetchApi("payment-methods?is_payment=true", {}, language).then(res => {
-          setPaymentMethods(Array.isArray(res) ? res : []);
-          return res;
-        })
+      const [childrenResult, socialResult, paymentResult] =
+        await Promise.allSettled([
+          fetchApi("categories?type=child", {}, language) as Promise<unknown>,
+          fetchApi("social-media", {}, language) as Promise<unknown>,
+          fetchApi(
+            "payment-methods?is_payment=true",
+            {},
+            language,
+          ) as Promise<unknown>,
       ]);
+
+      if (requestId !== supplementaryRequestIdRef.current) return;
+
+      if (childrenResult.status === "fulfilled") {
+        setChildCategories(
+          Array.isArray(childrenResult.value) ? childrenResult.value : [],
+        );
+      }
+      if (socialResult.status === "fulfilled") {
+        setSocialMedia(
+          Array.isArray(socialResult.value) ? socialResult.value : [],
+        );
+      }
+      if (paymentResult.status === "fulfilled") {
+        setPaymentMethods(
+          Array.isArray(paymentResult.value) ? paymentResult.value : [],
+        );
+      }
     } catch (err) {
       console.warn("Non-critical data failed:", err);
     }
   }, []);
 
-  // دالة لتحديث جميع البيانات بناءً على اللغة
-const refreshAppData = useCallback(async (language?: string) => {
-  const lang = language || currentLanguage;
-  
-  try {
-    const isInitialLoad = !hasCriticalDataRef.current;
-    if (isInitialLoad) {
-      setLoading(true);
-      setLoadingHome(true);
-      setLoadingCategories(true);
+  const scheduleSupplementaryData = useCallback(
+    (language: string) => {
+      if (supplementaryIdleIdRef.current !== null) {
+        window.cancelIdleCallback(supplementaryIdleIdRef.current);
+        supplementaryIdleIdRef.current = null;
+      }
+      if (supplementaryTimerIdRef.current !== null) {
+        window.clearTimeout(supplementaryTimerIdRef.current);
+        supplementaryTimerIdRef.current = null;
+      }
+
+      const run = () => {
+        void refreshSupplementaryData(language);
+      };
+
+      if (typeof window.requestIdleCallback === "function") {
+        supplementaryIdleIdRef.current = window.requestIdleCallback(run, {
+          timeout: 2000,
+        });
+      } else {
+        supplementaryTimerIdRef.current = window.setTimeout(run, 0);
+      }
+    },
+    [refreshSupplementaryData],
+  );
+
+  const refreshAppData = useCallback(async (language?: string) => {
+    const lang = language || currentLanguage;
+    if (criticalRequestLanguageRef.current === lang) return;
+
+    const requestId = ++criticalRequestIdRef.current;
+    criticalRequestLanguageRef.current = lang;
+
+    try {
+      const isInitialLoad = !hasCriticalDataRef.current;
+      if (isInitialLoad) {
+        setLoading(true);
+        setLoadingHome(true);
+        setLoadingCategories(true);
+      }
+      setError(null);
+
+      const [homeResult, categoriesResult] = await Promise.allSettled([
+        fetchHomeData(lang) as Promise<unknown>,
+        fetchApi("categories?type=parent", {}, lang) as Promise<unknown>,
+      ]);
+
+      if (requestId !== criticalRequestIdRef.current) return;
+
+      if (
+        homeResult.status === "fulfilled" &&
+        typeof homeResult.value === "object" &&
+        homeResult.value !== null
+      ) {
+        const nextHomeData = homeResult.value as HomeData;
+        setHomeData(nextHomeData);
+      }
+      if (categoriesResult.status === "fulfilled") {
+        setParentCategories(
+          Array.isArray(categoriesResult.value)
+            ? categoriesResult.value
+            : [],
+        );
+      }
+
+      hasCriticalDataRef.current = true;
+      setLoadingHome(false);
+      setLoadingCategories(false);
+      setLoading(false);
+      scheduleSupplementaryData(lang);
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+            ? err
+            : "";
+
+      if (errorMessage === "Language changed") return;
+
+      setError(errorMessage || "فشل تحميل البيانات");
+      console.error("Error in refreshAppData:", err);
+    } finally {
+      if (requestId === criticalRequestIdRef.current) {
+        criticalRequestLanguageRef.current = null;
+      }
     }
-    setError(null);
-
-
-
-    // 🔥 **الحل: تقسيم API calls إلى مجموعتين**
-    
-    // المجموعة 1: البيانات الحرجة أولاً (للصفحة الرئيسية)
-    const criticalPromises = Promise.allSettled([
-      fetchHomeData(lang).then(res => {
-        setHomeData(res);
-        setAppearInHomeCategories(res?.appear_in_home_categories || []);
-        return res;
-      }),
-      
-      fetchApi("categories?type=parent", {}, lang).then(res => {
-        setParentCategories(Array.isArray(res) ? res : []);
-        return res;
-      }),
-    ]);
-
-    // معالجة النتائج الحرجة أولاً
-    await criticalPromises;
-    hasCriticalDataRef.current = true;
-    
-    // ✅ تحديث حالة التحميل بعد تحميل البيانات الحرجة
-    setLoadingHome(false);
-    setLoadingCategories(false);
-    if (isInitialLoad) setLoading(false);
-    
-    // المجموعة 2: البيانات غير الحرجة (يمكن تأجيلها)
-    setTimeout(() => {
-      void refreshSupplementaryData(lang);
-    }, 500); // تأخير 500ms للبيانات غير الحرجة
-
-  } catch (err: unknown) {
-    const errorMessage =
-      err instanceof Error
-        ? err.message
-        : typeof err === "string"
-          ? err
-          : "";
-
-    if (errorMessage === "Language changed") return;
-
-    setError(errorMessage || "فشل تحميل البيانات");
-    console.error("Error in refreshAppData:", err);
-  } finally {
-    // تم نقل setLoading إلى بعد تحميل البيانات الحرجة
-  }
-}, [currentLanguage, refreshSupplementaryData]);
+  }, [currentLanguage, scheduleSupplementaryData]);
 
   const hydrateInitialData = useCallback(
     (initialHomeData: HomeData | null, initialParentCategories: CategoryI[]) => {
       setHomeData(initialHomeData);
       setParentCategories(initialParentCategories);
-      setAppearInHomeCategories(
-        initialHomeData?.appear_in_home_categories || [],
-      );
       setLoading(false);
       setLoadingHome(false);
       setLoadingCategories(false);
@@ -185,11 +258,8 @@ const refreshAppData = useCallback(async (language?: string) => {
   // تحديث البيانات عند تغيير اللغة مباشرة من context أو عبر الحدث
   useEffect(() => {
     if (pathname === "/") {
-      const supplementaryTimer = window.setTimeout(() => {
-        void refreshSupplementaryData(currentLanguage);
-      }, 500);
-
-      return () => window.clearTimeout(supplementaryTimer);
+      scheduleSupplementaryData(currentLanguage);
+      return;
     }
 
     if (lastLanguageEventRef.current === currentLanguage) {
@@ -202,7 +272,7 @@ const refreshAppData = useCallback(async (language?: string) => {
     currentLanguage,
     pathname,
     refreshAppData,
-    refreshSupplementaryData,
+    scheduleSupplementaryData,
   ]);
 
   useEffect(() => {
@@ -246,24 +316,54 @@ const refreshAppData = useCallback(async (language?: string) => {
     };
   }, [pathname, refreshAppData]);
 
+  useEffect(() => {
+    return () => {
+      criticalRequestIdRef.current += 1;
+      supplementaryRequestIdRef.current += 1;
+      if (supplementaryIdleIdRef.current !== null) {
+        window.cancelIdleCallback(supplementaryIdleIdRef.current);
+      }
+      if (supplementaryTimerIdRef.current !== null) {
+        window.clearTimeout(supplementaryTimerIdRef.current);
+      }
+    };
+  }, []);
+
+  const contextValue = useMemo<AppContextType>(
+    () => ({
+      homeData,
+      parentCategories,
+      childCategories,
+      socialMedia,
+      paymentMethods,
+      loading,
+      error,
+      loadingHome,
+      loadingCategories,
+      appear_in_home_categories:
+        homeData?.appear_in_home_categories || [],
+      refreshAppData,
+      hydrateInitialData,
+      currentLanguage,
+    }),
+    [
+      childCategories,
+      currentLanguage,
+      error,
+      homeData,
+      hydrateInitialData,
+      loading,
+      loadingCategories,
+      loadingHome,
+      parentCategories,
+      paymentMethods,
+      refreshAppData,
+      socialMedia,
+    ],
+  );
+
   return (
-    <AppContext.Provider
-      value={{
-        homeData,
-        parentCategories,
-        childCategories,
-        socialMedia,
-        paymentMethods,
-        loading,
-        error,
-        loadingHome,
-        loadingCategories,
-        appear_in_home_categories,
-        refreshAppData,
-        hydrateInitialData,
-        currentLanguage,
-      }}
-    >
+    <AppContext.Provider value={contextValue}>
       {children}
     </AppContext.Provider>
   );

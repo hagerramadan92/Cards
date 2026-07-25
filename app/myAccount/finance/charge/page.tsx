@@ -115,6 +115,7 @@ export default function ChargePage() {
             src={method.logo_url}
             alt={method.name}
             fill
+            sizes="40px"
             className="object-contain"
             onError={(e) => {
               // إذا فشل تحميل الصورة، استخدم الأيقونة الافتراضية

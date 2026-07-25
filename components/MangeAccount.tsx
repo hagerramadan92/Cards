@@ -1,5 +1,7 @@
 "use client";
 
+import flagStyles from "@/styles/flags.module.css";
+
 import React, { useState, useEffect, useRef } from "react";
 import ChangePassword from "./ChangePassword";
 import { motion, AnimatePresence } from "framer-motion";
@@ -422,7 +424,7 @@ export default function MangeAccount() {
 									>
 										{phoneCountry && phonePatterns[phoneCountry] ? (
 											<div className="flex items-center gap-1.5">
-												<span className={`fi fi-${phoneCountry.toLowerCase()}`}></span>
+												<span className={`${flagStyles.fi} ${flagStyles[`fi-${phoneCountry.toLowerCase()}`]}`}></span>
 												<span className="text-xs font-semibold text-slate-700">
 													{phonePatterns[phoneCountry].code}
 												</span>
@@ -449,7 +451,7 @@ export default function MangeAccount() {
 														phoneCountry === code ? "bg-pro/10 text-pro font-semibold" : "text-slate-900"
 													)}
 												>
-													<span className={`fi fi-${code.toLowerCase()}`}></span>
+													<span className={`${flagStyles.fi} ${flagStyles[`fi-${code.toLowerCase()}`]}`}></span>
 													<span className="flex-1">{t(country.nameKey)}</span>
 													<span className="text-xs text-slate-500">{country.code}</span>
 												</button>

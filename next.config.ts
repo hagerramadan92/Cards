@@ -1,4 +1,10 @@
 import type { NextConfig } from "next";
+import bundleAnalyzer from "@next/bundle-analyzer";
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+  openAnalyzer: false,
+});
 
 const nextConfig: NextConfig = {
   images: {
@@ -73,6 +79,29 @@ const nextConfig: NextConfig = {
   output: "standalone",
   compress: true,
 
+  async headers() {
+    return [
+      {
+        source: "/images/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=604800",
+          },
+        ],
+      },
+      {
+        source: "/logo/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=604800",
+          },
+        ],
+      },
+    ];
+  },
+
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
   },
@@ -92,5 +121,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
-
+export default withBundleAnalyzer(nextConfig);

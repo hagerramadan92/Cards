@@ -11,7 +11,7 @@ export interface ItemsI {
   id: number;
   order: number;
   image: string;
-  mobile_image?: null;
+  mobile_image?: string | null;
   alt?: string;
   link_url?: string;
   link_target?: string;

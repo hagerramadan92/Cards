@@ -9,7 +9,7 @@ import type { Swiper as SwiperType } from "swiper";
 import "swiper/css";
 import "swiper/css/pagination";
 
-import Image from "@/components/ImageWithFallback";
+import HeroResponsiveImage from "@/components/HeroResponsiveImage";
 
 type SliderItem = {
   id?: number;
@@ -63,7 +63,7 @@ export default function SliderComponent({
     paginationParams.el = paginationRef.current;
     paginationParams.clickable = true;
     paginationParams.renderBullet = (_index, className) =>
-      `<span class="${className} inline-block h-2.5 w-2.5 rounded-full bg-white/60 transition-all duration-300 md:h-3 md:w-3"></span>`;
+      `<span class="${className} inline-block h-2.5 w-2.5 rounded-full bg-white/60 md:h-3 md:w-3"></span>`;
 
     swiper.pagination.destroy();
     swiper.pagination.init();
@@ -83,8 +83,6 @@ export default function SliderComponent({
         autoplay={items.length > 1 ? { delay: 3200, disableOnInteraction: false } : false}
         allowTouchMove
         grabCursor
-        observer
-        observeParents
         watchOverflow
         onSwiper={(swiperInstance) => {
           swiperRef.current = swiperInstance;
@@ -105,13 +103,11 @@ export default function SliderComponent({
             <SwiperSlide key={item.id ?? index}>
               <div className="relative w-full h-[200px] md:h-[420px] overflow-hidden">
                 <Link href={href} target={target} aria-label={`Go to slide ${index + 1}`} className="block h-full w-full relative">
-                  <Image
-                    src={item.mobile_image || item.image || "/images/placeholder.png"}
+                  <HeroResponsiveImage
+                    desktopSrc={item.image || "/images/placeholder.webp"}
+                    mobileSrc={item.mobile_image}
                     alt={alt}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1200px"
                     priority={isLcp}
-                    loading={isLcp ? undefined : "lazy"}
                     className="object-cover w-full h-full"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/10 to-transparent" />

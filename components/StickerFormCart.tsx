@@ -14,7 +14,8 @@ import {
 import { motion } from "framer-motion";
 import { useCart } from "@/src/context/CartContext";
 import { useLanguage } from "@/src/context/LanguageContext";
-import { CheckCircle, Info } from "@mui/icons-material";
+import CheckCircle from "@mui/icons-material/CheckCircle";
+import Info from "@mui/icons-material/Info";
 import { StickerFormSkeleton } from "./skeletons/HomeSkeletons";
 
 type SelectedOpt = { option_name: string; option_value: string };

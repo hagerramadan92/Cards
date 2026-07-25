@@ -1,5 +1,7 @@
 "use client";
 
+import flagStyles from "@/styles/flags.module.css";
+
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/context/AuthContext";
@@ -431,7 +433,7 @@ export default function SignupPage() {
 										>
 											{phoneCountry && phonePatterns[phoneCountry] ? (
 												<div className="flex items-center gap-1.5">
-													<span className={`fi fi-${phoneCountry.toLowerCase()}`}></span>
+													<span className={`${flagStyles.fi} ${flagStyles[`fi-${phoneCountry.toLowerCase()}`]}`}></span>
 													<span className="text-xs font-semibold text-slate-700">
 														{phonePatterns[phoneCountry].code}
 													</span>
@@ -459,7 +461,7 @@ export default function SignupPage() {
 															phoneCountry === code ? "bg-pro/10 text-pro font-semibold" : "text-slate-900"
 														)}
 													>
-														<span className={`fi fi-${code.toLowerCase()}`}></span>
+														<span className={`${flagStyles.fi} ${flagStyles[`fi-${code.toLowerCase()}`]}`}></span>
 														<span className="flex-1">{country.name}</span>
 														<span className="text-xs text-slate-500">{country.code}</span>
 													</button>

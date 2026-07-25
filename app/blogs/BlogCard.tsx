@@ -34,9 +34,10 @@ export default function BlogCard({ article }: { article: Article }) {
     >
       <div className="relative h-[180px] bg-slate-100">
         <Image
-          src={article.image || "/images/d4.jpg"}
+          src={article.image || "/images/d4-blog.webp"}
           alt={article.image_alt || article.title}
           fill
+          sizes="(max-width: 768px) 100vw, 33vw"
           className="object-cover group-hover:scale-[1.03] transition duration-300"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/5 to-transparent" />

@@ -32,7 +32,7 @@ export default function POVComponent({ product }: { product: ProductI }) {
         >
           <div className="flex items-start gap-3">
             <div className="relative w-12 h-12 rounded-2xl overflow-hidden bg-slate-100 ring-1 ring-slate-200">
-              <Image src={review.user?.image || "/user.png"} alt={review.user?.name || "user"} fill className="object-cover" />
+              <Image src={review.user?.image || "/user.png"} alt={review.user?.name || "user"} fill sizes="48px" className="object-cover" />
             </div>
 
             <div className="flex-1">

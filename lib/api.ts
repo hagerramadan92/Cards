@@ -26,7 +26,7 @@ export async function fetchApi(
         ...options.headers,
       },
       mode: "cors",
-      cache: "no-store",
+      cache: options.cache ?? (options.next ? undefined : "no-store"),
     });
 
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
@@ -114,7 +114,7 @@ export async function fetchApi2(endpoint: string, options: RequestInit = {}) {
         ...options.headers,
       },
       mode: "cors",
-      cache: "no-store",
+      cache: options.cache ?? (options.next ? undefined : "no-store"),
     });
 
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);

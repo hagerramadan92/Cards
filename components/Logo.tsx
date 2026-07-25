@@ -60,10 +60,10 @@ export default function Logo({ href = "/", size = 44, className = "" }: Props) {
             className="flex flex-col"
           >
             <span className="font-ar whitespace-nowrap font-extrabold text-slate-900 md:text-lg text-sm">
-              {/* {t("logo")} */}
+              {t("logo")}
             </span>
-            <span className="mt-[-1px] md:mt-[-3px] whitespace-nowrap font-en font-bold text-slate-500 text-[7px] md:text-xs tracking-wide text-pro-max">
-              {/* {t("logoTagline")} */}
+            <span className="mt-[-1px] max-w-[100px] truncate whitespace-nowrap font-en font-bold text-slate-500 text-[7px] tracking-wide text-pro-max md:mt-[-3px] md:text-xs">
+              {t("logoTagline")}
             </span>
           </motion.div>
         </div>

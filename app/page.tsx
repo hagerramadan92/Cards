@@ -81,8 +81,16 @@ export default async function Home() {
       : "ar";
 
   const [categoriesResult, bannersResult] = await Promise.allSettled([
-    fetchApi("categories?type=parent", {}, language) as Promise<unknown>,
-    fetchApi("banners?type=main_slider", {}, language) as Promise<unknown>,
+    fetchApi(
+      "categories?type=parent",
+      { next: { revalidate: 300 } },
+      language,
+    ) as Promise<unknown>,
+    fetchApi(
+      "banners?type=main_slider",
+      { next: { revalidate: 300 } },
+      language,
+    ) as Promise<unknown>,
   ]);
 
   const parentCategories =

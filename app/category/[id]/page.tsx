@@ -1,5 +1,7 @@
 "use client";
 
+import flagStyles from "@/styles/flags.module.css";
+
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/src/context/LanguageContext";
@@ -332,9 +334,10 @@ export default function CategoryPage() {
   <div className="absolute inset-0 bg-black/30 z-10"></div>
   
   <Image
-    src={category.image || "/images/cover.webp"}
+    src={category.image || "/images/cover-optimized.webp"}
     alt={category.name}
     fill
+    sizes="(max-width: 1392px) calc(100vw - 2rem), 1360px"
     className="object-cover"
     priority
   />
@@ -390,7 +393,7 @@ export default function CategoryPage() {
 									const country = countries.find((c) => c.code === selected);
 									return country ? (
 										<div className="flex items-center gap-2">
-											<span className={`fi fi-${country.flag}`}></span>
+											<span className={`${flagStyles.fi} ${flagStyles[`fi-${country.flag}`]}`}></span>
 											<span>{country.name}</span>
 										</div>
 									) : t('all_countries');
@@ -453,7 +456,7 @@ export default function CategoryPage() {
 								{countries.map((country) => (
 									<MenuItem key={country.code} value={country.code}>
 										<div className="flex items-center gap-2">
-											<span className={`fi fi-${country.flag}`}></span>
+											<span className={`${flagStyles.fi} ${flagStyles[`fi-${country.flag}`]}`}></span>
 											<span>{country.name}</span>
 										</div>
 									</MenuItem>
@@ -684,9 +687,10 @@ export default function CategoryPage() {
 											<div className="flex flex-col items-center gap-2">
 												<div className="relative w-[70px] h-[70px] rounded-full overflow-hidden bg-white border border-slate-200 shadow-sm group-hover:shadow transition">
 													<Image
-														src={sub.image || "/images/o1.jpg"}
+														src={sub.image || "/images/o1.webp"}
 														alt={sub.name}
 														fill
+														sizes="70px"
 														className="object-cover group-hover:scale-[1.06] transition duration-300"
 													/>
 												</div>
@@ -848,5 +852,3 @@ export default function CategoryPage() {
 		</section>
 	);
 }
-
-

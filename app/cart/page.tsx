@@ -33,7 +33,11 @@ import {
   Alert,
 } from "@mui/material";
 import { motion } from "framer-motion";
-import { Save, CheckCircle, Warning, Info, Refresh } from "@mui/icons-material";
+import Save from "@mui/icons-material/Save";
+import CheckCircle from "@mui/icons-material/CheckCircle";
+import Warning from "@mui/icons-material/Warning";
+import Info from "@mui/icons-material/Info";
+import Refresh from "@mui/icons-material/Refresh";
 import { StickerFormSkeleton } from "../../components/skeletons/HomeSkeletons";
 import { useLanguage } from "@/src/context/LanguageContext";
 import ImageComponent from "@/components/ImageComponent";
@@ -506,7 +510,7 @@ ${errors.join("\n")}
                         <div className="w-24 h-20 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200">
                           <Link href={`/product/${item.product.id}`}>
                             <ImageComponent
-                              image={item.product.image || "/images/not.jpg"}
+                              image={item.product.image || "/images/not.webp"}
                               alt={item.product.name}
                               width={96}
                               height={80}

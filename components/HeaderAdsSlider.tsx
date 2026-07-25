@@ -96,7 +96,18 @@ export default function HeaderAdsSlider() {
 		return <HeaderAdsSkeleton />;
 	}
 
-	if (!slides.length) return null;
+	if (!slides.length) {
+		return (
+			<div
+				className="h-10 w-full border-b"
+				style={{
+					background: "var(--nav-top-background)",
+					borderColor: "var(--nav-border)",
+				}}
+				aria-hidden="true"
+			/>
+		);
+	}
 
 	return (
 		<div

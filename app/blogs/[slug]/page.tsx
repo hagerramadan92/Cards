@@ -236,9 +236,10 @@ export default function BlogDetailsPage() {
         {/* Hero */}
         <div className="relative h-[260px] md:h-[420px] bg-slate-100">
           <Image
-            src={article.image || "/images/d4.jpg"}
+            src={article.image || "/images/d4-blog.webp"}
             alt={article.image_alt || article.title}
             fill
+            sizes="(max-width: 1232px) calc(100vw - 2rem), 1200px"
             className="object-cover"
             priority
           />

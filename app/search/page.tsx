@@ -264,11 +264,11 @@ export default function SearchPage() {
 									product={product}
 										key={product.id}
 										{...product}
-										image={product.image || "/images/not.jpg"}
+										image={product.image || "/images/not.webp"}
 										images={
 											product.images?.length
 												? product.images
-												: [{ url: "/images/not.jpg", alt: "default" } as any]
+												: [{ url: "/images/not.webp", alt: "default" } as any]
 										}
 										price={(product.price ?? 0).toString()}
 										className2="hidden"

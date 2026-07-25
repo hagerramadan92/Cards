@@ -119,9 +119,10 @@ export default async function BlogsPage() {
           >
             <div className="relative h-[120px] md:h-[160px]">
               <Image
-                src={cat.image || "/images/d4.jpg"}
+                src={cat.image || "/images/d4-blog.webp"}
                 alt={cat.name}
                 fill
+                sizes="(max-width: 768px) 100vw, 33vw"
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />

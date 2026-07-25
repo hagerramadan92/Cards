@@ -109,7 +109,7 @@ export default function FastBuy({
                 className="fast-buy-item py-0 whitespace-nowrap"
               >
                 <Image
-                  src={item.image || "/images/placeholder.png"}
+                  src={item.image || "/images/placeholder.webp"}
                   alt={item.name}
                   width={50}
                   height={50}

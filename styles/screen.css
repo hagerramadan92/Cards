@@ -166,7 +166,6 @@ body * {
   margin: 0 4px !important;
   cursor: pointer;
 
-  transition: width 0.25s ease, background-color 0.25s ease, transform 0.25s ease;
 }
 
 /* Active bullet */

@@ -300,7 +300,7 @@ export default function CategoriesSlider({
 										)}
 									>
 										<Image
-											src={cat.image || "/images/cat1.png"}
+											src={cat.image || "/images/cat1.webp"}
 											alt={cat.name}
 											fill
 											sizes="(max-width: 768px) 140px, 140px"

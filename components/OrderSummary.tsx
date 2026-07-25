@@ -161,7 +161,7 @@ export default function CheckoutSummary() {
           >
             {computed.items.map((item: AnyObj) => {
               const product = item?.product || {};
-              const imageSrc = product?.image || "/images/not.jpg";
+              const imageSrc = product?.image || "/images/not.webp";
               const name = product?.name || "منتج";
 
               return (

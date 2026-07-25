@@ -41,7 +41,11 @@ import {
 	ListItemText,
 	Divider,
 } from "@mui/material";
-import { Save, CheckCircle, Warning, Info, Refresh } from "@mui/icons-material";
+import Save from "@mui/icons-material/Save";
+import CheckCircle from "@mui/icons-material/CheckCircle";
+import Warning from "@mui/icons-material/Warning";
+import Info from "@mui/icons-material/Info";
+import Refresh from "@mui/icons-material/Refresh";
 
 /* ------------------------------------------
  * Types
@@ -1701,11 +1705,12 @@ useEffect(() => {
 								{/* Left */}
 								<div className="max-md:w-full flex items-center gap-3 min-w-0 ps-3">
 									<div className="relative w-14 h-14 md:w-16 md:h-16 rounded-2xl overflow-hidden bg-slate-100 ring-1 ring-slate-200 shrink-0">
-											{product?.image && product.image !== "/images/not.jpg" ? (
+											{product?.image && product.image !== "/images/not.webp" ? (
 												<Image 
 												src={product.image} 
 												alt={product.name || "Product"} 
-												fill 
+												fill
+												sizes="64px"
 												className="object-cover"
 												onError={(e) => {
 													// إذا فشلت الصورة، استخدم placeholder
@@ -1719,8 +1724,11 @@ useEffect(() => {
 											) : (
 												<div className="w-full h-full bg-slate-200 flex items-center justify-center">
 											<Image
-																	src="/images/not.jpg"
-																	alt="Placeholder" fill />
+																	src="/images/not.webp"
+																	alt="Placeholder"
+																	fill
+																	sizes="64px"
+																/>
 												</div>
 											)}
 											</div>

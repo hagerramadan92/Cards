@@ -1,5 +1,7 @@
 "use client";
 
+import flagStyles from "@/styles/flags.module.css";
+
 import React, { useCallback, useMemo, useState, useRef, useEffect } from "react";
 import Swal from "sweetalert2";
 import {
@@ -779,7 +781,7 @@ export default function ContactPageOne() {
 											>
 												{form.country && phonePatterns[form.country] ? (
 													<div className="flex items-center gap-1.5">
-														<span className={`fi fi-${form.country.toLowerCase()}`}></span>
+														<span className={`${flagStyles.fi} ${flagStyles[`fi-${form.country.toLowerCase()}`]}`}></span>
 														<span className="text-xs font-semibold text-slate-700">
 															{phonePatterns[form.country].code}
 														</span>
@@ -806,7 +808,7 @@ export default function ContactPageOne() {
 																form.country === code ? "bg-orange-50 text-orange-700 font-semibold" : "text-slate-900"
 															)}
 														>
-															<span className={`fi fi-${code.toLowerCase()}`}></span>
+															<span className={`${flagStyles.fi} ${flagStyles[`fi-${code.toLowerCase()}`]}`}></span>
 															<span className="flex-1">{country.name}</span>
 															<span className="text-xs text-slate-500">{country.code}</span>
 														</button>

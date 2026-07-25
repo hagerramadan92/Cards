@@ -101,6 +101,7 @@ export default function Favorite() {
 												src={product.image || "/images/noimg.png"}
 												alt={product.name || "Product"}
 												fill
+												sizes="(max-width: 768px) 96px, 128px"
 												className="object-cover"
 											/>
 										</div>

@@ -6,8 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { BannerI } from "@/Types/BannerI";
 import { fetchApi } from "@/lib/api";
 import { useLanguage } from "@/src/context/LanguageContext";
-import Image from "@/components/ImageWithFallback";
-import Spinner from "@/components/Spinner/spinner";
+import HeroResponsiveImage from "@/components/HeroResponsiveImage";
 
 const InteractiveSlider = dynamic(() => import("@/components/SliderComponent"), {
   ssr: false,
@@ -40,8 +39,6 @@ export default function HomepageHero({
   const { t } = useLanguage();
   const [slider, setSlider] = useState(initialSlider);
   const [isLoading, setIsLoading] = useState(!initialSlider);
-  const [shouldLoadInteractiveSlider, setShouldLoadInteractiveSlider] =
-    useState(false);
   const [isInteractiveSliderReady, setIsInteractiveSliderReady] =
     useState(false);
 
@@ -77,45 +74,6 @@ export default function HomepageHero({
   }, [initialSlider, language, loadSlider]);
 
   useEffect(() => {
-    if (!slider) return;
-
-    let idleCallbackId: number | undefined;
-    let fallbackTimer: number | undefined;
-
-    const scheduleInteractiveSlider = () => {
-      if (typeof window.requestIdleCallback === "function") {
-        idleCallbackId = window.requestIdleCallback(
-          () => setShouldLoadInteractiveSlider(true),
-          { timeout: 2000 },
-        );
-      } else {
-        fallbackTimer = window.setTimeout(
-          () => setShouldLoadInteractiveSlider(true),
-          200,
-        );
-      }
-    };
-
-    if (document.readyState === "complete") {
-      scheduleInteractiveSlider();
-    } else {
-      window.addEventListener("load", scheduleInteractiveSlider, {
-        once: true,
-      });
-    }
-
-    return () => {
-      window.removeEventListener("load", scheduleInteractiveSlider);
-      if (idleCallbackId !== undefined) {
-        window.cancelIdleCallback(idleCallbackId);
-      }
-      if (fallbackTimer !== undefined) {
-        window.clearTimeout(fallbackTimer);
-      }
-    };
-  }, [slider]);
-
-  useEffect(() => {
     const handleServerRefreshFailure = (event: Event) => {
       if (!(event instanceof CustomEvent)) return;
 
@@ -148,9 +106,10 @@ export default function HomepageHero({
       }}
     >
       {isLoading ? (
-        <div className="h-[200px] md:h-[420px] flex items-center justify-center">
-          <Spinner size="lg" />
-        </div>
+        <div
+          className="h-[200px] min-h-[200px] animate-pulse md:h-[420px] md:min-h-[420px]"
+          style={{ background: "var(--image-shell)" }}
+        />
       ) : slider && firstSlide ? (
         <div className="relative w-full h-[200px] md:h-[420px] min-h-[200px] md:min-h-[420px] aspect-[16/7] group">
           <div
@@ -170,30 +129,22 @@ export default function HomepageHero({
               tabIndex={isInteractiveSliderReady ? -1 : undefined}
               className="block h-full w-full relative"
             >
-              <Image
-                src={
-                  firstSlide.mobile_image ||
-                  firstSlide.image ||
-                  "/images/placeholder.png"
-                }
+              <HeroResponsiveImage
+                desktopSrc={firstSlide.image || "/images/placeholder.webp"}
+                mobileSrc={firstSlide.mobile_image}
                 alt={firstSlide.alt || "Slide 1"}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1200px"
                 priority
-                fetchPriority="high"
                 className="object-cover w-full h-full"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/10 to-transparent" />
             </Link>
           </div>
 
-          {shouldLoadInteractiveSlider && (
-            <InteractiveSlider
-              src={slider}
-              prioritizeFirstImage={false}
-              onReady={() => setIsInteractiveSliderReady(true)}
-            />
-          )}
+          <InteractiveSlider
+            src={slider}
+            prioritizeFirstImage={false}
+            onReady={() => setIsInteractiveSliderReady(true)}
+          />
         </div>
       ) : (
         <div className="h-[200px] md:h-[420px] flex items-center justify-center text-slate-400">

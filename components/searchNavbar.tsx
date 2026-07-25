@@ -93,26 +93,28 @@ export default function SearchNavbar() {
 							<LanguageSelector />
 						</div>
 						{/* Auth */}
-					{isLoading ? (
-						// عرض مؤشر تحميل أثناء الانتظار
-						<div className="inline-flex items-center justify-center rounded-full border px-3 py-2 md:px-4 md:py-2.5" style={{ background: "var(--surface-subtle)", borderColor: "var(--border)" }}>
-							<div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-orange-400"></div>
+						<div className="flex min-w-[44px] justify-end lg:min-w-[210px]">
+							{isLoading ? (
+								// عرض مؤشر تحميل أثناء الانتظار
+								<div className="inline-flex items-center justify-center rounded-full border px-3 py-2 md:px-4 md:py-2.5" style={{ background: "var(--surface-subtle)", borderColor: "var(--border)" }}>
+									<div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-orange-400"></div>
+								</div>
+							) : !isAuthenticated ? (
+								<Link
+									href="/login"
+									className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-orange-500/30 bg-orange-500/10 text-orange-300 px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-extrabold shadow-sm hover:bg-orange-500/16 active:scale-[0.99] transition"
+								>
+									<FaRegUser className="" size={15} />
+									<span className="max-md:hidden">{t('login')}</span>
+									<span className="md:hidden">{t('login_short')}</span>
+								</Link>
+							) : (
+								<DropdownUser />
+							)}
 						</div>
-					) : !isAuthenticated ? (
-						<Link
-							href="/login"
-							className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-orange-500/30 bg-orange-500/10 text-orange-300 px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-extrabold shadow-sm hover:bg-orange-500/16 active:scale-[0.99] transition"
-						>
-							<FaRegUser className="" size={15} />
-							<span className="max-md:hidden">{t('login')}</span>
-							<span className="md:hidden">{t('login_short')}</span>
-						</Link>
-					) : (
-						<DropdownUser />
-					)}
 
 						{/* country & currency - Hide on very small screens if needed, or keep */}
-						<div className="hidden sm:flex items-center gap-2">
+						<div className="hidden min-w-[120px] items-center justify-end gap-2 sm:flex">
 							{/* <div className="rounded-full w-[24px] h-[24px] flex items-center justify-center overflow-hidden">
 								<Image src="/images/eg.avif" alt="flag" width={20} height={20} className="object-cover w-full h-full" />
 							</div> */}
@@ -166,7 +168,7 @@ export default function SearchNavbar() {
 							<div className="shrink-0 flex items-center justify-between gap-3 px-4 md:px-5 py-4 border-b" style={{ background: "linear-gradient(180deg, var(--surface-secondary), var(--surface))", borderColor: "var(--border)" }}>
 								<div className="flex min-w-0 items-center gap-3">
 									<div className="relative w-10 h-10 shrink-0 rounded-2xl bg-white/6 shadow-sm ring-1 ring-white/10 overflow-hidden">
-										<Image src="/images/logo11.png" alt="logo" fill className="object-contain p-1.5" />
+										<Image src="/images/logo11.png" alt="logo" fill sizes="40px" className="object-contain p-1.5" />
 									</div>
 									<div className="min-w-0">
 										<h2 className="text-lg md:text-xl font-extrabold" style={{ color: "var(--text-primary)" }}>{t('menu')}</h2>

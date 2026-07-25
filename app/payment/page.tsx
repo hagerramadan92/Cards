@@ -228,7 +228,13 @@ function UploadPaymentProof({
 
           {previewUrl && (
             <div className="mt-3 relative w-full h-48 rounded-lg overflow-hidden border border-slate-200">
-              <Image src={previewUrl} alt={t('proof.preview')} fill className="object-contain" />
+              <Image
+                src={previewUrl}
+                alt={t('proof.preview')}
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-contain"
+              />
             </div>
           )}
 

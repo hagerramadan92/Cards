@@ -113,11 +113,12 @@ export default function LanguageSelector() {
     return (
       <div className="relative">
         <button
-          className="flex items-center gap-2 rounded-lg border px-3 py-1.5 opacity-50 transition-colors"
+          className="flex items-center gap-2 rounded-lg border px-3 py-1.5 opacity-50"
           style={{
             background: "var(--surface-subtle)",
             borderColor: "var(--border)",
             color: "var(--text-primary)",
+            transitionProperty: "opacity, transform",
           }}
           aria-label="Select language"
           disabled
@@ -141,6 +142,7 @@ export default function LanguageSelector() {
             background: "var(--surface-subtle)",
             borderColor: "var(--border)",
             color: "var(--text-muted)",
+            transitionProperty: "opacity, transform",
           }}
           aria-label="Loading languages"
           disabled
@@ -158,7 +160,8 @@ export default function LanguageSelector() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="language-selector-trigger flex items-center gap-2 rounded-lg border px-3 py-1.5 transition-colors"
+        className="language-selector-trigger flex items-center gap-2 rounded-lg border px-3 py-1.5"
+        style={{ transitionProperty: "opacity, transform" }}
         aria-label="Select language"
         aria-expanded={isOpen}
         disabled={languages.length === 0}

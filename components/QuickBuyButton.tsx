@@ -204,6 +204,7 @@ export default function QuickBuyButton() {
 													src={cat.image}
 													alt={cat.name}
 													fill
+													sizes="120px"
 													className="object-cover"
 												/>
 											) : (
@@ -244,7 +245,7 @@ export default function QuickBuyButton() {
                                                 title={card.name}
 											>
                                                 {card.image ? (
-                                                    <Image src={card.image} alt={card.name} fill className="object-cover" />
+                                                    <Image src={card.image} alt={card.name} fill sizes="120px" className="object-cover" />
                                                 ) : (
                                                     <div className="w-full h-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-400 p-1 text-center leading-tight">
                                                         {card.name}
@@ -283,7 +284,7 @@ export default function QuickBuyButton() {
                                                 title={store.name}
 											>
                                                 {store.image ? (
-                                                    <Image src={store.image} alt={store.name} fill className="object-cover" />
+                                                    <Image src={store.image} alt={store.name} fill sizes="120px" className="object-cover" />
                                                 ) : (
                                                     <div className="w-full h-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-400 p-1 text-center leading-tight">
                                                         {store.name}
@@ -324,7 +325,8 @@ export default function QuickBuyButton() {
 														<Image 
 															src={val.image} 
 															alt={val.name} 
-															fill 
+															fill
+															sizes="120px"
 															className="object-cover"
 														/>
 														<div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[8px] p-1 text-center">

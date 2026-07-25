@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import toast from "react-hot-toast";
 import Image from "@/components/ImageWithFallback";
 import { useAuth } from "@/src/context/AuthContext";
@@ -31,6 +29,11 @@ export default function LoginWithGoogleFirebase() {
     try {
       sessionStorage.setItem("google_login_in_progress", "true");
 
+      const [{ signInWithPopup, GoogleAuthProvider }, { auth }] =
+        await Promise.all([
+          import("firebase/auth"),
+          import("@/lib/firebase"),
+        ]);
       const provider = new GoogleAuthProvider();
       provider.addScope("email");
       provider.addScope("profile");
