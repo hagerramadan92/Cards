@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/src/context/LanguageContext";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import Loading from "@/app/loading";
 import OrderProgress from "./OrderProgress";
-import * as XLSX from 'xlsx';
+
 import Swal from "sweetalert2";
 import { GoChecklist } from "react-icons/go";
 import { IoWalletOutline } from "react-icons/io5";
@@ -393,12 +393,13 @@ export default function OrderDetailsPage({ orderId }: Props) {
   };
 
   // دالة تصدير المنتجات والسيريالات فقط إلى Excel
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     if (!order || !order.items || order.items.length === 0) return;
     
     setExporting(true);
     
     try {
+      const XLSX = await import('xlsx');
       // تجهيز بيانات المنتجات والسيريالات فقط
       const productsData = [];
       

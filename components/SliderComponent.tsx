@@ -9,6 +9,8 @@ import type { Swiper as SwiperType } from "swiper";
 import "swiper/css";
 import "swiper/css/pagination";
 
+import Image from "@/components/ImageWithFallback";
+
 type SliderItem = {
   id?: number;
   image?: string;
@@ -25,7 +27,17 @@ type SliderResponse = {
   items?: SliderItem[];
 } | null;
 
-export default function SliderComponent({ src }: { src: SliderResponse | null }) {
+type SliderComponentProps = {
+  src: SliderResponse | null;
+  onReady?: () => void;
+  prioritizeFirstImage?: boolean;
+};
+
+export default function SliderComponent({
+  src,
+  onReady,
+  prioritizeFirstImage = true,
+}: SliderComponentProps) {
   const paginationRef = useRef<HTMLDivElement | null>(null);
   const swiperRef = useRef<SwiperType | null>(null);
   const [swiperReady, setSwiperReady] = useState(0);
@@ -62,7 +74,7 @@ export default function SliderComponent({ src }: { src: SliderResponse | null })
   if (!hasSlides) return null;
 
   return (
-    <div className="relative w-full h-[200px] md:h-[420px] group">
+    <div className="relative w-full h-[200px] md:h-[420px] min-h-[200px] md:min-h-[420px] aspect-[16/7] group">
       <Swiper
         modules={[Pagination, Autoplay]}
         spaceBetween={0}
@@ -77,6 +89,7 @@ export default function SliderComponent({ src }: { src: SliderResponse | null })
         onSwiper={(swiperInstance) => {
           swiperRef.current = swiperInstance;
           setSwiperReady((value) => value + 1);
+          onReady?.();
         }}
         navigation={false}
         pagination={false}
@@ -86,17 +99,20 @@ export default function SliderComponent({ src }: { src: SliderResponse | null })
           const href = item?.is_link_active === false ? "/" : item?.link_url || "/";
           const target = item?.link_target || "_self";
           const alt = item?.alt || `Slide ${index + 1}`;
+          const isLcp = prioritizeFirstImage && index === 0;
 
           return (
             <SwiperSlide key={item.id ?? index}>
               <div className="relative w-full h-[200px] md:h-[420px] overflow-hidden">
-                <Link href={href} target={target} aria-label={`Go to slide ${index + 1}`} className="block h-full w-full">
-                  <img
-                    src={item.mobile_image || item.image || ""}
+                <Link href={href} target={target} aria-label={`Go to slide ${index + 1}`} className="block h-full w-full relative">
+                  <Image
+                    src={item.mobile_image || item.image || "/images/placeholder.png"}
                     alt={alt}
-                    className="object-fill w-full h-full"
-                    loading={index === 0 ? "eager" : "lazy"}
-                    decoding="async"
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1200px"
+                    priority={isLcp}
+                    loading={isLcp ? undefined : "lazy"}
+                    className="object-cover w-full h-full"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/10 to-transparent" />
                 </Link>

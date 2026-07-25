@@ -270,7 +270,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         const savedLang = localStorage.getItem("language");
         if (savedLang && savedLang !== "ar") {
           setLanguageState(savedLang);
-          setDirection(savedLang === "en" ? "ltr" : "rtl");
+          setDirection(savedLang === "ar" ? "rtl" : "ltr");
           
           // Update html attributes
           const dir = savedLang === "ar" ? "rtl" : "ltr";
@@ -318,7 +318,15 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       updateAllRequestsLanguage,
       t: (key: TranslationKey, variables?: Record<string, any>) => {
         const langData = translations[language as keyof typeof translations] || translations.ar;
-        let text = langData[key as keyof typeof langData] || key;
+        const localizedText =
+          (langData as Partial<Record<TranslationKey, unknown>>)[key];
+        const fallbackText = translations.ar[key];
+        let text =
+          typeof localizedText === "string"
+            ? localizedText
+            : typeof fallbackText === "string"
+              ? fallbackText
+              : key;
         if (variables) {
           Object.entries(variables).forEach(([k, v]) => {
             text = text.replace(`{${k}}`, String(v));

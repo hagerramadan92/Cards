@@ -4,7 +4,7 @@ import { useState } from "react";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import toast from "react-hot-toast";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import { useAuth } from "@/src/context/AuthContext";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { postSocialLogin, SocialLoginError } from "@/utils/socialLogin";

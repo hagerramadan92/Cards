@@ -1,5 +1,5 @@
 
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import BlogSlider from "./BlogSlider";
 import { Article } from "./BlogCard";
 // import { useLanguage } from "@/src/context/LanguageContext";

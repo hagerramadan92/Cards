@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { BiChevronDown, BiRefresh, BiGlobe } from "react-icons/bi";
+import { BiChevronDown, BiGlobe } from "react-icons/bi";
+import { useRouter } from "next/navigation";
 
 const flagMap: Record<string, string> = {
   en: "🇺🇸",
@@ -19,20 +20,16 @@ const flagMap: Record<string, string> = {
 };
 
 export default function LanguageSelector() {
+  const router = useRouter();
   const { 
     language, 
     setLanguage, 
     availableLanguages, 
     isLoadingLanguages,
-    error,
-    refreshLanguages,
-    detectBrowserLanguage,
-    updateAllRequestsLanguage
   } = useLanguage();
   
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [browserLang, setBrowserLang] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,12 +43,6 @@ export default function LanguageSelector() {
   }));
 
   const currentLang = languages.find((lang) => lang.code === language) || languages[0];
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setBrowserLang(detectBrowserLanguage());
-    }
-  }, [detectBrowserLanguage]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -68,13 +59,19 @@ export default function LanguageSelector() {
     try {
       setLanguage(langCode);
       
-      await sendLanguageChangeRequest(langCode);
+      const serverPreferenceUpdated = await sendLanguageChangeRequest(langCode);
       
       setIsOpen(false);
-      
-      // إظهار رسالة نجاح
-      showLanguageChangeToast(langCode);
-      
+
+      if (serverPreferenceUpdated) {
+        router.refresh();
+      } else if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("languageServerRefreshFailed", {
+            detail: { language: langCode },
+          }),
+        );
+      }
     } catch (error) {
       console.error("Error changing language:", error);
     }
@@ -101,30 +98,12 @@ export default function LanguageSelector() {
         throw new Error(`Failed to update language preference: ${response.status}`);
       }
 
-      const data = await response.json();
-   
-      
-      return data;
-    } catch (error) {
+      await response.json();
+      return true;
+    } catch {
       console.warn("Could not update server language preference, using client-side only");
-    
+      return false;
     }
-  };
-
-  // دالة لعرض إشعار تغيير اللغة
-  const showLanguageChangeToast = (langCode: string) => {
-    // يمكنك استخدام أي مكتبة toast تفضلها
-    // هنا مثال باستخدام alert بسيط
-    if (typeof window !== "undefined") {
-      const langName = languages.find(l => l.code === langCode)?.name || langCode;
-      
-
-    }
-  };
-
-  const handleRefreshLanguages = async () => {
-    await refreshLanguages();
-    setIsOpen(false);
   };
 
   // Rule of Hooks: Early returns must come AFTER all hook calls
@@ -134,15 +113,20 @@ export default function LanguageSelector() {
     return (
       <div className="relative">
         <button
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200 opacity-50"
+          className="flex items-center gap-2 rounded-lg border px-3 py-1.5 opacity-50 transition-colors"
+          style={{
+            background: "var(--surface-subtle)",
+            borderColor: "var(--border)",
+            color: "var(--text-primary)",
+          }}
           aria-label="Select language"
           disabled
         >
           <span className="text-sm">🇸🇦</span>
-          <span className="hidden sm:inline text-sm font-medium text-gray-700">
+          <span className="hidden text-sm font-medium sm:inline">
             العربية
           </span>
-          <BiChevronDown className="w-4 h-4 text-gray-500" />
+          <BiChevronDown className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
         </button>
       </div>
     );
@@ -152,12 +136,17 @@ export default function LanguageSelector() {
     return (
       <div className="relative">
         <button
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 animate-pulse"
+          className="flex items-center gap-2 rounded-lg border px-3 py-1.5 animate-pulse"
+          style={{
+            background: "var(--surface-subtle)",
+            borderColor: "var(--border)",
+            color: "var(--text-muted)",
+          }}
           aria-label="Loading languages"
           disabled
         >
-          <BiGlobe className="w-4 h-4 text-gray-400" />
-          <span className="hidden sm:inline text-sm font-medium text-gray-400">
+          <BiGlobe className="h-4 w-4" />
+          <span className="hidden text-sm font-medium sm:inline">
             Loading...
           </span>
         </button>
@@ -169,17 +158,18 @@ export default function LanguageSelector() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200"
+        className="language-selector-trigger flex items-center gap-2 rounded-lg border px-3 py-1.5 transition-colors"
         aria-label="Select language"
         aria-expanded={isOpen}
         disabled={languages.length === 0}
       >
         <span className="text-sm">{currentLang?.flag || "🌐"}</span>
-        <span className="hidden sm:inline text-sm font-medium text-gray-700">
+        <span className="hidden text-sm font-medium sm:inline">
           {currentLang?.name?.substring(0, 10) || language.toUpperCase()}
         </span>
         <BiChevronDown
-          className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          style={{ color: "var(--text-muted)" }}
         />
       </button>
 
@@ -190,7 +180,7 @@ export default function LanguageSelector() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-full end-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[200px] max-h-[400px] overflow-y-auto"
+            className="language-selector-menu absolute end-0 top-full z-50 mt-2 max-h-[400px] min-w-[200px] overflow-y-auto rounded-lg border shadow-lg"
           >
             
             {/* قائمة اللغات */}
@@ -199,19 +189,19 @@ export default function LanguageSelector() {
                 <button
                   key={lang.code}
                   onClick={() => handleLanguageChange(lang.code)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${
-                    language === lang.code 
-                      ? "bg-blue-50 text-pro font-semibold border-s-2 border-blue-900" 
-                      : "text-gray-700"
+                  className={`language-selector-option flex w-full items-center gap-3 px-4 py-3 transition-colors ${
+                    language === lang.code
+                      ? "is-active border-s-2 font-semibold"
+                      : ""
                   }`}
                   title={`Change language to ${lang.name} (${lang.code})`}
                 >
                   <span className="text-lg">{lang.flag}</span>
-                  <div className="flex-1 text-left">
+                  <div className="flex-1 text-start">
                     <div className="font-medium">{lang.name}</div>
                   </div>
                   {language === lang.code && (
-                    <span className="text-blue-900 font-bold">✓</span>
+                    <span className="font-bold" style={{ color: "var(--primary)" }}>✓</span>
                   )}
                 </button>
               ))}

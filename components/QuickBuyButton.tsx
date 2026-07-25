@@ -8,7 +8,7 @@ import { BsLightningChargeFill } from "react-icons/bs";
 import { createPortal } from "react-dom";
 import { useAppContext } from "@/src/context/AppContext";
 import Link from "next/link";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import { MdOutlineTouchApp } from "react-icons/md";
 
 export default function QuickBuyButton() {
@@ -16,10 +16,10 @@ export default function QuickBuyButton() {
 	const router = useRouter();
 	const [isOpen, setIsOpen] = useState(false);
 	const [mounted, setMounted] = useState(false);
-
-	// State for parent categories
-	const [parentCategories, setParentCategories] = useState<any[]>([]);
-	const [loadingParentCategories, setLoadingParentCategories] = useState(true);
+	const {
+		parentCategories,
+		loadingCategories: loadingParentCategories,
+	} = useAppContext();
 
 	// State for selections
 	const [selectedCatId, setSelectedCatId] = useState<number | null>(null);
@@ -41,26 +41,6 @@ export default function QuickBuyButton() {
 	}, [pathname]);
 
 	useEffect(() => setMounted(true), []);
-
-	// Fetch parent categories on mount
-	useEffect(() => {
-		if (!mounted) return;
-		
-		setLoadingParentCategories(true);
-		import("@/lib/api").then(({ fetchApi }) => {
-			fetchApi('categories?type=parent')
-				.then((res) => {
-					// Assuming the API returns { data: [...] } or directly an array
-					const categories = Array.isArray(res) ? res : res?.data || [];
-					setParentCategories(categories);
-				})
-				.catch((err) => {
-					console.error('Error fetching parent categories:', err);
-					setParentCategories([]);
-				})
-				.finally(() => setLoadingParentCategories(false));
-		});
-	}, [mounted]);
 
 	useEffect(() => {
 		if (isOpen && mounted) {

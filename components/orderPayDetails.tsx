@@ -1,5 +1,5 @@
 import { ProductI } from "@/Types/ProductsI";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import { LuTruck } from "react-icons/lu";
 interface OrderItemType {
   product_name: string;

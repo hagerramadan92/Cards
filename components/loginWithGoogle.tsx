@@ -1,7 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import { useState } from "react";
 import toast from "react-hot-toast";
 

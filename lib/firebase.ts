@@ -13,9 +13,9 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-let app;
-let auth:any;
-let analytics = null;
+let app: any;
+let auth: any;
+let analytics: any = null;
 
 if (typeof window !== 'undefined') {
   // في المتصفح فقط
@@ -26,18 +26,35 @@ if (typeof window !== 'undefined') {
   }
   auth = getAuth(app);
   
-  // ✅ تعطيل التخزين المؤقت لـ Firebase تماماً
+  // تعطيل التخزين المؤقت لـ Firebase
   try {
-    // محاولة تعطيل persistence
     auth.setPersistence = null;
   } catch (e) {
   
   }
   
-  analytics = getAnalytics(app);
+  // Defer analytics initialization to prevent blocking main thread on load (TBT fix)
+  if (typeof window !== 'undefined') {
+    const initAnalytics = () => {
+      import("firebase/analytics").then(({ getAnalytics, isSupported }) => {
+        isSupported().then((supported) => {
+          if (supported && app) {
+            analytics = getAnalytics(app);
+          }
+        }).catch(() => {});
+      }).catch(() => {});
+    };
+
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(initAnalytics);
+    } else {
+      setTimeout(initAnalytics, 2000);
+    }
+  }
 }
 
 export { app, auth, analytics };
+
 
 // ✅ دالة قوية لمسح Firebase session بالكامل
 // ✅ دالة قوية لمسح Firebase session بالكامل - نسخة محسنة

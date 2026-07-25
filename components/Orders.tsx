@@ -4,7 +4,7 @@ import { useState, useEffect, ChangeEvent, useMemo } from "react";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { FiSearch } from "react-icons/fi";
 import NoOrders from "./NoOrders";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import Link from "next/link";
 import { MdOutlineKeyboardArrowLeft } from "react-icons/md";
 import Stack from "@mui/material/Stack";

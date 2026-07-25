@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/src/context/LanguageContext";
 import ProductCard from "@/components/ProductCard";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import { ProductI } from "@/Types/ProductsI";
 import CategoryPageSkeleton from "@/components/skeletons/HomeSkeletons";
 import { ChevronDown, ChevronRight, ChevronLeft, BookOpen, FileText, Package } from "lucide-react";

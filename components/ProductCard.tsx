@@ -19,7 +19,7 @@ import { useAuth } from '@/src/context/AuthContext';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickViewModal from './QuickViewModal';
-import Image from 'next/image';
+import Image from "@/components/ImageWithFallback";
 import { ShoppingCart } from 'lucide-react';
 import { SelectedOptions } from './StickerForm';
 import { useLanguage } from '@/src/context/LanguageContext';

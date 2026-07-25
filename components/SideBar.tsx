@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import { useAuth } from "@/src/context/AuthContext";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { signOut } from "next-auth/react";

@@ -4,7 +4,7 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback, useImperativeHandle, forwardRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import toast from "react-hot-toast";
 
 import HearComponent from "@/components/HearComponent";

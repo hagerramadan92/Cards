@@ -5,7 +5,7 @@ import { AiOutlineClose } from "react-icons/ai";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useCart } from "@/src/context/CartContext";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import { FiShoppingCart } from "react-icons/fi";
 import { IoMdCart } from "react-icons/io";
 import { useLanguage } from "@/src/context/LanguageContext";

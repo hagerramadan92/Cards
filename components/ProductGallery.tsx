@@ -7,7 +7,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/thumbs";
 
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import { motion } from "framer-motion";
 import type { ImagesI } from "@/Types/ProductsI";
 

@@ -5,7 +5,7 @@ import ProductCard from "./ProductCard";
 import NoOrders from "./NoOrders";
 import { useAuth } from "@/src/context/AuthContext";
 import FavoriteSkeleton from "@/components/skeletons/favorite";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import { useLanguage } from "@/src/context/LanguageContext";
 
 type ViewType = "cards" | "carts";

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useDeferredValue } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import { motion } from "framer-motion";
 import { FiSearch } from "react-icons/fi";
 import { HiOutlineSquares2X2, HiOutlineFolderOpen } from "react-icons/hi2";

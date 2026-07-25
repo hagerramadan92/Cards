@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import { MdOutlineKeyboardArrowDown } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/src/context/CartContext";

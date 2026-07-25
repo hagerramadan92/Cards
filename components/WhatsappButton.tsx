@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useMemo, useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import { AiOutlineClose } from "react-icons/ai";
 import { FiSend } from "react-icons/fi";
 import { createPortal } from "react-dom";

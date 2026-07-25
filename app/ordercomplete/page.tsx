@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
-import * as XLSX from 'xlsx';
-
 import { TbCopy } from "react-icons/tb";
+
 import { MdKeyboardArrowLeft } from "react-icons/md";
 import { FiCheckCircle } from "react-icons/fi";
 import { FiDownload } from "react-icons/fi";
@@ -330,12 +329,13 @@ export default function OrderCompletePage() {
 		}
 	};
 
-	const exportSerialsToExcel = () => {
+	const exportSerialsToExcel = async () => {
 		if (!order || !order.items || order.items.length === 0) return;
 		
 		setExporting(true);
 		
 		try {
+			const XLSX = await import('xlsx');
 			const serialsData = [];
 			
 			serialsData.push({
@@ -540,7 +540,7 @@ export default function OrderCompletePage() {
 								<div className="flex items-center justify-between gap-3">
 									<div className="flex items-center gap-3">
 										<div className="w-12 h-12 md:rounded-2xl rounded-lg border border-slate-200 bg-white flex items-center justify-center overflow-hidden">
-											<Image src="/images/cod.png" alt="payment method" width={44} height={28} />
+											<Image src="/images/cod.png" alt="payment method" width={44} height={28} loading="lazy" decoding="async" />
 										</div>
 										<p className="text-lg text-slate-900 font-extrabold">
 											{mapPaymentLabel(order.payment_method_label, t)}
@@ -619,7 +619,7 @@ export default function OrderCompletePage() {
 										<div key={idx} className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
 											<div className="flex items-start gap-3">
 												<div className="relative w-14 h-14 md:rounded-2xl rounded-lg overflow-hidden border border-slate-200 bg-white shrink-0">
-													<Image src={img} alt={name} fill sizes="56px" className="object-cover" />
+													<Image src={img} alt={name} fill sizes="56px" loading="lazy" decoding="async" className="object-cover" />
 												</div>
 
 												<div className="flex-1">

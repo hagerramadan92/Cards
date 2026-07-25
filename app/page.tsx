@@ -1,201 +1,157 @@
-"use client";
-
-import dynamic from "next/dynamic";
-import CategoriesSlider from "@/components/CategoriesC";
-import InStockSlider from "@/components/InStockSlider";
-import ProductCard from "@/components/ProductCard";
-import { fetchApi } from "@/lib/api";
-import { useAppContext } from "@/src/context/AppContext";
-import { BannerI } from "@/Types/BannerI";
-import { CategoryBannerI } from "@/Types/CategoryBannerI";
-import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
+import { cookies } from "next/headers";
 import Link from "next/link";
-import { useLanguage } from "@/src/context/LanguageContext";
-import { CreditCard, Gamepad2, Headset, ShieldCheck, Zap } from "lucide-react";
-import { ProductI } from "@/Types/ProductsI";
-import { SubCategoriesI } from "@/Types/SubCategoriesI";
+import { CreditCard, Headset, ShieldCheck, Zap } from "lucide-react";
+import type { CategoryI } from "@/Types/CategoriesI";
+import type { BannerI } from "@/Types/BannerI";
+import { fetchApi } from "@/lib/api";
+import Image from "@/components/ImageWithFallback";
+import HomeDataHydrator from "@/components/HomeDataHydrator";
+import HomepageHero from "@/components/HomepageHero";
+import LazyFastBuy from "@/components/HomeSection/LazyFastBuy";
+import { translations, type TranslationKey } from "@/src/translations";
 
-// ✅ Spinner component
-import Spinner from "@/components/Spinner/spinner";
+const supportedLanguages = new Set(["ar", "en", "fr"]);
 
-// Lazy-load heavy/below-fold components
-const SliderComponent = dynamic(() => import("@/components/SliderComponent"), {
-  loading: () => (
-    <div className="flex items-center justify-center">
-      <Spinner size="lg" />
-    </div>
-  ),
-  ssr: false,
-});
+function getTranslation(language: string, key: TranslationKey): string {
+  const languageDictionary =
+    translations[language as keyof typeof translations] || translations.ar;
+  const localizedValue = (
+    languageDictionary as Partial<Record<TranslationKey, unknown>>
+  )[key];
+  const fallbackValue = translations.ar[key];
 
-const FastBuy = dynamic(
-  () => import("@/components/HomeSection/FastBuy").then((m) => m.default),
-  { ssr: false },
-);
+  if (typeof localizedValue === "string") return localizedValue;
+  if (typeof fallbackValue === "string") return fallbackValue;
+  return key;
+}
 
-type HomeCategorySection = SubCategoriesI;
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
 
-export default function Home() {
-  const { homeData, loadingCategories, parentCategories, loadingHome } =
-    useAppContext();
+function normalizeCategories(value: unknown): CategoryI[] {
+  if (!Array.isArray(value)) return [];
 
-  const { t, language } = useLanguage();
+  return value
+    .filter(
+      (category) =>
+        isRecord(category) &&
+        typeof category.id === "number" &&
+        typeof category.name === "string" &&
+        typeof category.image === "string",
+    )
+    .map((category) => {
+      const record = category as Record<string, unknown>;
 
-  const [isInitialDataReady, setIsInitialDataReady] = useState(false);
+      return {
+        id: record.id as number,
+        name: record.name as string,
+        slug: typeof record.slug === "string" ? record.slug : "",
+        description:
+          typeof record.description === "string" ? record.description : "",
+        order: typeof record.order === "number" ? record.order : 0,
+        image: record.image as string,
+        sub_image:
+          typeof record.sub_image === "string" ? record.sub_image : "",
+        is_parent:
+          typeof record.is_parent === "boolean" ? record.is_parent : true,
+      };
+    });
+}
 
-  const [isFastBuyReady, setIsFastBuyReady] = useState(false);
+function findActiveSlider(value: unknown): BannerI | null {
+  if (!Array.isArray(value)) return null;
 
-  const [categories2, setCategories2] = useState<HomeCategorySection[]>([]);
-  const [appear_in_home_categories2, setAppear_in_home_categories2] = useState<
-    HomeCategorySection[]
-  >([]);
-
-  const [mainSlider, setMainSlider] = useState<BannerI[]>([]);
-  const [isMainSliderLoading, setIsMainSliderLoading] = useState(false); // false لأن السلايدر ليس ضرورياً للصفحة الرئيسية
-
-  useEffect(() => {
-    if (parentCategories && parentCategories.length > 0 && !isFastBuyReady) {
-      setIsFastBuyReady(true);
-    }
-  }, [parentCategories, isFastBuyReady]);
-
-  useEffect(() => {
-    const isReady = !loadingHome && homeData;
-
-    if (isReady && !isInitialDataReady) {
-      setIsInitialDataReady(true);
-    }
-  }, [loadingHome, homeData, isInitialDataReady]);
-
-  useEffect(() => {
-    if (homeData) {
-      const newCategories = homeData?.sub_categories || [];
-      const newAppearCats = homeData?.appear_in_home_categories || [];
-
-      setCategories2(newCategories);
-      setAppear_in_home_categories2(newAppearCats);
-    }
-  }, [homeData]);
-
-  const visibleProductCategories = useMemo(
-    () =>
-      categories2
-        .filter(
-          (category) =>
-            Array.isArray(category.products) && category.products.length > 0,
-        )
-        .slice(0, 2),
-    [categories2],
+  const slider = value.find(
+    (banner) =>
+      isRecord(banner) &&
+      Array.isArray(banner.items) &&
+      banner.items.length > 0,
   );
 
-  useEffect(() => {
-    let mounted = true;
+  return slider ? (slider as BannerI) : null;
+}
 
-    const getMainSlider = async () => {
-      setIsMainSliderLoading(true);
-      try {
-        const data = await fetchApi("banners?type=main_slider");
-        if (!mounted) return;
-        setMainSlider(Array.isArray(data) ? data : []);
-      } catch {
-        if (!mounted) return;
-        setMainSlider([]);
-      } finally {
-        if (mounted) {
-          setIsMainSliderLoading(false);
-        }
-      }
-    };
+export default async function Home() {
+  const cookieStore = await cookies();
+  const savedLanguage = cookieStore.get("preferred-language")?.value;
+  const language =
+    savedLanguage && supportedLanguages.has(savedLanguage)
+      ? savedLanguage
+      : "ar";
 
-    const timer = setTimeout(getMainSlider, 100);
+  const [categoriesResult, bannersResult] = await Promise.allSettled([
+    fetchApi("categories?type=parent", {}, language) as Promise<unknown>,
+    fetchApi("banners?type=main_slider", {}, language) as Promise<unknown>,
+  ]);
 
-    return () => {
-      mounted = false;
-      clearTimeout(timer);
-    };
-  }, [language]);
-
-  const sliderSrc = useMemo(
-    () =>
-      (
-        mainSlider.find(
-          (banner) => Array.isArray(banner.items) && banner.items.length > 0,
-        )?.items || []
-      ).map((i) => i.image),
-    [mainSlider],
-  );
-
-  const activeHeroSlider = useMemo(
-    () =>
-      mainSlider.find(
-        (banner) => Array.isArray(banner.items) && banner.items.length > 0,
-      ) ?? null,
-    [mainSlider],
-  );
+  const parentCategories =
+    categoriesResult.status === "fulfilled"
+      ? normalizeCategories(categoriesResult.value)
+      : [];
+  const activeHeroSlider =
+    bannersResult.status === "fulfilled"
+      ? findActiveSlider(bannersResult.value)
+      : null;
+  const shouldRetryCriticalData = categoriesResult.status === "rejected";
 
   const heroFeatures = [
-    { icon: Zap, title: "تسليم فوري", description: "طلبك في لحظات" },
-    { icon: ShieldCheck, title: "دفع آمن", description: "حماية في كل عملية" },
-    { icon: CreditCard, title: "أسعار تنافسية", description: "قيمة أفضل دائمًا" },
-    { icon: Headset, title: "دعم 24/7", description: "معك في أي وقت" },
+    {
+      icon: Zap,
+      title: getTranslation(language, "feature_instant_delivery"),
+      description: getTranslation(language, "feature_instant_delivery_desc"),
+    },
+    {
+      icon: ShieldCheck,
+      title: getTranslation(language, "feature_secure_payment"),
+      description: getTranslation(language, "feature_secure_payment_desc"),
+    },
+    {
+      icon: CreditCard,
+      title: getTranslation(language, "feature_competitive_prices"),
+      description: getTranslation(language, "feature_competitive_prices_desc"),
+    },
+    {
+      icon: Headset,
+      title: getTranslation(language, "feature_support_24_7"),
+      description: getTranslation(language, "feature_support_24_7_desc"),
+    },
   ];
 
-  if (loadingHome && !homeData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-
   return (
-    <div className="app-container !mt-6 !mb-10">
-      <div className="flex flex-col gap-5 md:gap-7">
-        <div
-          className="relative overflow-hidden rounded-3xl border"
-          style={{
-            background: "var(--surface)",
-            borderColor: "var(--border)",
-            boxShadow: "var(--shadow-card)",
-          }}
-        >
-          {isMainSliderLoading ? (
-            <div className="h-[200px] md:h-[420px] flex items-center justify-center">
-              <Spinner size="lg" />
-            </div>
-          ) : activeHeroSlider && sliderSrc.length > 0 ? (
-            <SliderComponent src={activeHeroSlider} />
-          ) : (
-            <div className="h-[200px] md:h-[420px] flex items-center justify-center text-slate-400">
-              {t("no_categories")}
-            </div>
-          )}
-        </div>
+    <>
+      <HomeDataHydrator
+        homeData={null}
+        parentCategories={parentCategories}
+        shouldRetry={shouldRetryCriticalData}
+        language={language}
+      />
 
-        <section className="section-shell">
-          <div className="section-header mb-4">
-            <div>
-              <h2
-                className="text-xl font-extrabold md:text-2xl"
-                style={{ color: "var(--text-primary)" }}
-              >
-                {" "}
-                الاقسام الرئيسية{" "}
-              </h2>
-              {/* <p className="mt-1 text-sm text-slate-400">
-                أقسام مختارة للوصول السريع مثل التصميم المرجعي.
-              </p> */}
-            </div>
-            <Link href="/category" className="secondary-button text-sm">
-              عرض الكل
-            </Link>
-          </div>
+      <div className="app-container !mt-6 !mb-10">
+        <div className="flex flex-col gap-5 md:gap-7">
+          <HomepageHero
+            key={language}
+            initialSlider={activeHeroSlider}
+            language={language}
+          />
 
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
-            {parentCategories
-              .slice(0, 6)
-              .map((category: { id: number; name: string; image?: string }) => (
+          <section className="section-shell">
+            <div className="section-header mb-4">
+              <div>
+                <h2
+                  className="text-xl font-extrabold md:text-2xl"
+                  style={{ color: "var(--text-primary)" }}
+                >
+                  {getTranslation(language, "main_categories")}
+                </h2>
+              </div>
+              <Link href="/category" className="secondary-button text-sm">
+                {getTranslation(language, "view_all")}
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
+              {parentCategories.slice(0, 6).map((category) => (
                 <Link
                   key={category.id}
                   href={`/category/${category.id}`}
@@ -225,217 +181,47 @@ export default function Home() {
                   </div>
                 </Link>
               ))}
-          </div>
-        </section>
-
-        <section className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-          {heroFeatures.map((feature) => {
-            const Icon = feature.icon;
-            return (
-              <div
-                key={feature.title}
-                className="surface-card flex min-w-0 flex-col items-center gap-2 px-3 py-4 text-center md:flex-row md:gap-4 md:px-5 md:text-start"
-              >
-                <div className="icon-button shrink-0 text-orange-300">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <p
-                    className="text-sm font-bold"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    {feature.title}
-                  </p>
-                  <p className="mt-1 text-[11px] leading-4 text-slate-400 md:text-xs">
-                    {feature.description}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </section>
-
-        <div className="md:flex hidden">
-          {isFastBuyReady ? (
-            <div className="section-shell w-full">
-              <FastBuy categories={parentCategories} />
             </div>
-          ) : (
-            <div className="surface-card h-24 w-full animate-pulse rounded-xl bg-white/5"></div>
-          )}
-        </div>
+          </section>
 
-        {/* Popular Categories */}
-        {/* <div className="container max-md:overflow-hidden w-full pt-8 mt-20">
-          {!isInitialDataReady || loadingCategories || parentCategories.length === 0 ? (
-            <div className="flex items-center justify-center h-40">
-              <Spinner size="lg" />
-            </div>
-          ) : (
-            <CategoriesSlider 
-              categories={parentCategories} 
-              title={t('popular_categories')}
-            />
-          )}
-        </div> */}
-
-        {/* Appear in Home Categories */}
-        {isInitialDataReady &&
-          appear_in_home_categories2.map((categoriess, index) => (
-            <div className="w-full" key={index}>
-              {loadingCategories || !categoriess?.children?.length ? (
-                <div className="flex items-center justify-center h-40">
-                  <Spinner size="lg" />
-                </div>
-              ) : (
-                <div className="section-shell">
-                  <CategoriesSlider
-                    categories={categoriess.children}
-                    title={categoriess.name}
-                    parentCategoryId={categoriess.id}
-                    parentCategorySlug={categoriess.slug}
-                  />
-                </div>
-              )}
-            </div>
-          ))}
-
-        {/* Products Sections */}
-        <div className="flex flex-col gap-6 mt-2">
-          {!isInitialDataReady ? (
-            <div className="flex items-center justify-center h-60">
-              <Spinner size="lg" />
-            </div>
-          ) : categories2.length === 0 ? (
-            <div className="text-center py-10 text-slate-400">
-              {t("no_categories")}
-            </div>
-          ) : (
-            visibleProductCategories.map((category) => {
-              const banners = category.category_banners || [];
-              const hasBanners = banners.length > 0;
-
+          <section className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+            {heroFeatures.map((feature) => {
+              const Icon = feature.icon;
               return (
-                <section
-                  key={category.id}
-                  className="section-shell rounded-3xl overflow-hidden"
+                <div
+                  key={feature.title}
+                  className="surface-card flex min-w-0 flex-col items-center gap-2 px-3 py-4 text-center md:flex-row md:gap-4 md:px-5 md:text-start"
                 >
-                  <div className="flex items-center justify-between mb-4 gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="icon-button border-orange-500/20 bg-orange-500/10 text-orange-300">
-                        <Gamepad2 className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <h2
-                          className="text-lg md:text-2xl font-extrabold whitespace-nowrap"
-                          style={{ color: "var(--text-primary)" }}
-                        >
-                          {category.name}
-                        </h2>
-                        <p className="text-xs md:text-sm text-slate-400">
-                          منتجات ديناميكية محدثة من الـ API.
-                        </p>
-                      </div>
-                    </div>
-                    <Link
-                      href={`/category/${category.id}`}
-                      className="secondary-button z-7 text-sm md:text-base whitespace-nowrap"
+                  <div className="icon-button shrink-0 text-orange-300">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p
+                      className="text-sm font-bold"
+                      style={{ color: "var(--text-primary)" }}
                     >
-                      {t("view_all")}
-                    </Link>
+                      {feature.title}
+                    </p>
+                    <p className="mt-1 text-[11px] leading-4 text-slate-400 md:text-xs">
+                      {feature.description}
+                    </p>
                   </div>
-
-                  <div className="relative w-full p-0">
-                    {hasBanners ? (
-                      <div
-                        dir="rtl"
-                        className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4"
-                      >
-                        {banners.map(
-                          (banner: CategoryBannerI, index: number) => (
-                            <div
-                              key={banner.id}
-                              className={`relative h-28 md:h-36 overflow-hidden rounded-2xl border border-white/8 ${
-                                index === 0
-                                  ? "rounded-tr-2xl rounded-tl-2xl md:rounded-tl-none"
-                                  : index === banners.length - 1
-                                    ? "rounded-tl-2xl rounded-tr-2xl md:rounded-tr-none"
-                                    : ""
-                              }`}
-                            >
-                              <Image
-                                src={banner.image || "/images/cover2.png"}
-                                alt={banner.alt || category.name}
-                                fill
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                                className="object-center"
-                                priority={index === 0}
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
-                            </div>
-                          ),
-                        )}
-                      </div>
-                    ) : (
-                      <div className="relative h-28 md:h-36 rounded-2xl overflow-hidden border border-white/8">
-                        <Image
-                          src="/images/cover2.png"
-                          alt={category.name}
-                          fill
-                          sizes="(max-width: 768px) 100vw, 1200px"
-                          className="object-cover"
-                          priority={false}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="md:pb-2 mt-4">
-                    <InStockSlider
-                      inStock={category.products}
-                      isLoading={false}
-                      title=""
-                      hiddenArrow={false}
-                      CardComponent={(product: ProductI) => (
-                        <ProductCard
-                          widthClass="
-                            w-[120px]
-                            [@media_(max-width:468px)]:w-[160px]
-                            [@media_(min-width:469px)_and_(max-width:768px)]:w-[180px]
-                            sm:w-[170px]
-                            md:w-[190px]
-                          "
-                          {...product}
-                          product={{
-                            ...product,
-                            showBuyNow: true,
-                            price_text: product.price_text,
-                          }}
-                          key={product.id}
-                          id={product.id}
-                          name={product.name}
-                          image={product.image || "/images/c1.png"}
-                          price={product.price}
-                          final_price={product.final_price}
-                          discount={product.discount}
-                          stock={product.stock}
-                          average_rating={product.average_rating}
-                          reviews={product.reviews}
-                          className="hidden"
-                          className2="hidden"
-                          classNameHome=""
-                          Bottom="bottom-3"
-                        />
-                      )}
-                    />
-                  </div>
-                </section>
+                </div>
               );
-            })
-          )}
+            })}
+          </section>
+
+          <div className="md:flex hidden">
+            {parentCategories.length > 0 ? (
+              <div className="section-shell w-full">
+                <LazyFastBuy categories={parentCategories} />
+              </div>
+            ) : (
+              <div className="surface-card h-24 w-full animate-pulse rounded-xl bg-white/5" />
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

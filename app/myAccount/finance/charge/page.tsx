@@ -6,7 +6,7 @@ import { FaWallet, FaCreditCard, FaBuilding, FaMobileAlt, FaQrcode } from 'react
 import { SiVisa, SiMastercard, SiPaypal } from 'react-icons/si';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import Image from "@/components/ImageWithFallback";
 
 // واجهات البيانات
 interface PaymentMethod {

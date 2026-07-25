@@ -6,12 +6,21 @@ export const translations = {
     cart: "السلة",
     search: "بحث عن منتجات...",
     categories: "الأقسام",
+    main_categories: "الأقسام الرئيسية",
     popular_categories: "الفئات الأكثر شعبية",
     support: "الدعم",
     contact_us: "تواصل معنا",
     call_now: "اتصل الآن",
     menu: "القائمة",
     language: "اللغة",
+    feature_instant_delivery: "تسليم فوري",
+    feature_instant_delivery_desc: "طلبك في لحظات",
+    feature_secure_payment: "دفع آمن",
+    feature_secure_payment_desc: "حماية في كل عملية",
+    feature_competitive_prices: "أسعار تنافسية",
+    feature_competitive_prices_desc: "قيمة أفضل دائمًا",
+    feature_support_24_7: "دعم 24/7",
+    feature_support_24_7_desc: "معك في أي وقت",
     // في ملف الترجمة العربي
 
   "vat": "ضريبة القيمة المضافة",
@@ -954,6 +963,15 @@ export const translations = {
 
   },
   en: {
+    feature_instant_delivery: "Instant delivery",
+    feature_instant_delivery_desc: "Your order in moments",
+    feature_secure_payment: "Secure payment",
+    feature_secure_payment_desc: "Protection with every transaction",
+    feature_competitive_prices: "Competitive prices",
+    feature_competitive_prices_desc: "Always better value",
+    feature_support_24_7: "24/7 support",
+    feature_support_24_7_desc: "Here for you anytime",
+    main_categories: "Main categories",
     export_success: "Orders exported successfully",
     export_error: "An error occurred while exporting orders",
     export_to_excel: "Export to Excel",
@@ -1861,6 +1879,18 @@ export const translations = {
     please_select_valid_image: "Please select a valid image",
     please_login_first: "Please login first",
     api_not_available: "API not available",
+  },
+  fr: {
+    feature_instant_delivery: "Livraison instantanée",
+    feature_instant_delivery_desc: "Votre commande en quelques instants",
+    feature_secure_payment: "Paiement sécurisé",
+    feature_secure_payment_desc: "Protection à chaque transaction",
+    feature_competitive_prices: "Prix compétitifs",
+    feature_competitive_prices_desc: "Toujours plus de valeur",
+    feature_support_24_7: "Assistance 24 h/24, 7 j/7",
+    feature_support_24_7_desc: "À vos côtés à tout moment",
+    main_categories: "Catégories principales",
+    view_all: "Voir tout",
   }
 };
 

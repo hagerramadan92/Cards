@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import Link from "next/link";
 import BlogSlider from "../BlogSlider";
 import CommentsSection from "./CommentsSection";

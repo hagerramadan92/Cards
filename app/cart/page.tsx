@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import { FaPlus, FaMinus } from "react-icons/fa6";
 import { BsTrash3 } from "react-icons/bs";
 import { MdKeyboardArrowLeft } from "react-icons/md";

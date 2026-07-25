@@ -2,7 +2,7 @@
 
 import { ProductI } from "@/Types/ProductsI";
 import { motion } from "framer-motion";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import { FaStar } from "react-icons/fa";
 import { useState } from "react";
 

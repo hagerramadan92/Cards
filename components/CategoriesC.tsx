@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState, useEffect } from "react";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import Link from "next/link";
 import { CategoryI } from "@/Types/CategoriesI";
 import { SubCategoriesI } from "@/Types/SubCategoriesI";

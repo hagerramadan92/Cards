@@ -1,8 +1,8 @@
 'use client';
 
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import { useState } from "react";
-import notImage from "@/public/images/not.jpg"; // استيراد الصورة المحلية
+import notImage from "@/public/images/placeholder.webp";
 
 interface ImgProp {
 	image: string;
@@ -10,13 +10,14 @@ interface ImgProp {
 	width?: number;
 	height?: number;
 	className?: string;
+	priority?: boolean;
+	sizes?: string;
 }
 
-export default function ImageComponent({ image, alt = "صورة المنتج" }: ImgProp) {
+export default function ImageComponent({ image, alt = "صورة المنتج", priority = false, sizes = "(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw" }: ImgProp) {
 	const [imgSrc, setImgSrc] = useState(image || notImage);
 	const [hasError, setHasError] = useState(false);
 
-	// إذا حدث خطأ، استخدم الصورة المحلية
 	if (hasError) {
 		return (
 			<div className="relative w-full h-full">
@@ -25,9 +26,11 @@ export default function ImageComponent({ image, alt = "صورة المنتج" }:
 					alt={alt}
 					width={600}
 					height={400}
-					className="object-cover h-full"
-					loading="lazy"
-					decoding="async"
+					sizes={sizes}
+					className="object-cover h-full w-full"
+					priority={priority}
+					loading={priority ? undefined : "lazy"}
+					decoding={priority ? "sync" : "async"}
 				/>
 			</div>
 		);
@@ -40,9 +43,11 @@ export default function ImageComponent({ image, alt = "صورة المنتج" }:
 				alt={alt}
 				width={600}
 				height={400}
-				className="object-cover h-full"
-				loading="lazy"
-				decoding="async"
+				sizes={sizes}
+				className="object-cover h-full w-full"
+				priority={priority}
+				loading={priority ? undefined : "lazy"}
+				decoding={priority ? "sync" : "async"}
 				onError={() => {
 					setHasError(true);
 					setImgSrc(notImage);

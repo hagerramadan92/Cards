@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import { useEffect } from "react";
 
 export default function Profile() {

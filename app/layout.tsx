@@ -9,8 +9,7 @@ import { AppProvider } from "@/src/context/AppContext";
 import { ToastProvider } from "@/src/context/ToastContext";
 import { Cairo } from "next/font/google";
 import LayoutShell from "./LayoutShell";
-import '@/lib/fontawesome'
-import { AuthProvider } from "@/components/LoginEmail/AuthProvider";
+
 import { LanguageProvider } from "@/src/context/LanguageContext";
 import { DataProvider } from "@/src/context/DataContext";
 import { ThemeProvider } from "@/src/context/ThemeContext";
@@ -211,23 +210,21 @@ export default function RootLayout({
 			<body>
 				<ThemeProvider>
 					<LanguageProvider>
-						<AuthProvider>
-							<DataProvider>
-								<AppProvider>
-									<ToastProvider>
-										<Providers>
-											<LayoutShell>{children}</LayoutShell>
-											<Toaster
-												position="top-center"
-												containerStyle={{
-													zIndex: 99999999,
-												}}
-											/>
-										</Providers>
-									</ToastProvider>
-								</AppProvider>
-							</DataProvider>
-						</AuthProvider>
+						<DataProvider>
+							<AppProvider>
+								<ToastProvider>
+									<Providers>
+										<LayoutShell>{children}</LayoutShell>
+										<Toaster
+											position="top-center"
+											containerStyle={{
+												zIndex: 99999999,
+											}}
+										/>
+									</Providers>
+								</ToastProvider>
+							</AppProvider>
+						</DataProvider>
 					</LanguageProvider>
 				</ThemeProvider>
 			</body>

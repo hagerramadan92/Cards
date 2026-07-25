@@ -12,7 +12,7 @@ import {
   FaUser,
 } from "react-icons/fa6";
 import { useAuth } from "@/src/context/AuthContext";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { useFirebaseAuth } from "@/src/context/FirebaseAuthContext";

@@ -9,7 +9,7 @@ import { MdKeyboardArrowLeft } from "react-icons/md";
 import { useAppContext } from "../../src/context/AppContext";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import { useLanguage } from "@/src/context/LanguageContext";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 import { MdDelete, MdUpload } from "react-icons/md";
 
 function n(v: any) {

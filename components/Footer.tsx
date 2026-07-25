@@ -30,7 +30,7 @@ import {
   FaCreditCard,
   FaMoneyBill,
 } from "react-icons/fa";
-import Image from "next/image";
+import Image from "@/components/ImageWithFallback";
 
 type SocialItem = { key: string; value: any; icon?: string };
 type PaymentMethod = { id: number; name: string; icon?: string; is_active: boolean };

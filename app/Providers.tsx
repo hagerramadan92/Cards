@@ -4,10 +4,8 @@
 import { SessionProvider } from "next-auth/react";
 import { AuthProvider } from "@/src/context/AuthContext";
 import { CartProvider } from "@/src/context/CartContext";
-import { LanguageProvider } from "@/src/context/LanguageContext";
 import { SearchHistoryProvider } from "@/src/context/SearchHistoryContext"; 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useState } from "react";
 import { FirebaseAuthProvider } from "../src/context/FirebaseAuthContext";
 
@@ -29,19 +27,17 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <SessionProvider>
+    <SessionProvider refetchInterval={0} refetchOnWindowFocus={false}>
       <QueryClientProvider client={queryClient}>
-        <LanguageProvider>
-          <AuthProvider> 
-            <FirebaseAuthProvider> 
-              <CartProvider>
-                <SearchHistoryProvider> 
-                  {children}
-                </SearchHistoryProvider>
-              </CartProvider>
-            </FirebaseAuthProvider>
-          </AuthProvider>
-        </LanguageProvider>
+        <AuthProvider> 
+          <FirebaseAuthProvider> 
+            <CartProvider>
+              <SearchHistoryProvider> 
+                {children}
+              </SearchHistoryProvider>
+            </CartProvider>
+          </FirebaseAuthProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </SessionProvider>
   );
