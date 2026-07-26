@@ -626,7 +626,7 @@ export default function OrderDetailsPage({ orderId }: Props) {
                       <Image src={img} alt={item.product_name} fill sizes="80px" className="object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-slate-900 mb-1 line-clamp-2">{item.product_name}</p>
+                      <p className="text-sm font-semibold text-slate-900 mb-1 whitespace-normal break-words">{item.product_name}</p>
                       <div className="flex items-center gap-3 text-xs text-slate-600">
                         <span>{t("quantity")}: {item.quantity}</span>
                         {subtotal !== null && (

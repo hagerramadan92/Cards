@@ -327,7 +327,7 @@ export default function SearchComponent({ className = "", setMenuOpen }: Props) 
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs sm:text-sm font-extrabold leading-snug whitespace-normal break-words line-clamp-2" style={{ color: "var(--text-primary)" }}>
+                          <p className="text-xs sm:text-sm font-extrabold leading-snug whitespace-normal break-words" style={{ color: "var(--text-primary)" }}>
                             {item.name}
                           </p>
                           {(item.price || item.final_price) && (

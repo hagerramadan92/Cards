@@ -106,7 +106,7 @@ export default function Favorite() {
 											/>
 										</div>
 										<div className="flex-1 min-w-0">
-											<h3 className="text-base md:text-lg font-semibold text-slate-900 mb-2 line-clamp-2">
+											<h3 className="text-base md:text-lg font-semibold text-slate-900 mb-2 whitespace-normal break-words">
 												{product.name}
 											</h3>
 											<div className="flex items-center justify-between gap-4">

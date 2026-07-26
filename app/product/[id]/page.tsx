@@ -1735,7 +1735,7 @@ useEffect(() => {
 								
 
 							<div className="flex  sm:gap-2 flex-col">
-							<p className="text-xs md:text-sm font-black text-slate-900 line-clamp-2">{product.name}</p>
+							<p className="text-xs md:text-sm font-black text-slate-900 whitespace-normal break-words">{product.name}</p>
 										<p className="text-lg text-gray-500 leading-none sm:mt-1">{product.final_price}</p>
 								
 							</div>

@@ -385,7 +385,7 @@ export default function ProductCard({
         {/* Content */}
         <div className="p-2 space-y-3 mt-4">
           <Link href={`/product/${id}`}>
-            <h3 className="text-sm md:text-[16px] font-extrabold line-clamp-1 hover:text-orange-300 transition" style={{ color: "var(--text-primary)" }}>
+            <h3 className="text-sm md:text-[16px] font-extrabold leading-relaxed whitespace-normal break-words hover:text-orange-300 transition" style={{ color: "var(--text-primary)" }}>
               {name}
             </h3>
           </Link>

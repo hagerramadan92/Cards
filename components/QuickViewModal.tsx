@@ -124,14 +124,14 @@ export default function QuickViewModal({
 									<div className="text-[13px] text-gray-500 line-clamp-1">
 										{product?.category?.name || "منتج"}
 									</div>
-									<div className="text-sm md:text-base font-extrabold text-gray-900 line-clamp-1">
+									<div className="text-sm md:text-base font-extrabold text-gray-900 whitespace-normal break-words">
 										{product?.name}
 									</div>
 								</div>
 
 								<button
 									onClick={onClose}
-									className="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center"
+									className="w-9 h-9 shrink-0 rounded-full hover:bg-gray-100 flex items-center justify-center"
 									aria-label="Close"
 								>
 									<GoX size={18} />
